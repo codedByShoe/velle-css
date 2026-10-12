@@ -162,6 +162,10 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 		}
 	}
 
+	if err := buildLLMs(fsys, reg, out, version, tokens, utilities); err != nil {
+		return err
+	}
+
 	if err := copyAssets(out); err != nil {
 		return err
 	}

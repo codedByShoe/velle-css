@@ -55,4 +55,36 @@ func TestBuild(t *testing.T) {
 			t.Errorf("%s was not written", asset)
 		}
 	}
+
+	llms, err := os.ReadFile(filepath.Join(out, "llms.txt"))
+	if err != nil {
+		t.Fatal("llms.txt was not written")
+	}
+	full, err := os.ReadFile(filepath.Join(out, "llms-full.txt"))
+	if err != nil {
+		t.Fatal("llms-full.txt was not written")
+	}
+	if !strings.HasPrefix(string(llms), "# velle-css\n\n> ") {
+		t.Error("llms.txt must start with an H1 and a blockquote summary (llmstxt.org)")
+	}
+	markdownPages := []string{"guide.md", "tokens.md", "utilities.md"}
+	for _, name := range reg.Names() {
+		markdownPages = append(markdownPages, name+".md")
+	}
+	for _, page := range markdownPages {
+		if !strings.Contains(string(llms), "("+docs.SiteURL+page+")") {
+			t.Errorf("llms.txt does not link to %s", page)
+		}
+		data, err := os.ReadFile(filepath.Join(out, page))
+		if err != nil {
+			t.Errorf("%s was not written", page)
+			continue
+		}
+		if !strings.Contains(string(full), string(data)) {
+			t.Errorf("llms-full.txt does not include %s", page)
+		}
+	}
+	if !strings.Contains(string(full), "velle-css@vtest/dist/velle.css") {
+		t.Error("the guide does not pin the CDN bundles to the version")
+	}
 }
