@@ -1,0 +1,154 @@
+{{define "content"}}{{with .Component}}
+<header class="docs-intro">
+  <p class="text-sm text-subtle">{{.Category}}</p>
+  <h1>{{.Title}}</h1>
+  <p class="docs-lead">{{.Description}}</p>
+  <div class="flex items-center flex-wrap gap-half">
+    {{if .HasCSS}}<span class="badge badge--secondary">CSS</span>{{end}}
+    {{if .HasJS}}<span class="badge badge--secondary">JavaScript</span>{{end}}
+    {{if and (not .HasCSS) (not .HasJS)}}<span class="badge badge--secondary">Combines other components</span>{{end}}
+  </div>
+</header>
+
+<section class="docs-section" aria-labelledby="installation">
+  <h2 id="installation">Installation</h2>
+  <div class="input input--actor flex items-center gap docs-install" data-input-copyable>
+    <input type="text" value="velle add {{.Name}}" readonly aria-label="Install command" data-input-copyable-target="input">
+    <button type="button" class="btn btn--plain" data-input-copyable-action="copy">
+      <span class="icon icon--copy" aria-hidden="true"></span>
+      <span class="sr-only">Copy command</span>
+    </button>
+  </div>
+  <dl class="docs-facts">
+    {{if .Files}}
+    <div>
+      <dt>Files</dt>
+      <dd>{{range $i, $f := .Files}}{{if $i}}, {{end}}<code>{{$f}}</code>{{end}}</dd>
+    </div>
+    {{end}}
+    {{if .Dependencies}}
+    <div>
+      <dt>Requires</dt>
+      <dd>{{range $i, $d := .Dependencies}}{{if $i}}, {{end}}<a class="text-link" href="{{$d.Href}}">{{$d.Title}}</a>{{end}}</dd>
+    </div>
+    {{end}}
+  </dl>
+</section>
+
+{{if .Library}}{{with .Library}}
+<section class="docs-section" aria-labelledby="library">
+  <h2 id="library">Third-party library</h2>
+  <p>This component is an adapter for <a class="text-link" href="{{.Homepage}}">{{.Package}}</a> ({{.License}} license). velle-css does not ship or bundle it, and it is not part of <code>dist/velle.js</code>. Install version {{.Version}} (the version the adapter is tested against) in one of these ways:</p>
+  <h3 id="library-bundler">With a bundler</h3>
+  <pre class="docs-pre"><code>npm install {{.Package}}@{{.Version}}</code></pre>
+  {{if .Stylesheet}}<p>Then import <code>{{.Package}}/{{.Stylesheet}}</code> before <code>{{$.Component.Name}}.css</code>, so velle's theme overrides the library's defaults.</p>{{end}}
+  <h3 id="library-import-map">Without a build step</h3>
+  <p>Map the package name to a CDN build in an import map, placed before any module script:</p>
+  <pre class="docs-pre"><code>{{$.Component.ImportMapEntry}}{{if .Stylesheet}}
+&lt;link rel="stylesheet" href="{{.StylesheetURL}}"&gt; &lt;!-- before {{$.Component.Name}}.css --&gt;{{end}}</code></pre>
+  <p>When you use the <code>dist/velle.js</code> bundle, load the adapter from <code>dist/adapters/</code>: those copies share the bundle's runtime.</p>
+</section>
+{{end}}{{end}}
+
+<section class="docs-section" aria-labelledby="examples">
+  <h2 id="examples">Examples</h2>
+  {{range .Examples}}
+  <div class="docs-example">
+    <h3 id="{{.ID}}"><a href="#{{.ID}}">{{.Title}}</a></h3>
+    {{if .Description}}<p class="text-sm text-subtle">{{.Description}}</p>{{end}}
+
+    {{if .Frame}}
+    <iframe class="docs-frame-preview" srcdoc="{{.FrameDoc}}" style="block-size: {{if .Height}}{{.Height}}{{else}}24rem{{end}}" title="{{.Title}} example"></iframe>
+    {{else}}
+    <div class="docs-preview">
+      {{.HTML}}
+    </div>
+    {{end}}
+
+    <div class="docs-code" data-input-copyable>
+      <textarea hidden data-input-copyable-target="input">{{.Code}}</textarea>
+      <button type="button" class="btn btn--icon-sm btn--borderless docs-code__copy" data-input-copyable-action="copy">
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span class="sr-only">Copy code</span>
+      </button>
+      <pre><code>{{.Code}}</code></pre>
+    </div>
+  </div>
+  {{end}}
+</section>
+
+{{if or .Classes .Variables .Attributes .Actions .Events}}
+<section class="docs-section" aria-labelledby="reference">
+  <h2 id="reference">Reference</h2>
+
+  {{if .Classes}}
+  <h3 id="classes">Classes</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Class</th><th>Description</th></tr></thead>
+      <tbody>
+        {{range .Classes}}<tr><td><code>.{{.Name}}</code></td><td>{{.Description}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+
+  {{if .Variables}}
+  <h3 id="variables">CSS variables</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        {{range .Variables}}<tr><td><code>{{.Name}}</code></td><td><code>{{.Default}}</code></td><td>{{.Description}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+
+  {{if .Attributes}}
+  <h3 id="attributes">Attributes</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Attribute</th><th>On</th><th>Description</th></tr></thead>
+      <tbody>
+        {{range .Attributes}}<tr><td><code>{{.Name}}</code></td><td>{{.Element}}</td><td>{{.Description}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+
+  {{if .Actions}}
+  <h3 id="actions">Actions</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Action</th><th>Description</th></tr></thead>
+      <tbody>
+        {{range .Actions}}<tr><td><code>{{.Name}}</code></td><td>{{.Description}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+
+  {{if .Events}}
+  <h3 id="events">Events</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Event</th><th>Description</th></tr></thead>
+      <tbody>
+        {{range .Events}}<tr><td><code>{{.Name}}</code></td><td>{{.Description}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+</section>
+{{end}}
+
+{{if .Notes}}
+<section class="docs-section" aria-labelledby="notes">
+  <h2 id="notes">Notes</h2>
+  <ul class="docs-list">
+    {{range .Notes}}<li>{{.}}</li>{{end}}
+  </ul>
+</section>
+{{end}}
+{{end}}{{end}}

@@ -1,0 +1,24 @@
+{
+  "name": "progress",
+  "title": "Progress",
+  "category": "Elements",
+  "description": "A slim progress bar for the native <progress> element, with an animated indeterminate state.",
+  "files": ["progress.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "progress", "description": "Use it on a <progress>. Without a value attribute, the bar is indeterminate." }
+  ],
+  "variables": [
+    { "name": "--progress-bar-color", "default": "var(--color-border-light)", "description": "Track color." },
+    { "name": "--progress-value-color", "default": "var(--color-primary)", "description": "Fill color." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "label.html", "title": "With a label" },
+    { "file": "indeterminate.html", "title": "Indeterminate" }
+  ]
+}

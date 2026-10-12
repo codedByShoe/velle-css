@@ -1,0 +1,19 @@
+<fieldset class="flex flex-col gap-half text-sm" data-check-all>
+  <legend class="sr-only">Notifications</legend>
+  <div class="flex items-center gap">
+    <input type="checkbox" id="check_all" class="input" data-check-all-target="dependee" data-check-all-action="check">
+    <label for="check_all">Check all</label>
+  </div>
+  <div class="flex items-center gap">
+    <input type="checkbox" name="notify_via_email" id="notify_via_email" value="1" class="input" data-check-all-target="dependant" data-check-all-action="check">
+    <label for="notify_via_email">Notify via email</label>
+  </div>
+  <div class="flex items-center gap">
+    <input type="checkbox" name="notify_via_sms" id="notify_via_sms" value="1" class="input" data-check-all-target="dependant" data-check-all-action="check" checked>
+    <label for="notify_via_sms">Notify via SMS</label>
+  </div>
+  <div class="flex items-center gap">
+    <input type="checkbox" name="notify_via_push" id="notify_via_push" value="1" class="input" data-check-all-target="dependant" data-check-all-action="check">
+    <label for="notify_via_push">Notify via push notification</label>
+  </div>
+</fieldset>

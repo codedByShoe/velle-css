@@ -1,0 +1,21 @@
+<button type="button" class="btn" popovertarget="dropdown_checkbox" aria-haspopup="true">View</button>
+
+<div popover id="dropdown_checkbox" class="popover popover--block-end-start" style="--popover-size: 10rem;" role="menu" aria-label="View options">
+  <div class="menu" data-menu>
+    <div class="menu__group" role="group" aria-labelledby="dropdown_checkbox_header">
+      <div class="menu__header" id="dropdown_checkbox_header">Appearance</div>
+      <div class="btn menu__item">
+        <label class="flex-item-grow text-sm" for="dropdown_status_bar">Status bar</label>
+        <input type="checkbox" name="status_bar" id="dropdown_status_bar" value="1" class="input" data-menu-target="item" role="menuitemcheckbox" checked>
+      </div>
+      <div class="btn menu__item" aria-disabled="true">
+        <label class="flex-item-grow text-sm" for="dropdown_activity_bar">Activity bar</label>
+        <input type="checkbox" name="activity_bar" id="dropdown_activity_bar" value="1" class="input" disabled role="menuitemcheckbox">
+      </div>
+      <div class="btn menu__item">
+        <label class="flex-item-grow text-sm" for="dropdown_panel">Panel</label>
+        <input type="checkbox" name="panel" id="dropdown_panel" value="1" class="input" data-menu-target="item" role="menuitemcheckbox">
+      </div>
+    </div>
+  </div>
+</div>

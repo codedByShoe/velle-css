@@ -1,0 +1,18 @@
+.pagination {
+  align-items: center;
+  column-gap: var(--size-1);
+  display: flex;
+}
+
+.pagination__button {
+  --btn-background: transparent;
+  --btn-border-color: transparent;
+  --btn-box-shadow: none;
+  --btn-cursor: pointer;
+
+  &[aria-current="page"] {
+    --btn-background: var(--color-surface);
+    --btn-border-color: var(--color-border);
+    --btn-box-shadow: var(--shadow-xs);
+  }
+}

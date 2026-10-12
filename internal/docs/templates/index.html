@@ -1,0 +1,120 @@
+{{define "content"}}
+<header class="docs-intro">
+  <h1>velle-css</h1>
+  <p class="docs-lead">CSS components that work with any stack. Plain CSS with design tokens and utilities, a small dependency-free JavaScript runtime for interactive pieces, and a Go CLI that copies only what you use into your project.</p>
+  <p class="text-sm text-subtle">velle-css is a port of <a class="text-link" href="https://github.com/lazaronixon/css-zero">css-zero</a> by Lázaro Nixon, without its dependencies on Ruby on Rails, Hotwire and Stimulus.</p>
+</header>
+
+<section class="docs-section" aria-labelledby="install">
+  <h2 id="install">Installation</h2>
+
+  <h3 id="install-cli">With the CLI</h3>
+  <p>Install the <code>velle</code> command with Go, then run it in your project:</p>
+  <pre class="docs-pre"><code>go install github.com/codedbyshoe/velle-css/cmd/velle@latest
+
+velle init                  # writes velle.json and copies the core styles
+velle add button dialog     # copies components and everything they need
+velle list                  # shows every component</code></pre>
+  <p><code>velle init</code> puts files in <code>assets/css/velle</code>, <code>assets/js/velle</code> and <code>assets/images/velle</code>. Choose other directories with <code>--css-dir</code>, <code>--js-dir</code> and <code>--images-dir</code>, or edit <code>velle.json</code> later. <code>velle add</code> never replaces a file you have changed unless you pass <code>--overwrite</code>, and it prints the <code>&lt;link&gt;</code> and <code>&lt;script&gt;</code> tags to add to your page.</p>
+
+  <h3 id="install-cdn">From GitHub, without the CLI</h3>
+  <p>Every release includes a <code>dist/</code> folder. Load everything from the jsDelivr CDN, replacing <code>v{{.Site.Version}}</code> with the release you want:</p>
+  <pre class="docs-pre"><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Site.Version}}/dist/velle.css"&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Site.Version}}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
+  <p>You can also download the repository and copy files from <code>dist/css</code>, <code>dist/js</code> and <code>dist/images</code>. These folders hold the same individual files the CLI installs.</p>
+</section>
+
+<section class="docs-section" aria-labelledby="adapters">
+  <h2 id="adapters">Adapters</h2>
+  <p>Four components wrap a third-party library: <a class="text-link" href="chart.html">chart</a> (Chart.js), <a class="text-link" href="datepicker.html">datepicker</a> (flatpickr), <a class="text-link" href="inputmask.html">inputmask</a> (maska) and <a class="text-link" href="sortable.html">sortable</a> (SortableJS). velle-css ships only the adapter: the controller and its theme. You install the library and choose its version.</p>
+  <ul class="docs-list">
+    <li>Each adapter imports its library by package name, e.g. <code>import flatpickr from "flatpickr"</code>. With a bundler, <code>npm install</code> the package. Without one, add it to an import map; each adapter's page shows the exact snippet.</li>
+    <li>Adapters are not in <code>dist/velle.js</code> or <code>dist/velle.css</code>, so the bundles stay dependency-free. Load them from <code>dist/adapters/</code>, where they share the bundle's runtime, or install them with <code>velle add</code>, which also prints the install instructions.</li>
+    <li><code>velle list</code> marks adapters with the library they need.</li>
+  </ul>
+</section>
+
+<section class="docs-section" aria-labelledby="usage">
+  <h2 id="usage">Usage</h2>
+  <p>Load the stylesheets in this order. The order matters: component styles override the base styles, and utilities override components.</p>
+  <pre class="docs-pre"><code>&lt;head&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/reset.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/variables.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/base.css"&gt;
+
+  &lt;!-- component stylesheets, in alphabetical order --&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/button.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/dialog.css"&gt;
+  &lt;link rel="stylesheet" href="/assets/css/velle/icons.css"&gt;
+
+  &lt;link rel="stylesheet" href="/assets/css/velle/utilities.css"&gt;
+
+  &lt;!-- behaviors you use; each one loads velle.js itself --&gt;
+  &lt;script type="module" src="/assets/js/velle/dialog.js"&gt;&lt;/script&gt;
+&lt;/head&gt;</code></pre>
+  <p>Keep component stylesheets in alphabetical order, as css-zero did. A few rules have equal specificity and rely on it, for example <code>.btn</code> and <code>.avatar</code> on the same <code>&lt;button class="btn avatar"&gt;</code>. The bundled <code>dist/velle.css</code> is already in this order.</p>
+  <p>Then write plain HTML:</p>
+  <pre class="docs-pre"><code>&lt;button type="button" class="btn btn--primary" commandfor="welcome" command="show-modal"&gt;Open&lt;/button&gt;
+
+&lt;dialog id="welcome" class="dialog" data-dialog data-dialog-action="click-&gt;closeOnClickOutside"&gt;
+  &lt;div class="dialog__content"&gt;Hello!&lt;/div&gt;
+&lt;/dialog&gt;</code></pre>
+</section>
+
+<section class="docs-section" aria-labelledby="concepts">
+  <h2 id="concepts">How it fits together</h2>
+  <dl class="docs-facts">
+    <div>
+      <dt><a class="text-link" href="tokens.html">Tokens</a></dt>
+      <dd>CSS custom properties for colors, sizes, typography, shadows and animations, in <code>variables.css</code>.</dd>
+    </div>
+    <div>
+      <dt>Base</dt>
+      <dd><code>reset.css</code> normalizes the browser defaults. <code>base.css</code> defines the semantic colors (<code>--color-bg</code>, <code>--color-text</code>, <code>--color-primary</code>…), with light and dark values chosen by <code>light-dark()</code>. Edit <code>base.css</code> to theme everything.</dd>
+    </div>
+    <div>
+      <dt>Components</dt>
+      <dd>BEM-style classes such as <code>.btn</code>, <code>.btn--primary</code> and <code>.card__footer</code>. Most options are CSS variables you can set inline, e.g. <code>style="--dialog-size: 32rem"</code>.</dd>
+    </div>
+    <div>
+      <dt><a class="text-link" href="utilities.html">Utilities</a></dt>
+      <dd>Small single-purpose classes for layout and spacing, such as <code>.flex</code>, <code>.gap</code> and <code>.mbe-4</code>, using logical properties.</dd>
+    </div>
+    <div>
+      <dt><a class="text-link" href="javascript.html">JavaScript</a></dt>
+      <dd>Interactive components use data attributes and a tiny runtime with no dependencies. Native HTML does the rest: <code>&lt;dialog&gt;</code>, <code>popover</code>, invoker commands and <code>&lt;details&gt;</code>.</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="docs-section" aria-labelledby="browsers">
+  <h2 id="browsers">Browser support</h2>
+  <p>velle-css targets current versions of Chrome, Edge, Firefox and Safari, and uses modern platform features directly: <code>light-dark()</code>, relative colors, the <code>popover</code> attribute, CSS anchor positioning, invoker commands (<code>commandfor</code>/<code>command</code>), <code>@starting-style</code>, <code>:user-invalid</code>, <code>field-sizing</code>, <code>interpolate-size</code> and view transitions. Animations degrade gracefully: accordions open instantly where <code>::details-content</code> is missing. Features such as popover placement and opening dialogs with invoker commands only work in browsers that support them.</p>
+</section>
+
+<section class="docs-section" aria-labelledby="differences">
+  <h2 id="differences">Differences from css-zero</h2>
+  <ul class="docs-list">
+    <li>No Rails, Hotwire or Stimulus. The Stimulus controllers were rewritten as vanilla JavaScript on a small runtime with the same lifecycle; see <a class="text-link" href="javascript.html">JavaScript</a>.</li>
+    <li>Markup changes from <code>data-controller="tabs"</code> to <code>data-tabs</code>, from <code>data-action="tabs#select"</code> to <code>data-tabs-action="select"</code>, and from <code>data-x-name-value</code> to <code>data-x-name</code>. Targets keep the <code>data-x-target</code> form.</li>
+    <li><code>back_navigation</code> was removed: it depended on Turbo's history tracking.</li>
+    <li><code>turbo_confirm</code> is now <a class="text-link" href="confirm.html">confirm</a> and works with plain forms and links through <code>data-confirm</code>.</li>
+    <li>Icons and other images are inlined in the CSS, so stylesheets work from any path or CDN.</li>
+    <li>The Rails-only <code>.field_with_errors</code> and <code>turbo-frame</code> rules were removed; <code>aria-invalid="true"</code> marks server-side errors.</li>
+    <li>command, dropzone, dual_range, input_otp and resizable were rebuilt in plain JavaScript and no longer need a library. dropzone submits files with the form instead of Rails direct uploads.</li>
+    <li>combobox is now the browser's customizable <code>&lt;select&gt;</code> instead of tom-select, so it no longer offers free-text search or tagging.</li>
+    <li>chart, datepicker, inputmask and sortable are <a class="text-link" href="#adapters">adapters</a>: you install Chart.js, flatpickr, maska or SortableJS yourself.</li>
+    <li>sound was removed. The Lexxy rich text editor is planned for a later release.</li>
+  </ul>
+</section>
+
+<section class="docs-section" aria-labelledby="components">
+  <h2 id="components">Components</h2>
+  {{range .Site.Nav}}{{if ne .Title "Getting started"}}
+  <h3 id="{{slug .Title}}">{{.Title}}</h3>
+  <div class="docs-grid">
+    {{range .Links}}<a class="list-row list-row--link" href="{{.Href}}">{{.Title}}</a>{{end}}
+  </div>
+  {{end}}{{end}}
+</section>
+{{end}}

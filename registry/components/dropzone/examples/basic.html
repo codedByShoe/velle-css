@@ -1,0 +1,15 @@
+<form action="/attachments" method="post" enctype="multipart/form-data" class="flex flex-col gap" style="max-inline-size: 28rem">
+  <div class="dropzone" data-dropzone>
+    <label class="dropzone__area">
+      <input type="file" name="attachments[]" multiple class="sr-only" data-dropzone-target="input">
+      <span class="font-medium">Drop files here or click to upload.</span>
+      <span class="text-sm text-subtle">Upload as many files as you want.</span>
+    </label>
+    <ul class="dropzone__files" data-dropzone-target="files"></ul>
+  </div>
+
+  <div class="flex items-center gap">
+    <button type="submit" class="btn btn--primary">Upload</button>
+    <button type="reset" class="btn">Clear</button>
+  </div>
+</form>

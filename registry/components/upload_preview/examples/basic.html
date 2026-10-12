@@ -1,0 +1,19 @@
+<div class="flex items-center gap" data-upload-preview data-upload-preview-default-image="assets/images/avatar.svg">
+  <label class="flex items-center gap">
+    <span class="btn btn--icon">
+      <input type="file" name="avatar" class="sr-only" accept="image/*" data-upload-preview-target="input" data-upload-preview-action="previewImage">
+      <span class="icon icon--camera" style="--icon-size: 1.25rem" aria-hidden="true"></span>
+      <span class="sr-only">Upload avatar</span>
+    </span>
+
+    <span class="btn avatar" style="--avatar-size: 6rem;">
+      <img alt="Avatar" src="assets/images/avatar.svg" width="96" height="96" data-upload-preview-target="image">
+    </span>
+  </label>
+
+  <label class="btn btn--icon btn--negative" data-upload-preview-action="click->clear">
+    <input type="hidden" name="remove_avatar" value="false" autocomplete="off" data-upload-preview-target="removeInput">
+    <span class="icon icon--minus" style="--icon-size: 1.25rem" aria-hidden="true"></span>
+    <span class="sr-only">Remove avatar</span>
+  </label>
+</div>

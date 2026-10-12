@@ -1,0 +1,115 @@
+/*
+  A fully styled select built on the customizable <select> (appearance: base-select).
+  Browsers without it show a regular select; combine with the input class so it still
+  matches the other fields.
+
+  The selectors are scoped to drop-down selects (no multiple or size), which is what the
+  customizable select supports. That also gives them enough specificity to override the
+  input styles, which load later.
+*/
+@supports (appearance: base-select) {
+  select.combobox:not([multiple], [size]),
+  select.combobox:not([multiple], [size])::picker(select) {
+    appearance: base-select;
+  }
+
+  select.combobox:not([multiple], [size]) {
+    align-items: center;
+    background-image: none;
+    column-gap: var(--size-2);
+    display: flex;
+
+    &::picker-icon {
+      background-color: var(--color-text-subtle);
+      block-size: var(--size-4);
+      content: "";
+      flex-shrink: 0;
+      inline-size: var(--size-4);
+      margin-inline-start: auto;
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      mask-size: cover;
+      transition-duration: var(--time-150);
+      transition-property: rotate;
+      transition-timing-function: var(--ease-out-3);
+    }
+
+    &:open::picker-icon {
+      rotate: 180deg;
+    }
+
+    &::picker(select) {
+      background-color: var(--color-surface);
+      border-radius: var(--rounded-lg);
+      border-width: var(--border);
+      box-shadow: var(--shadow-md);
+      color: var(--color-text);
+      margin-block: var(--size-1);
+      max-block-size: var(--combobox-max-block-size, var(--size-72));
+      padding: var(--size-1);
+
+      /* Setup transition */
+      transition-behavior: allow-discrete;
+      transition-duration: var(--time-150);
+      transition-property: display, opacity, overlay, transform;
+      transition-timing-function: var(--ease-out-3);
+
+      /* Exit stage to */
+      opacity: 0; transform: var(--scale-95);
+    }
+
+    /* On stage */
+    &:open::picker(select) {
+      opacity: 1; transform: var(--scale-100);
+    }
+
+    /* Enter stage from */
+    @starting-style {
+      &:open::picker(select) {
+        opacity: 0; transform: var(--scale-95);
+      }
+    }
+
+    optgroup {
+      color: var(--color-text-subtle);
+      font-size: var(--text-xs);
+      font-weight: var(--font-medium);
+      padding-block-start: var(--size-1_5);
+    }
+
+    optgroup + optgroup {
+      border-block-start-width: var(--border);
+      margin-block-start: var(--size-1);
+    }
+
+    option {
+      align-items: center;
+      border-radius: var(--rounded-md);
+      color: var(--color-text);
+      column-gap: var(--size-2);
+      display: flex;
+      font-size: var(--text-sm);
+      font-weight: var(--font-normal);
+      padding: var(--size-1) var(--size-1_5);
+
+      &::checkmark {
+        margin-inline-start: auto;
+        order: 1;
+      }
+
+      &:is(:hover, :focus-visible) {
+        background-color: var(--color-border-light);
+        outline: none;
+      }
+
+      &:disabled {
+        opacity: var(--opacity-50);
+      }
+    }
+
+    selectedcontent {
+      align-items: center;
+      column-gap: var(--size-2);
+      display: flex;
+    }
+  }
+}

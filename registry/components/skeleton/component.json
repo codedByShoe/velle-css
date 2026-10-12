@@ -1,0 +1,21 @@
+{
+  "name": "skeleton",
+  "title": "Skeleton",
+  "category": "Elements",
+  "description": "A pulsing placeholder shown while content loads.",
+  "files": ["skeleton.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "skeleton", "description": "A blinking shaded block. Size it with utilities or inline styles." }
+  ],
+  "variables": [],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "text.html", "title": "Text" },
+    { "file": "avatar.html", "title": "Avatar" },
+    { "file": "card.html", "title": "Card" }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "dialog",
+  "title": "Dialog",
+  "category": "Overlays",
+  "description": "A modal window built on the native <dialog> element, with enter and exit transitions.",
+  "files": ["dialog.css", "dialog.js"],
+  "dependencies": ["button", "icons"],
+  "classes": [
+    { "name": "dialog", "description": "The dialog box. Put it on a <dialog>." },
+    { "name": "dialog__content", "description": "Padded content area." },
+    { "name": "dialog__footer", "description": "Shaded footer that bleeds to the dialog edges. Place it last inside dialog__content." },
+    { "name": "dialog__close", "description": "Positions a close button in the top corner." }
+  ],
+  "variables": [
+    { "name": "--dialog-size", "default": "var(--max-i-sm)", "description": "Maximum width on screens 40rem and wider." }
+  ],
+  "attributes": [
+    { "name": "commandfor / command", "element": "<button>", "description": "Native invoker commands open and close the dialog with no JavaScript: command=\"show-modal\" to open and command=\"close\" to close, with commandfor set to the dialog id." },
+    { "name": "data-dialog", "element": "<dialog>", "description": "Enables the dialog behavior. Only needed for the actions below." },
+    { "name": "data-dialog-action", "element": "<dialog> or elements inside it", "description": "e.g. \"click->closeOnClickOutside\" on the dialog closes it when the backdrop is clicked." }
+  ],
+  "actions": [
+    { "name": "show", "description": "Opens the dialog without a backdrop (non-modal)." },
+    { "name": "showModal", "description": "Opens the dialog as a modal." },
+    { "name": "close", "description": "Closes the dialog." },
+    { "name": "closeOnClickOutside", "description": "Closes the dialog when the click landed on the <dialog> element itself, which is the backdrop area." }
+  ],
+  "events": [],
+  "notes": [
+    "Page scrolling is locked while a modal dialog is open (see reset.css).",
+    "Browsers without invoker commands can open the dialog with dialog.showModal() from your own script."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic", "description": "Clicking outside closes it." },
+    { "file": "alert_dialog.html", "title": "Alert dialog", "description": "No close button and no click-outside: the user must choose." },
+    { "file": "destructive.html", "title": "Destructive" },
+    { "file": "scrollable.html", "title": "Scrollable content" }
+  ]
+}

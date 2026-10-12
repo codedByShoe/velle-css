@@ -1,0 +1,58 @@
+{
+  "name": "button",
+  "title": "Button",
+  "category": "Elements",
+  "description": "Buttons and button-styled links in several variants and sizes.",
+  "files": ["button.css"],
+  "dependencies": ["icons"],
+  "classes": [
+    { "name": "btn", "description": "Base outlined button. Works on <button>, <a>, <label> and <summary>." },
+    { "name": "btn--primary", "description": "Solid primary color, for the main action." },
+    { "name": "btn--secondary", "description": "Muted, borderless." },
+    { "name": "btn--borderless", "description": "Transparent background, no border or shadow; still highlights on hover." },
+    { "name": "btn--negative", "description": "Red, for destructive actions." },
+    { "name": "btn--plain", "description": "No background, border, padding or hover; looks like text." },
+    { "name": "btn--icon", "description": "Square padding for an icon-only button." },
+    { "name": "btn--xs", "description": "Extra small." },
+    { "name": "btn--sm", "description": "Small." },
+    { "name": "btn--lg", "description": "Large." },
+    { "name": "btn--icon-xs", "description": "Extra small icon-only button." },
+    { "name": "btn--icon-sm", "description": "Small icon-only button." },
+    { "name": "btn--icon-lg", "description": "Large icon-only button." },
+    { "name": "btn--feedback", "description": "Shrinks slightly while pressed." },
+    { "name": "btn--busy", "description": "Shows a spinner while the button is disabled inside an element with aria-busy (see autosave)." }
+  ],
+  "variables": [
+    { "name": "--btn-background", "default": "var(--color-surface)", "description": "Background color." },
+    { "name": "--btn-hover-color", "default": "var(--color-border-light)", "description": "Background color on hover." },
+    { "name": "--btn-border-color", "default": "var(--color-border)", "description": "Border color." },
+    { "name": "--btn-color", "default": "var(--color-text)", "description": "Text color." },
+    { "name": "--btn-radius", "default": "var(--rounded-lg)", "description": "Corner radius." },
+    { "name": "--btn-box-shadow", "default": "var(--shadow-xs)", "description": "Shadow." },
+    { "name": "--btn-padding", "default": ".25rem .625rem", "description": "Inner padding." },
+    { "name": "--btn-font-size", "default": "var(--text-sm)", "description": "Font size." },
+    { "name": "--btn-font-weight", "default": "var(--font-medium)", "description": "Font weight." },
+    { "name": "--btn-column-gap", "default": "var(--size-1_5)", "description": "Gap between icon and label." },
+    { "name": "--btn-justify-content", "default": "center", "description": "Horizontal alignment of the content." },
+    { "name": "--btn-inline-size", "default": "auto", "description": "Width." },
+    { "name": "--btn-block-size", "default": "auto", "description": "Height." },
+    { "name": "--btn-icon-size", "default": "1rem", "description": "Size of icons inside the button." },
+    { "name": "--btn-cursor", "default": "default", "description": "Mouse cursor." },
+    { "name": "--btn-outline-size", "default": "2px", "description": "Focus ring width." }
+  ],
+  "attributes": [
+    { "name": "disabled / aria-disabled=\"true\"", "element": ".btn", "description": "Dims the button and blocks pointer interaction. Use aria-disabled on links." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "variants.html", "title": "Variants" },
+    { "file": "sizes.html", "title": "Sizes" },
+    { "file": "with_icon.html", "title": "With an icon" },
+    { "file": "rounded.html", "title": "Rounded", "description": "Combine with the rounded-full utility." },
+    { "file": "disabled.html", "title": "Disabled" },
+    { "file": "feedback.html", "title": "Press feedback" },
+    { "file": "busy.html", "title": "Busy", "description": "The spinner shows while the button is disabled inside an element with aria-busy. The autosave behavior manages both for you; here a small script toggles them." }
+  ]
+}

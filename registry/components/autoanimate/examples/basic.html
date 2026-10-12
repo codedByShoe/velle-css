@@ -1,0 +1,37 @@
+<div class="flex flex-col gap" style="max-inline-size: 20rem">
+  <div class="flex items-center gap">
+    <button type="button" class="btn" id="autoanimate_add">Add fruit</button>
+    <button type="button" class="btn" id="autoanimate_shuffle">Shuffle</button>
+  </div>
+
+  <ul class="auto-animate flex flex-col gap-half" id="autoanimate_list">
+    <li class="list-row flex items-center justify-between">Apple <button type="button" class="btn btn--plain" data-remove>Remove</button></li>
+    <li class="list-row flex items-center justify-between">Banana <button type="button" class="btn btn--plain" data-remove>Remove</button></li>
+    <li class="list-row flex items-center justify-between">Cherry <button type="button" class="btn btn--plain" data-remove>Remove</button></li>
+  </ul>
+</div>
+
+<script>
+  (() => {
+    const list = document.getElementById("autoanimate_list")
+    const fruits = [ "Grape", "Kiwi", "Lemon", "Mango", "Orange", "Peach", "Pear", "Plum" ]
+    const transition = update => document.startViewTransition ? document.startViewTransition(update) : update()
+
+    document.getElementById("autoanimate_add").addEventListener("click", () => {
+      transition(() => {
+        const item = list.firstElementChild.cloneNode(true)
+        item.firstChild.textContent = fruits[Math.floor(Math.random() * fruits.length)] + " "
+        list.prepend(item)
+      })
+    })
+
+    document.getElementById("autoanimate_shuffle").addEventListener("click", () => {
+      transition(() => [ ...list.children ].sort(() => Math.random() - 0.5).forEach(item => list.append(item)))
+    })
+
+    list.addEventListener("click", event => {
+      const item = event.target.closest("[data-remove]")?.closest("li")
+      if (item && list.children.length > 1) transition(() => item.remove())
+    })
+  })()
+</script>

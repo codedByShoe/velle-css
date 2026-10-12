@@ -1,0 +1,75 @@
+:where(.input) {
+  &:not([type="checkbox"], [type="radio"], [type="range"]) {
+    appearance: none;
+    background-color: var(--input-background, var(--color-surface));
+    block-size: var(--input-block-size, auto);
+    border: 1px solid var(--input-border-color, var(--color-border));
+    border-radius: var(--input-radius, var(--rounded-md));
+    box-shadow: var(--input-box-shadow, var(--shadow-xs));
+    font-size: var(--input-font-size, var(--text-sm));
+    inline-size: var(--input-inline-size, var(--size-full));
+    padding: var(--input-padding, .25rem .625rem);
+  }
+
+  &:is([type="checkbox"], [type="radio"]) {
+    accent-color: var(--input-accent-color, var(--color-primary));
+    block-size: var(--input-check-size, var(--size-4));
+    inline-size: var(--input-check-size, var(--size-4));
+  }
+
+  &:is([type="range"]) {
+    accent-color: var(--input-accent-color, var(--color-primary));
+    zoom: var(--input-range-zoom, .625);
+  }
+
+  &:is([rows="auto"]) {
+    field-sizing: content;
+    max-block-size: calc(.875rem + var(--input-max-rows, 10lh));
+    min-block-size: calc(.875rem + var(--input-rows, 2lh));
+  }
+
+  &:is(select):not([multiple], [size]) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: center right var(--size-2);
+    background-repeat: no-repeat;
+    background-size: var(--size-4) auto;
+  }
+
+  > option {
+    padding: revert;
+  }
+
+  &::file-selector-button {
+    font-weight: var(--font-medium);
+  }
+
+  &:user-invalid {
+    border-color: var(--color-text-negative);
+  }
+
+  &:user-invalid + [feedback] {
+    display: unset;
+  }
+
+  &:focus-visible {
+    outline: var(--input-outline-size, 2px) solid var(--color-selected-dark);
+  }
+
+  &:disabled {
+    cursor: not-allowed; opacity: var(--opacity-50);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--color-text-negative);
+  }
+}
+
+.input--actor {
+  > :is(input, textarea) {
+    field-sizing: inherit; flex-grow: 1; min-inline-size: 0; outline: 0; resize: none;
+  }
+
+  &:focus-within {
+    outline: var(--input-outline-size, 2px) solid var(--color-selected-dark);
+  }
+}

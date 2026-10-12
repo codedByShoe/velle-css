@@ -1,0 +1,18 @@
+<!-- Put the dialog in your layout once. -->
+<dialog class="dialog" style="--dialog-size: 24rem;" data-confirm-dialog role="alertdialog" aria-labelledby="confirm_title" aria-describedby="confirm_text">
+  <form method="dialog" contents>
+    <div class="dialog__content">
+      <h2 class="font-medium leading-none mbe-2" id="confirm_title" data-confirm-dialog-target="title">Are you sure?</h2>
+      <p class="text-sm text-balance text-subtle" id="confirm_text" data-confirm-dialog-target="text"></p>
+
+      <div class="dialog__footer flex items-center justify-end gap mbs-4">
+        <button value="cancel" class="btn">Cancel</button>
+        <button value="confirm" class="btn btn--primary">Continue</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<form action="/account" method="post" data-confirm="Are you absolutely sure?" data-confirm-text="This will permanently delete your account and remove your data from our servers.">
+  <button type="submit" class="btn btn--negative">Delete account</button>
+</form>

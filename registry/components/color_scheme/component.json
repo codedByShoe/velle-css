@@ -1,0 +1,33 @@
+{
+  "name": "color_scheme",
+  "title": "Color Scheme",
+  "category": "Layout",
+  "description": "A light, dark or system theme switcher that remembers the choice in localStorage.",
+  "files": ["color_scheme.css", "color_scheme.js"],
+  "dependencies": ["icons"],
+  "classes": [
+    { "name": "icon--color-scheme-light", "description": "Shown only when the light scheme is active." },
+    { "name": "icon--color-scheme-dark", "description": "Shown only when the dark scheme is active." }
+  ],
+  "variables": [],
+  "attributes": [
+    { "name": "data-color-scheme", "element": "<html>", "description": "The controller root. Its value is set to light, dark or system, and CSS sets color-scheme from it." },
+    { "name": "data-color-scheme-action", "element": "buttons inside the root", "description": "\"setLight\", \"setDark\" or \"setSystem\"." }
+  ],
+  "actions": [
+    { "name": "setLight", "description": "Uses the light scheme and saves the choice." },
+    { "name": "setDark", "description": "Uses the dark scheme and saves the choice." },
+    { "name": "setSystem", "description": "Follows the operating system setting and saves the choice." }
+  ],
+  "events": [
+    { "name": "velle:color-scheme:change", "description": "Dispatched after the scheme changes. event.detail.colorScheme holds the new value." }
+  ],
+  "notes": [
+    "The choice is stored in localStorage under the key \"color_scheme\".",
+    "All colors are defined with light-dark(), so switching color-scheme is all a theme change needs.",
+    "To avoid a flash of the wrong theme, set the attribute before the page paints with an inline script in <head>: <script>document.documentElement.dataset.colorScheme = localStorage.getItem(\"color_scheme\") || \"system\"</script>"
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Theme switcher", "description": "This page's own <html> element is the root, so the switcher changes the whole docs site." }
+  ]
+}

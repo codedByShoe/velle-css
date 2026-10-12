@@ -1,0 +1,20 @@
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href="#">Home</a>
+  <span class="icon icon--chevron-right" aria-hidden="true"></span>
+
+  <button type="button" class="btn btn--plain" style="--btn-color: var(--color-text-subtle); --btn-font-weight: var(--font-normal)" popovertarget="breadcrumb_dropdown" aria-haspopup="true">
+    <span class="icon icon--ellipsis" aria-hidden="true"></span>
+    <span class="sr-only">Show more</span>
+  </button>
+
+  <span class="icon icon--chevron-right" aria-hidden="true"></span>
+  <span class="text-primary" aria-current="page">Breadcrumb</span>
+</nav>
+
+<div popover id="breadcrumb_dropdown" class="popover popover--block-end-start" role="menu" aria-label="Hidden levels">
+  <div class="menu" data-menu>
+    <a class="btn menu__item" data-menu-target="item" role="menuitem" href="#">Documentation</a>
+    <a class="btn menu__item" data-menu-target="item" role="menuitem" href="#">Themes</a>
+    <a class="btn menu__item" data-menu-target="item" role="menuitem" href="#">GitHub</a>
+  </div>
+</div>

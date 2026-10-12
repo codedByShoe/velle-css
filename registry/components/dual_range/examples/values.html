@@ -1,0 +1,17 @@
+<div class="flex flex-col gap" style="max-inline-size: 20rem">
+  <div class="flex items-center justify-between text-sm">
+    <span class="font-medium">Price</span>
+    <output class="text-subtle" id="dual_range_output">$200 – $800</output>
+  </div>
+  <div class="dual-range" id="dual_range_price" data-dual-range>
+    <input type="range" name="price_min" value="200" min="0" max="1000" step="10" aria-label="Minimum price" data-dual-range-target="min">
+    <input type="range" name="price_max" value="800" min="0" max="1000" step="10" aria-label="Maximum price" data-dual-range-target="max">
+  </div>
+</div>
+
+<script>
+  document.getElementById("dual_range_price").addEventListener("input", event => {
+    const [ min, max ] = event.currentTarget.querySelectorAll("input")
+    document.getElementById("dual_range_output").textContent = `$${min.value} – $${max.value}`
+  })
+</script>

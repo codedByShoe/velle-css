@@ -1,0 +1,21 @@
+<button type="button" class="btn" popovertarget="dropdown_radio" aria-haspopup="true">Panel position</button>
+
+<div popover id="dropdown_radio" class="popover popover--block-end-start" style="--popover-size: 10rem;" role="menu" aria-label="Panel position">
+  <div class="menu" data-menu>
+    <div class="menu__group" role="group" aria-labelledby="dropdown_radio_header">
+      <div class="menu__header" id="dropdown_radio_header">Panel position</div>
+      <div class="btn menu__item">
+        <label class="flex-item-grow text-sm" for="dropdown_position_top">Top</label>
+        <input type="radio" name="panel_position" id="dropdown_position_top" value="top" class="input" data-menu-target="item" role="menuitemradio" checked>
+      </div>
+      <div class="btn menu__item">
+        <label class="flex-item-grow text-sm" for="dropdown_position_bottom">Bottom</label>
+        <input type="radio" name="panel_position" id="dropdown_position_bottom" value="bottom" class="input" data-menu-target="item" role="menuitemradio">
+      </div>
+      <div class="btn menu__item">
+        <label class="flex-item-grow text-sm" for="dropdown_position_right">Right</label>
+        <input type="radio" name="panel_position" id="dropdown_position_right" value="right" class="input" data-menu-target="item" role="menuitemradio">
+      </div>
+    </div>
+  </div>
+</div>

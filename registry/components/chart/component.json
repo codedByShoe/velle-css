@@ -1,0 +1,36 @@
+{
+  "name": "chart",
+  "title": "Chart",
+  "category": "Elements",
+  "description": "Line, bar, area, doughnut and other charts drawn on a <canvas>, styled with the page's fonts and colors.",
+  "files": ["chart.js"],
+  "dependencies": [],
+  "library": {
+    "package": "chart.js",
+    "version": "4.5.1",
+    "homepage": "https://www.chartjs.org",
+    "license": "MIT",
+    "esm": "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/+esm",
+    "stylesheet": ""
+  },
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-chart", "element": "<canvas>", "description": "Draws a chart on the canvas." },
+    { "name": "data-chart-type", "element": "<canvas>", "description": "Chart.js chart type: line (default), bar, doughnut, pie, radar, bubble, …" },
+    { "name": "data-chart-data", "element": "<canvas>", "description": "JSON for Chart.js's data option: labels and datasets." },
+    { "name": "data-chart-options", "element": "<canvas>", "description": "JSON for Chart.js's options, e.g. scales and interaction." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Chart.js resizes the chart to its container. Wrap the canvas in an element with position: relative and a fixed height.",
+    "The first chart on the page sets Chart.js defaults from the body's computed styles: text color, font, background and border color. Charts drawn before a color scheme change keep the old colors until the page reloads.",
+    "Give the canvas role=\"img\" and an aria-label that describes the data."
+  ],
+  "examples": [
+    { "file": "line.html", "title": "Line" },
+    { "file": "bar.html", "title": "Bar" },
+    { "file": "doughnut.html", "title": "Doughnut" }
+  ]
+}

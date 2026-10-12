@@ -1,0 +1,31 @@
+{
+  "name": "autosave",
+  "title": "Autosave",
+  "category": "Forms",
+  "description": "Saves a form in the background 3 seconds after the user starts typing.",
+  "files": ["autosave.js"],
+  "dependencies": ["button"],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-autosave", "element": "<form>", "description": "Enables autosave. The form's method and action are used for the request." },
+    { "name": "data-autosave-action=\"input->change\"", "element": "<form>", "description": "Schedules a save when any field changes." },
+    { "name": "data-autosave-target=\"submit\"", "element": "submit button", "description": "Disabled while saving. Add btn--busy to show a spinner." }
+  ],
+  "actions": [
+    { "name": "change", "description": "Schedules a save 3 seconds later, unless one is already scheduled." }
+  ],
+  "events": [
+    { "name": "velle:autosave:success", "description": "The server answered with a 2xx status. event.detail.response is the fetch Response." },
+    { "name": "velle:autosave:error", "description": "The request failed or the server answered with an error. event.detail has response or error." }
+  ],
+  "notes": [
+    "The form is sent with fetch() as FormData (as query parameters for GET), with credentials: \"same-origin\" and the X-Requested-With: XMLHttpRequest header.",
+    "If the page has <meta name=\"csrf-token\">, its content is sent as an X-CSRF-Token header.",
+    "While saving, the form gets aria-busy=\"true\".",
+    "A pending save is sent immediately when the form is removed from the page."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" }
+  ]
+}

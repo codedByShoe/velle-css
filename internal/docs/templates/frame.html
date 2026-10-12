@@ -1,0 +1,16 @@
+{{define "frame"}}<!doctype html>
+<html lang="en" data-color-scheme>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>try { document.documentElement.dataset.colorScheme = localStorage.getItem("color_scheme") || "system" } catch {}</script>
+  <link rel="stylesheet" href="assets/velle.css">
+  <link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/velle.js"></script>
+  <script src="assets/docs.js" defer></script>
+</head>
+<body class="docs-frame">
+{{.}}
+</body>
+</html>
+{{end}}

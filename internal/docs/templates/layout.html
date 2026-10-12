@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en" data-color-scheme>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} · velle-css</title>
+  <script>try { document.documentElement.dataset.colorScheme = localStorage.getItem("color_scheme") || "system" } catch {}</script>
+  {{.Site.ImportMap}}
+  <link rel="stylesheet" href="assets/velle.css">
+  {{with .Component}}{{range .Stylesheets}}<link rel="stylesheet" href="{{.}}">
+  {{end}}{{end}}<link rel="stylesheet" href="assets/docs.css">
+  <script type="module" src="assets/velle.js"></script>
+  {{with .Component}}{{range .Scripts}}<script type="module" src="{{.}}"></script>
+  {{end}}{{end}}
+  <script src="assets/docs.js" defer></script>
+</head>
+<body class="sidebar-layout" data-toggle-class="closed">
+  <header id="header" class="justify-between">
+    <div class="flex items-center gap">
+      <button type="button" class="btn btn--icon hide@md" commandfor="docs_nav" command="show-modal">
+        <span class="icon icon--panel-left" aria-hidden="true"></span>
+        <span class="sr-only">Open navigation</span>
+      </button>
+      <button type="button" class="btn btn--icon btn--borderless show@md" data-toggle-class-action="toggle">
+        <span class="icon icon--panel-left" aria-hidden="true"></span>
+        <span class="sr-only">Toggle sidebar</span>
+      </button>
+      <a class="font-bold text-lg" href="index.html">velle-css</a>
+      <span class="badge badge--secondary">v{{.Site.Version}}</span>
+    </div>
+
+    <div class="flex items-center gap">
+      <a class="btn btn--borderless" href="{{.Site.Repo}}">GitHub</a>
+
+      <button type="button" class="btn btn--icon btn--borderless" popovertarget="docs_color_scheme" aria-haspopup="true">
+        <span class="icon icon--sun icon--color-scheme-light" aria-hidden="true"></span>
+        <span class="icon icon--moon icon--color-scheme-dark" aria-hidden="true"></span>
+        <span class="sr-only">Theme</span>
+      </button>
+      <div popover id="docs_color_scheme" class="popover popover--block-end-end" role="menu" aria-label="Theme">
+        <div class="menu" data-menu>
+          <button type="button" class="btn menu__item" popovertarget="docs_color_scheme" data-color-scheme-action="setLight" data-menu-target="item" role="menuitem">Light</button>
+          <button type="button" class="btn menu__item" popovertarget="docs_color_scheme" data-color-scheme-action="setDark" data-menu-target="item" role="menuitem">Dark</button>
+          <button type="button" class="btn menu__item" popovertarget="docs_color_scheme" data-color-scheme-action="setSystem" data-menu-target="item" role="menuitem">System</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <dialog id="docs_nav" class="sheet sheet--left" style="--sheet-size: 18rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-label="Navigation">
+    <div class="sheet__content p-2">
+      {{template "nav" .}}
+    </div>
+  </dialog>
+
+  <aside id="sidebar">
+    {{template "nav" .}}
+  </aside>
+
+  <main id="main">
+    <article class="container docs-content">
+      {{template "content" .}}
+    </article>
+  </main>
+</body>
+</html>
+
+{{define "nav"}}
+<div class="sidebar-menu">
+  <nav class="sidebar-menu__content" aria-label="Documentation">
+    {{range .Site.Nav}}
+    <div class="sidebar-menu__group">
+      <div class="sidebar-menu__group-label" aria-hidden="true">{{.Title}}</div>
+      <ul class="sidebar-menu__items" aria-label="{{.Title}}">
+        {{range .Links}}
+        <li><a class="btn sidebar-menu__button" href="{{.Href}}"{{if eq .Href $.Href}} aria-current="page"{{end}}>{{.Title}}</a></li>
+        {{end}}
+      </ul>
+    </div>
+    {{end}}
+  </nav>
+</div>
+{{end}}

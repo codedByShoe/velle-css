@@ -1,0 +1,42 @@
+{
+  "name": "layouts",
+  "title": "Layouts",
+  "category": "Layout",
+  "description": "Full-page layouts (header, sidebar and centered) plus a sidebar navigation menu.",
+  "files": ["layouts.css", "sidebar_menu.css"],
+  "dependencies": ["toggle_class", "sheet", "button", "icons"],
+  "classes": [
+    { "name": "header-layout", "description": "A header row above the main area. Fills the viewport height." },
+    { "name": "sidebar-layout", "description": "Header, a sidebar and the main area. The sidebar shows from 48rem wide; on smaller screens use a sheet." },
+    { "name": "closed", "description": "On sidebar-layout: collapses the sidebar. Toggle it with toggle_class." },
+    { "name": "centered-layout", "description": "Centers its content in the viewport, e.g. for sign-in pages." },
+    { "name": "container", "description": "Centers content with a maximum width." },
+    { "name": "sidebar-menu", "description": "Vertical navigation for the sidebar." },
+    { "name": "sidebar-menu__content", "description": "The scrolling middle part of the menu." },
+    { "name": "sidebar-menu__group", "description": "A group of items." },
+    { "name": "sidebar-menu__group-label", "description": "The group's heading." },
+    { "name": "sidebar-menu__items", "description": "A list of items." },
+    { "name": "sidebar-menu__button", "description": "An item. Combine it with btn. Mark the current page with aria-current=\"page\". On a <summary> it gets a disclosure chevron." },
+    { "name": "sidebar-menu__sub", "description": "A nested list of items." }
+  ],
+  "variables": [
+    { "name": "--sidebar-width", "default": "var(--max-i-3xs)", "description": "Width of the open sidebar (screens 48rem and wider)." },
+    { "name": "--container-width", "default": "64rem", "description": "Maximum width of .container." }
+  ],
+  "attributes": [
+    { "name": "id=\"header\"", "element": "<header>", "description": "The header area of header-layout and sidebar-layout." },
+    { "name": "id=\"sidebar\"", "element": "<aside>", "description": "The sidebar area of sidebar-layout." },
+    { "name": "id=\"main\"", "element": "<main>", "description": "The scrolling main area." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The layouts fill 100dvh. Put the layout class on <body> or a full-height wrapper.",
+    "The header, sidebar and main areas are selected by id, so use them once per page."
+  ],
+  "examples": [
+    { "file": "header_layout.html", "title": "Header layout", "frame": true, "height": "24rem" },
+    { "file": "sidebar_layout.html", "title": "Sidebar layout", "description": "The button in the main area toggles the closed class. On narrow screens, the menu button opens the same menu in a sheet.", "frame": true, "height": "32rem" },
+    { "file": "centered_layout.html", "title": "Centered layout", "frame": true, "height": "28rem" }
+  ]
+}

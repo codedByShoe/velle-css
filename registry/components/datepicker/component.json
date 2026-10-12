@@ -1,0 +1,104 @@
+{
+  "name": "datepicker",
+  "title": "Datepicker",
+  "category": "Forms",
+  "description": "Date, date-time and time pickers with ranges, multiple dates and disabled days, themed to match velle-css.",
+  "files": [
+    "datepicker.css",
+    "datepicker.js"
+  ],
+  "dependencies": [
+    "input"
+  ],
+  "library": {
+    "package": "flatpickr",
+    "version": "4.6.13",
+    "homepage": "https://flatpickr.js.org",
+    "license": "MIT",
+    "esm": "https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/+esm",
+    "stylesheet": "dist/flatpickr.min.css"
+  },
+  "classes": [],
+  "variables": [
+    {
+      "name": "--datepicker-size",
+      "default": "220px",
+      "description": "Width of the calendar."
+    },
+    {
+      "name": "--datepicker-day-size",
+      "default": "var(--size-7)",
+      "description": "Size of a day cell."
+    }
+  ],
+  "attributes": [
+    {
+      "name": "data-datepicker",
+      "element": "<input type=\"text\">",
+      "description": "Turns the input into a picker. The submitted value is ISO formatted (Y-m-d, or Y-m-d H:i); the visible value uses the display format."
+    },
+    {
+      "name": "data-datepicker-type",
+      "element": "input",
+      "description": "\"datetime\" adds a time picker; \"time\" shows only a time picker. Leave it out for dates."
+    },
+    {
+      "name": "data-datepicker-mode",
+      "element": "input",
+      "description": "\"single\" (default), \"multiple\" or \"range\"."
+    },
+    {
+      "name": "data-datepicker-show-months",
+      "element": "input",
+      "description": "How many months to show side by side. Defaults to 1."
+    },
+    {
+      "name": "data-datepicker-disable",
+      "element": "input",
+      "description": "JSON array of dates that cannot be picked, e.g. [\"2028-01-10\",\"2028-01-11\"]."
+    },
+    {
+      "name": "data-datepicker-date-format",
+      "element": "input",
+      "description": "Display format for dates (flatpickr tokens). Defaults to \"F d, Y\"."
+    },
+    {
+      "name": "data-datepicker-datetime-format",
+      "element": "input",
+      "description": "Display format for date-times. Defaults to \"F d, Y H:i\"."
+    }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The theme overrides flatpickr's own stylesheet, so load flatpickr.min.css before datepicker.css.",
+    "For simple cases, a native <input type=\"date\" class=\"input\"> needs no library at all.",
+    "flatpickr hides the original input and shows a copy with the same classes but not its inline styles. Size the field through a wrapper or a class, not a style attribute."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Date"
+    },
+    {
+      "file": "datetime.html",
+      "title": "Date and time"
+    },
+    {
+      "file": "time.html",
+      "title": "Time"
+    },
+    {
+      "file": "range.html",
+      "title": "Range over two months"
+    },
+    {
+      "file": "multiple.html",
+      "title": "Multiple dates"
+    },
+    {
+      "file": "disabled_dates.html",
+      "title": "Disabled dates"
+    }
+  ]
+}

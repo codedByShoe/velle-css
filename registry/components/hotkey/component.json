@@ -1,0 +1,27 @@
+{
+  "name": "hotkey",
+  "title": "Hotkey",
+  "category": "Behaviors",
+  "description": "Clicks or focuses an element when a keyboard shortcut is pressed anywhere on the page.",
+  "files": ["hotkey.js"],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-hotkey", "element": "button, link or input", "description": "The element to click or focus. It is its own root." },
+    { "name": "data-hotkey-action", "element": "same element", "description": "A key filter on the document, e.g. \"keydown.k@document->click\" or \"keydown.meta+k@document->focus\"." }
+  ],
+  "actions": [
+    { "name": "click", "description": "Clicks the element." },
+    { "name": "focus", "description": "Focuses the element." }
+  ],
+  "events": [],
+  "notes": [
+    "Shortcuts are ignored while the user types in an input or textarea, when another handler already called preventDefault(), and when the element has pointer-events: none (for example inside a closed sidebar).",
+    "Key filters: a–z, 0–9, enter, tab, esc, space, up, down, left, right, home, end, page_up and page_down, with optional ctrl+, meta+, alt+ and shift+ modifiers. Modifiers must match exactly."
+  ],
+  "examples": [
+    { "file": "click.html", "title": "Click" },
+    { "file": "focus.html", "title": "Focus" }
+  ]
+}

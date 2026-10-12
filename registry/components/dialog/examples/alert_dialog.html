@@ -1,0 +1,15 @@
+<button type="button" class="btn" commandfor="dialog_alert" command="show-modal">Show dialog</button>
+
+<dialog id="dialog_alert" class="dialog" style="--dialog-size: 24rem;" role="alertdialog" aria-labelledby="dialog_alert_title" aria-describedby="dialog_alert_text">
+  <div class="dialog__content">
+    <h2 class="font-medium leading-none mbe-2" id="dialog_alert_title">Are you absolutely sure?</h2>
+    <p class="text-sm text-balance text-subtle" id="dialog_alert_text">
+      This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+    </p>
+
+    <div class="dialog__footer flex items-center justify-end gap mbs-4">
+      <button type="button" class="btn" commandfor="dialog_alert" command="close">Cancel</button>
+      <button type="button" class="btn btn--primary" commandfor="dialog_alert" command="close">Continue</button>
+    </div>
+  </div>
+</dialog>

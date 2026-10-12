@@ -1,0 +1,17 @@
+<button type="button" class="btn" popovertarget="menu_basic" aria-haspopup="true">Edit</button>
+
+<div popover id="menu_basic" class="popover popover--block-end-start" style="--popover-size: 12rem;" role="menu" aria-label="Edit">
+  <div class="menu" data-menu>
+    <div class="menu__header">Edit</div>
+    <button type="button" class="btn menu__item" popovertarget="menu_basic" data-menu-target="item" role="menuitem">
+      <span>Copy</span>
+      <span class="menu__item-key">⌘C</span>
+    </button>
+    <button type="button" class="btn menu__item" popovertarget="menu_basic" data-menu-target="item" role="menuitem">
+      <span>Download</span>
+      <span class="menu__item-key">⌘D</span>
+    </button>
+    <hr class="menu__separator" role="separator">
+    <button type="button" class="btn menu__item" role="menuitem" aria-disabled="true" tabindex="-1">Share</button>
+  </div>
+</div>

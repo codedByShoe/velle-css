@@ -1,0 +1,24 @@
+{
+  "name": "toggle_class",
+  "title": "Toggle Class",
+  "category": "Behaviors",
+  "description": "Adds, removes or toggles a CSS class on an element from buttons inside it. The sidebar layout uses it to collapse the sidebar.",
+  "files": ["toggle_class.js"],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-toggle-class", "element": "root", "description": "The class name to manage, e.g. data-toggle-class=\"closed\"." },
+    { "name": "data-toggle-class-action", "element": "buttons inside the root", "description": "\"toggle\", \"add\" or \"remove\"." }
+  ],
+  "actions": [
+    { "name": "toggle", "description": "Toggles the class on the root." },
+    { "name": "add", "description": "Adds the class." },
+    { "name": "remove", "description": "Removes the class." }
+  ],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" }
+  ]
+}

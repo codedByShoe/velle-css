@@ -1,0 +1,45 @@
+{
+  "name": "dropzone",
+  "title": "Dropzone",
+  "category": "Forms",
+  "description": "A drag-and-drop area for a file input, with previews, removal and type, size and count limits. Files are submitted with the form.",
+  "files": ["dropzone.css", "dropzone.js"],
+  "dependencies": ["button", "icons"],
+  "classes": [
+    { "name": "dropzone", "description": "The drop area. Holds the clickable area and the file list." },
+    { "name": "dropzone__area", "description": "The clickable part. Make it a <label> around the file input so clicking opens the file picker." },
+    { "name": "dropzone__files", "description": "The list the previews are rendered into (a <ul>)." },
+    { "name": "dropzone__file", "description": "A preview, rendered by the script. Gets data-error when the file was rejected." },
+    { "name": "dropzone__thumbnail", "description": "Image thumbnail, or the file extension for other files." },
+    { "name": "dropzone__details", "description": "Name and size or error." },
+    { "name": "dropzone__name", "description": "File name." },
+    { "name": "dropzone__meta", "description": "File size, or the reason the file was rejected." }
+  ],
+  "variables": [],
+  "attributes": [
+    { "name": "data-dropzone", "element": ".dropzone", "description": "Enables the behavior." },
+    { "name": "data-dropzone-target=\"input\"", "element": "<input type=\"file\">", "description": "The file input that holds the files. Its accept and multiple attributes are respected." },
+    { "name": "data-dropzone-target=\"files\"", "element": ".dropzone__files", "description": "Where previews are rendered." },
+    { "name": "data-dropzone-max-files", "element": ".dropzone", "description": "Maximum number of files." },
+    { "name": "data-dropzone-max-file-size", "element": ".dropzone", "description": "Maximum size of one file, in megabytes (decimals allowed)." },
+    { "name": "data-dropzone-type-message", "element": ".dropzone", "description": "Error shown for a file that does not match accept." },
+    { "name": "data-dropzone-size-message", "element": ".dropzone", "description": "Error shown for a file larger than the limit." },
+    { "name": "data-dropzone-count-message", "element": ".dropzone", "description": "Error shown for files over the count limit." }
+  ],
+  "actions": [
+    { "name": "remove", "description": "Removes a file. Used by the remove buttons in the previews." }
+  ],
+  "events": [
+    { "name": "velle:dropzone:change", "description": "Dispatched when the files change. event.detail.files lists the accepted files, event.detail.rejected the rejected ones." }
+  ],
+  "notes": [
+    "The form must use method=\"post\" and enctype=\"multipart/form-data\" for the files to be sent.",
+    "Rejected files are shown with the reason and never added to the input. They are cleared on the next drop or pick.",
+    "Resetting the form clears the files.",
+    "This replaces css-zero's Dropzone.js + Rails ActiveStorage direct-upload integration; no library or upload endpoint is needed."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "validation.html", "title": "Limits", "description": "Up to 3 images of at most 300 KB each." }
+  ]
+}

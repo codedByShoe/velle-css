@@ -1,0 +1,33 @@
+[data-color-scheme="light"] {
+  color-scheme: light;
+}
+
+[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
+[data-color-scheme="system"] {
+  color-scheme: light dark;
+}
+
+[data-color-scheme="light"] {
+  .icon--color-scheme-light { display: inline-flex; }
+  .icon--color-scheme-dark { display: none; }
+}
+
+[data-color-scheme="dark"] {
+  .icon--color-scheme-light { display: none; }
+  .icon--color-scheme-dark { display: inline-flex; }
+}
+
+[data-color-scheme="system"] {
+  @media (prefers-color-scheme: light) {
+    .icon--color-scheme-light { display: inline-flex; }
+    .icon--color-scheme-dark { display: none; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .icon--color-scheme-light { display: none; }
+    .icon--color-scheme-dark { display: inline-flex; }
+  }
+}

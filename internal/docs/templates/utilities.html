@@ -1,0 +1,20 @@
+{{define "content"}}
+<header class="docs-intro">
+  <h1>Utilities</h1>
+  <p class="docs-lead">Single-purpose classes from <code>utilities.css</code>. Load it last so utilities override component styles. Spacing and sizing use logical properties: <code>b</code> means block (vertical), <code>i</code> means inline (horizontal), <code>s</code> means start and <code>e</code> means end, so <code>mbe-4</code> is <code>margin-block-end: var(--size-4)</code>.</p>
+</header>
+
+{{range .Utilities}}
+<section class="docs-section" aria-labelledby="{{slug .Title}}">
+  <h2 id="{{slug .Title}}">{{.Title}}</h2>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Class</th><th>Declarations</th></tr></thead>
+      <tbody>
+        {{range .Rules}}<tr><td><code>.{{.Class}}</code></td><td><code>{{.Declarations}}</code></td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{end}}
+{{end}}

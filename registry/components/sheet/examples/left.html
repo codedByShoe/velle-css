@@ -1,0 +1,15 @@
+<button type="button" class="btn" commandfor="sheet_left" command="show-modal">Open</button>
+
+<dialog id="sheet_left" class="sheet sheet--left" style="--sheet-size: 18rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-label="Navigation">
+  <button type="button" class="btn btn--plain sheet__close" commandfor="sheet_left" command="close">
+    <span class="icon icon--x" aria-hidden="true"></span>
+    <span class="sr-only">Close</span>
+  </button>
+
+  <nav class="sheet__content flex flex-col gap-half" aria-label="Main">
+    <h3 class="font-medium leading-none mbe-2">Navigation</h3>
+    <a class="btn btn--borderless" style="--btn-justify-content: start" href="#">Dashboard</a>
+    <a class="btn btn--borderless" style="--btn-justify-content: start" href="#">Projects</a>
+    <a class="btn btn--borderless" style="--btn-justify-content: start" href="#">Settings</a>
+  </nav>
+</dialog>

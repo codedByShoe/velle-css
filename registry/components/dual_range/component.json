@@ -1,0 +1,37 @@
+{
+  "name": "dual_range",
+  "title": "Dual Range",
+  "category": "Forms",
+  "description": "A slider with two thumbs for picking a minimum and a maximum, built from two native range inputs.",
+  "files": ["dual_range.css", "dual_range.js"],
+  "dependencies": [],
+  "classes": [
+    { "name": "dual-range", "description": "Wraps exactly two <input type=\"range\">: the minimum first, the maximum second." }
+  ],
+  "variables": [
+    { "name": "--dual-range-height", "default": "var(--size-2_5)", "description": "Height of the control." },
+    { "name": "--dual-range-thumb-size", "default": "var(--dual-range-height)", "description": "Diameter of the thumbs." },
+    { "name": "--dual-range-thumb-color", "default": "var(--color-primary)", "description": "Thumb color." },
+    { "name": "--dual-range-thumb-active-color", "default": "var(--color-selected-dark)", "description": "Thumb color while dragged or focused." },
+    { "name": "--dual-range-track-height", "default": "calc(var(--dual-range-height) * .45)", "description": "Thickness of the track." },
+    { "name": "--dual-range-track-color", "default": "var(--color-border)", "description": "Color of the unselected track." },
+    { "name": "--dual-range-fill-color", "default": "var(--color-primary)", "description": "Color of the selected part of the track." }
+  ],
+  "attributes": [
+    { "name": "data-dual-range", "element": ".dual-range", "description": "Enables the behavior." },
+    { "name": "data-dual-range-target=\"min\"", "element": "first range input", "description": "The minimum. Give both inputs the same min, max and step." },
+    { "name": "data-dual-range-target=\"max\"", "element": "second range input", "description": "The maximum." },
+    { "name": "data-dual-range-precision", "element": ".dual-range", "description": "Decimal places used for the internal midpoint. Defaults to 3." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Both inputs are submitted as normal form fields. Listen for input or change events on them to react to changes.",
+    "The script narrows each input's own min or max to the midpoint, so read the overall range from the first input's min and the second input's max.",
+    "This replaces css-zero's wrapper around @stanko/dual-range-input; the library is no longer needed."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "values.html", "title": "Showing the values" }
+  ]
+}

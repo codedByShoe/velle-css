@@ -1,0 +1,45 @@
+.progress {
+  --progress-bar-color: var(--color-border-light);
+  --progress-value-color: var(--color-primary);
+
+  background-color: var(--progress-bar-color);
+  block-size: var(--size-1);
+  border-radius: var(--rounded-full);
+  inline-size: var(--size-full);
+  overflow: hidden;
+
+  &:indeterminate {
+    animation: progress-loading 2s linear infinite;
+    background: linear-gradient(to right, var(--progress-bar-color) 45%, var(--progress-value-color) 0%, var(--progress-value-color) 55%, var(--progress-bar-color) 0%);
+    background-position: right;
+    background-size: 225% 100%;
+  }
+
+  /*  Safari/Chromium  */
+  &::-webkit-progress-bar {
+    background-color: var(--progress-bar-color);
+  }
+
+  &::-webkit-progress-value {
+    background-color: var(--progress-value-color);
+  }
+
+  &:indeterminate::-webkit-progress-bar {
+    background-color: transparent;
+  }
+
+  /* Firefox */
+  &::-moz-progress-bar {
+    background-color: var(--progress-value-color);
+  }
+
+  &:indeterminate::-moz-progress-bar {
+    background-color: transparent;
+  }
+}
+
+@keyframes progress-loading {
+  50% {
+    background-position: left;
+  }
+}

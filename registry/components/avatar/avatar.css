@@ -1,0 +1,85 @@
+.avatar {
+  --avatar-badge-size: calc(var(--avatar-size) * .3125);
+  --avatar-box-shadow: 0 0 0 2px var(--color-bg);
+  --avatar-radius: var(--rounded-full);
+  --avatar-size: var(--size-8);
+
+  block-size: var(--avatar-size);
+  border-radius: var(--avatar-radius);
+  display: flex;
+  flex-shrink: 0;
+  inline-size: var(--avatar-size);
+  position: relative;
+
+  &.btn {
+    --btn-inline-size: var(--avatar-size);
+    --btn-padding: 0;
+    --btn-radius: var(--avatar-radius);
+  }
+
+  &.btn:hover {
+    filter: var(--brightness-90);
+  }
+
+  img {
+    block-size: var(--size-full);
+    border-radius: var(--avatar-radius);
+    inline-size: var(--size-full);
+    object-fit: cover;
+  }
+
+  span[role="img"] {
+    align-items: center;
+    background-color: var(--color-border-light);
+    block-size: var(--size-full);
+    border-radius: var(--avatar-radius);
+    color: var(--color-text-subtle);
+    display: flex;
+    font-size: calc(var(--avatar-size) * .5);
+    inline-size: var(--size-full);
+    justify-content: center;
+    user-select: none;
+  }
+}
+
+.avatar--sm {
+  --avatar-size: var(--size-6);
+}
+
+.avatar--lg {
+  --avatar-size: var(--size-10);
+}
+
+.avatar__badge {
+  background-color: var(--avatar-badge-color, var(--color-primary));
+  block-size: var(--avatar-badge-size);
+  border-radius: var(--rounded-full);
+  box-shadow: var(--avatar-box-shadow);
+  inline-size: var(--avatar-badge-size);
+  inset: auto 0 0 auto;
+  position: absolute;
+
+  &:has(.icon) {
+    align-items: center;
+    color: var(--color-text-reversed);
+    display: flex;
+    justify-content: center;
+  }
+
+  .icon {
+    --icon-size: calc(var(--avatar-badge-size) * .75);
+  }
+}
+
+.avatar-group {
+  align-items: center;
+  display: flex;
+
+  > .avatar {
+    box-shadow: var(--avatar-box-shadow);
+  }
+
+  > :not(:last-child) {
+    margin-inline-end: calc(var(--size-2) * -1);
+  }
+}

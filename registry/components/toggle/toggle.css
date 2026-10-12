@@ -1,0 +1,15 @@
+.btn--toggle {
+  --btn-background: var(--color-bg);
+}
+
+.btn--toggle [type="checkbox"] {
+  position: absolute; clip-path: inset(50%);
+}
+
+.btn--toggle:has(:checked) {
+  --btn-background: var(--color-border-light);
+}
+
+.btn--toggle:has(:focus-visible) {
+  outline: var(--border-2) solid var(--color-selected-dark);
+}

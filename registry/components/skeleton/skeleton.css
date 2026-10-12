@@ -1,0 +1,6 @@
+.skeleton {
+  animation: var(--animate-blink);
+  animation-duration: 2s;
+  background-color: var(--color-border);
+  border-radius: var(--rounded-md);
+}

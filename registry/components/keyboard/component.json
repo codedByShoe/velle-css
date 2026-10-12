@@ -1,0 +1,28 @@
+{
+  "name": "keyboard",
+  "title": "Keyboard",
+  "category": "Elements",
+  "description": "Displays keyboard keys and shortcuts.",
+  "files": ["keyboard.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "kbd", "description": "A key. Use it on a <kbd> element." },
+    { "name": "kbd--tooltip", "description": "Colors for a key shown on a dark tooltip." }
+  ],
+  "variables": [
+    { "name": "--kbd-background", "default": "var(--color-secondary)", "description": "Background color." },
+    { "name": "--kbd-color", "default": "var(--color-text-subtle)", "description": "Text color." },
+    { "name": "--kbd-radius", "default": "var(--rounded-md)", "description": "Corner radius." },
+    { "name": "--kbd-font-size", "default": "var(--text-xs)", "description": "Font size." },
+    { "name": "--kbd-padding", "default": "var(--size-1)", "description": "Horizontal padding." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "button.html", "title": "In a button" },
+    { "file": "tooltip.html", "title": "In a tooltip", "description": "Uses the popover component's hover behavior." }
+  ]
+}

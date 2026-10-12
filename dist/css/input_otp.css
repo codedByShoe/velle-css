@@ -1,0 +1,110 @@
+.input-otp {
+  --input-otp-slot-inline-size: var(--size-8);
+  --input-otp-slot-block-size: var(--size-8);
+  --input-otp-slot-radius: var(--rounded-lg);
+  --input-otp-font-size: var(--text-sm);
+  --input-otp-caret-block-size: var(--size-4);
+  --input-otp-group-gap: var(--size-3);
+
+  align-items: center;
+  column-gap: var(--input-otp-group-gap);
+  display: inline-flex;
+  position: relative;
+
+  &:has(.input-otp__input:disabled) {
+    opacity: var(--opacity-50);
+  }
+}
+
+.input-otp__group {
+  display: flex;
+}
+
+.input-otp__slot {
+  align-items: center;
+  background-color: var(--color-surface);
+  block-size: var(--input-otp-slot-block-size);
+  border-block-width: var(--border);
+  border-inline-end-width: var(--border);
+  box-shadow: var(--shadow-xs);
+  color: var(--color-text);
+  display: flex;
+  font-family: var(--font-monospace-code);
+  font-size: var(--input-otp-font-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-medium);
+  inline-size: var(--input-otp-slot-inline-size);
+  justify-content: center;
+  position: relative;
+  transition-duration: var(--time-150);
+  transition-property: border-color, box-shadow;
+  transition-timing-function: var(--ease-out-3);
+
+  &:first-child {
+    border-end-start-radius: var(--input-otp-slot-radius);
+    border-inline-start-width: var(--border);
+    border-start-start-radius: var(--input-otp-slot-radius);
+  }
+
+  &:last-child {
+    border-end-end-radius: var(--input-otp-slot-radius);
+    border-start-end-radius: var(--input-otp-slot-radius);
+  }
+
+  &[data-active] {
+    border-color: var(--color-border-dark);
+    box-shadow: 0 0 0 var(--border-2) var(--color-selected-dark);
+    z-index: 1;
+  }
+
+  &[data-active]:empty::after {
+    animation: input-otp-caret 1s step-end infinite;
+    background-color: currentColor;
+    block-size: var(--input-otp-caret-block-size);
+    content: "";
+    inline-size: 1px;
+  }
+}
+
+.input-otp__separator {
+  align-items: center;
+  color: var(--color-text-subtle);
+  display: flex;
+  justify-content: center;
+}
+
+/* The real input covers the slots but is invisible, so typing, pasting and autofill work natively. */
+.input-otp__input {
+  background: transparent;
+  border: 0;
+  caret-color: transparent;
+  color: transparent;
+  font-size: var(--text-base);
+  inset: 0;
+  opacity: 0;
+  outline: 0;
+  position: absolute;
+  z-index: 2;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.input-otp--lg {
+  --input-otp-slot-inline-size: var(--size-11);
+  --input-otp-slot-block-size: var(--size-12);
+  --input-otp-font-size: var(--text-xl);
+  --input-otp-caret-block-size: var(--size-6);
+}
+
+@keyframes input-otp-caret {
+  0%, 70% { opacity: 1; }
+  71%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input-otp__slot[data-active]:empty::after {
+    animation: none;
+  }
+}

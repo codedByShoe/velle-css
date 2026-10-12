@@ -1,0 +1,21 @@
+{
+  "name": "timezone_cookie",
+  "title": "Timezone Cookie",
+  "category": "Behaviors",
+  "description": "Saves the visitor's time zone in a \"timezone\" cookie so your server can render times in it.",
+  "files": ["timezone_cookie.js"],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-timezone-cookie", "element": "any element, usually <body>", "description": "Sets the cookie when the element appears on the page." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The cookie holds the IANA time zone name, URL-encoded, e.g. America%2FNew_York, with path=/."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" }
+  ]
+}

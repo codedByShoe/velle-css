@@ -1,0 +1,24 @@
+{
+  "name": "pagination",
+  "title": "Pagination",
+  "category": "Elements",
+  "description": "Links to move between pages of results.",
+  "files": ["pagination.css"],
+  "dependencies": ["button", "icons"],
+  "classes": [
+    { "name": "pagination", "description": "Row of page links, usually a <nav>." },
+    { "name": "pagination__button", "description": "A page link. Combine it with btn." }
+  ],
+  "variables": [],
+  "attributes": [
+    { "name": "aria-current=\"page\"", "element": ".pagination__button", "description": "Marks and outlines the current page." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "icon.html", "title": "Icons only" },
+    { "file": "simple.html", "title": "Previous and next" }
+  ]
+}

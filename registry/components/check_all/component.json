@@ -1,0 +1,51 @@
+{
+  "name": "check_all",
+  "title": "Check All",
+  "category": "Forms",
+  "description": "A \"select all\" checkbox that checks or clears a group of checkboxes and shows an indeterminate state when only some are checked.",
+  "files": [
+    "check_all.js"
+  ],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    {
+      "name": "data-check-all",
+      "element": "root",
+      "description": "Wraps the master checkbox and the checkboxes it controls."
+    },
+    {
+      "name": "data-check-all-target=\"dependee\"",
+      "element": "<input type=\"checkbox\">",
+      "description": "The \"select all\" checkbox."
+    },
+    {
+      "name": "data-check-all-target=\"dependant\"",
+      "element": "<input type=\"checkbox\">",
+      "description": "A checkbox controlled by the master checkbox."
+    },
+    {
+      "name": "data-check-all-action=\"check\"",
+      "element": "every checkbox",
+      "description": "Runs the check action when the checkbox changes."
+    }
+  ],
+  "actions": [
+    {
+      "name": "check",
+      "description": "From the master checkbox: copies its state to every dependant. From a dependant: updates the master checkbox to checked, unchecked or indeterminate."
+    }
+  ],
+  "events": [],
+  "notes": [
+    "The master checkbox is synced once when the root connects, so server-rendered checked states are reflected immediately.",
+    "See the table component for a selectable table built with check_all."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    }
+  ]
+}

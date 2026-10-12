@@ -1,0 +1,35 @@
+{
+  "name": "inputmask",
+  "title": "Input Mask",
+  "category": "Forms",
+  "description": "Formats what the user types into a pattern, such as phone numbers, dates or decimals.",
+  "files": ["inputmask.js"],
+  "dependencies": ["input"],
+  "library": {
+    "package": "maska",
+    "version": "3.2.1",
+    "homepage": "https://beholdr.github.io/maska/",
+    "license": "MIT",
+    "esm": "https://cdn.jsdelivr.net/npm/maska@3.2.1/+esm",
+    "stylesheet": ""
+  },
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-inputmask", "element": "<input>", "description": "Applies the mask." },
+    { "name": "data-maska", "element": "<input>", "description": "maska's mask pattern: # is a digit, @ a letter, * a letter or digit, e.g. \"##/##/####\". A JSON-like list of patterns picks the one that fits the input length." },
+    { "name": "data-maska-number", "element": "<input>", "description": "maska's number mode: formats the value as a number with grouping." },
+    { "name": "data-maska-number-fraction", "element": "<input>", "description": "Number of decimal places in number mode." },
+    { "name": "data-maska-number-unsigned", "element": "<input>", "description": "Disallows negative numbers in number mode." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "All data-maska* attributes belong to maska; see its documentation for every option, such as custom tokens and eager mode."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Patterns" },
+    { "file": "number.html", "title": "Numbers" },
+    { "file": "dynamic.html", "title": "Dynamic mask", "description": "Switches pattern as the value grows." }
+  ]
+}

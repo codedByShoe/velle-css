@@ -1,0 +1,42 @@
+{
+  "name": "popover",
+  "title": "Popover",
+  "category": "Overlays",
+  "description": "Floating panels anchored to their trigger with the native popover attribute and CSS anchor positioning. Includes a hover behavior for tooltips and hover cards.",
+  "files": ["popover.css", "interest.js"],
+  "dependencies": [],
+  "classes": [
+    { "name": "popover", "description": "The floating panel. Opens below the trigger and flips above when there is no room." },
+    { "name": "popover--block-end-start", "description": "Below, aligned to the trigger's start edge." },
+    { "name": "popover--block-end-center", "description": "Below, centered." },
+    { "name": "popover--block-end-end", "description": "Below, aligned to the trigger's end edge." },
+    { "name": "popover--block-start-start", "description": "Above, aligned to the start edge." },
+    { "name": "popover--block-start-center", "description": "Above, centered." },
+    { "name": "popover--block-start-end", "description": "Above, aligned to the end edge." },
+    { "name": "popover--unanchored", "description": "No anchoring; position it yourself (used by the context menu)." }
+  ],
+  "variables": [
+    { "name": "--popover-size", "default": "max-content", "description": "Width." },
+    { "name": "--popover-position", "default": "block-end", "description": "The position-area value." },
+    { "name": "--popover-position-try", "default": "flip-block", "description": "The position-try fallback." },
+    { "name": "--popover-margin-block", "default": ".25rem 0", "description": "Gap between the trigger and the panel." }
+  ],
+  "attributes": [
+    { "name": "popover", "element": ".popover", "description": "Native attribute. popover (auto) closes on outside click and Escape; popover=\"manual\" only closes from code; popover=\"hint\" is for tooltips." },
+    { "name": "popovertarget", "element": "<button>", "description": "Native attribute: toggles the popover with this id and anchors it to the button." },
+    { "name": "data-interest", "element": "trigger", "description": "Shows a popover while the pointer is over this element." },
+    { "name": "data-interest-for", "element": "trigger", "description": "Id of the popover to show." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Hover popovers are positioned with showPopover({ source }), so they anchor to the hovered element."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "placement.html", "title": "Placement" },
+    { "file": "form.html", "title": "With a form" },
+    { "file": "hover.html", "title": "Hover card" },
+    { "file": "tooltip.html", "title": "Tooltip" }
+  ]
+}

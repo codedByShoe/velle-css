@@ -1,0 +1,46 @@
+{
+  "name": "input_otp",
+  "title": "Input OTP",
+  "category": "Forms",
+  "description": "A one-time code field shown as separate slots, with paste and SMS/email autofill support.",
+  "files": ["input_otp.css", "input_otp.js"],
+  "dependencies": ["icons"],
+  "classes": [
+    { "name": "input-otp", "description": "The field. Holds groups of slots, optional separators and one <input>." },
+    { "name": "input-otp__group", "description": "Joins its slots into one box." },
+    { "name": "input-otp__slot", "description": "One character. Mark it data-input-otp-target=\"slot\"; the number of slots is the code length." },
+    { "name": "input-otp__separator", "description": "Space between groups, e.g. with an icon--minus inside." },
+    { "name": "input-otp__input", "description": "The real input, laid invisibly over the slots." },
+    { "name": "input-otp--lg", "description": "Larger slots and text." }
+  ],
+  "variables": [
+    { "name": "--input-otp-slot-inline-size", "default": "var(--size-8)", "description": "Slot width." },
+    { "name": "--input-otp-slot-block-size", "default": "var(--size-8)", "description": "Slot height." },
+    { "name": "--input-otp-slot-radius", "default": "var(--rounded-lg)", "description": "Corner radius of each group." },
+    { "name": "--input-otp-font-size", "default": "var(--text-sm)", "description": "Font size of the characters." },
+    { "name": "--input-otp-caret-block-size", "default": "var(--size-4)", "description": "Height of the blinking caret." },
+    { "name": "--input-otp-group-gap", "default": "var(--size-3)", "description": "Space between groups and separators." }
+  ],
+  "attributes": [
+    { "name": "data-input-otp", "element": ".input-otp", "description": "Enables the behavior." },
+    { "name": "data-input-otp-target=\"input\"", "element": "<input>", "description": "The real field that is submitted. Give it a name and, if needed, required." },
+    { "name": "data-input-otp-target=\"slot\"", "element": ".input-otp__slot", "description": "A slot, in order." },
+    { "name": "data-input-otp-pattern", "element": ".input-otp", "description": "Allowed characters: \"digits\" (default), \"chars\" (letters) or \"digits-and-chars\". Anything else typed or pasted is dropped." }
+  ],
+  "actions": [],
+  "events": [
+    { "name": "velle:input-otp:complete", "description": "Dispatched when every slot is filled. event.detail.value is the code." }
+  ],
+  "notes": [
+    "The script sets maxlength to the number of slots, autocomplete=\"one-time-code\" and an inputmode matching the pattern, unless the input already has them.",
+    "Characters are always added and removed at the end of the code.",
+    "Disable the input to disable the whole field."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "separator.html", "title": "With a separator" },
+    { "file": "alphanumeric.html", "title": "Letters and digits" },
+    { "file": "form.html", "title": "Submit when complete", "description": "Combines velle:input-otp:complete with the form component." },
+    { "file": "disabled.html", "title": "Disabled" }
+  ]
+}

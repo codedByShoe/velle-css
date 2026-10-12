@@ -1,0 +1,96 @@
+.dropzone {
+  border: var(--border-2) dashed var(--color-border);
+  border-radius: var(--rounded-xl);
+  display: flex;
+  flex-direction: column;
+  padding: var(--size-2);
+  row-gap: var(--size-2);
+  transition-duration: var(--time-150);
+  transition-property: border-color, background-color;
+  transition-timing-function: var(--ease-out-3);
+
+  &[data-dragover] {
+    background-color: rgb(from var(--color-border-light) r g b / .5);
+    border-color: var(--color-border-dark);
+  }
+
+  &:has(.dropzone__area :focus-visible) {
+    outline: var(--border-2) solid var(--color-selected-dark);
+    outline-offset: var(--border-2);
+  }
+
+  &:has(input:disabled) {
+    opacity: var(--opacity-50);
+    pointer-events: none;
+  }
+}
+
+.dropzone__area {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: var(--size-6) var(--size-4);
+  text-align: center;
+}
+
+.dropzone__files {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--size-2);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.dropzone__file {
+  align-items: center;
+  background-color: var(--color-surface);
+  border-radius: var(--rounded-lg);
+  border-width: var(--border);
+  column-gap: var(--size-3);
+  display: flex;
+  font-size: var(--text-sm);
+  padding: var(--size-2);
+
+  &[data-error] {
+    border-color: var(--color-text-negative);
+  }
+}
+
+.dropzone__thumbnail {
+  align-items: center;
+  background-color: var(--color-border-light);
+  block-size: var(--size-10);
+  border-radius: var(--rounded-md);
+  color: var(--color-text-subtle);
+  display: flex;
+  flex-shrink: 0;
+  inline-size: var(--size-10);
+  justify-content: center;
+  object-fit: cover;
+}
+
+.dropzone__details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-inline-size: 0;
+}
+
+.dropzone__name {
+  font-weight: var(--font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropzone__meta {
+  color: var(--color-text-subtle);
+  font-size: var(--text-xs);
+
+  [data-error] > .dropzone__details > & {
+    color: var(--color-text-negative);
+  }
+}

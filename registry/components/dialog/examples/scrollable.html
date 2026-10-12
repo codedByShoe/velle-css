@@ -1,0 +1,56 @@
+<button type="button" class="btn" commandfor="dialog_scrollable" command="show-modal">Scrollable content</button>
+
+<dialog id="dialog_scrollable" class="dialog" style="--dialog-size: 24rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-labelledby="dialog_scrollable_title">
+  <button type="button" class="btn btn--plain dialog__close" commandfor="dialog_scrollable" command="close">
+    <span class="icon icon--x" aria-hidden="true"></span>
+    <span class="sr-only">Close</span>
+  </button>
+
+  <div class="dialog__content">
+    <h3 class="font-medium leading-none mbe-1" id="dialog_scrollable_title">Scrollable content</h3>
+    <p class="text-sm text-subtle">The body scrolls while the header and footer stay put.</p>
+
+    <div class="overflow-b-auto mb-4" style="max-block-size: 50vh;">
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+      <p class="text-sm mbe-4">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+        dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
+        ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+        fugiat nulla pariatur.
+      </p>
+    </div>
+
+    <div class="dialog__footer flex items-center justify-end gap">
+      <button type="button" class="btn" commandfor="dialog_scrollable" command="close">Close</button>
+    </div>
+  </div>
+</dialog>

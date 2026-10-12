@@ -1,0 +1,30 @@
+{
+  "name": "confirm",
+  "title": "Confirm",
+  "category": "Overlays",
+  "description": "Replaces the browser's confirm() with a styled dialog for forms, submit buttons and links that carry data-confirm.",
+  "files": ["confirm.js"],
+  "dependencies": ["dialog", "button"],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-confirm", "element": "<form>, submit <button>, <a>", "description": "The question to ask. Submitting the form or following the link waits for the answer. A data-confirm on the submit button wins over one on the form." },
+    { "name": "data-confirm-text", "element": "same element as data-confirm", "description": "Optional explanation shown under the question." },
+    { "name": "data-confirm-dialog", "element": "<dialog>", "description": "The dialog used to ask. Put one on the page, usually in the layout. Its buttons must close it with value=\"confirm\" or another value (cancel)." },
+    { "name": "data-confirm-dialog-target=\"title\"", "element": "heading inside the dialog", "description": "Receives the data-confirm text." },
+    { "name": "data-confirm-dialog-target=\"text\"", "element": "paragraph inside the dialog", "description": "Receives data-confirm-text, or the default text." },
+    { "name": "data-confirm-dialog-default-text", "element": "<dialog>", "description": "Text used when the trigger has no data-confirm-text. Defaults to \"This action cannot be undone and may have permanent consequences.\"" }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The dialog reports the answer through its returnValue: a <form method=\"dialog\"> button with value=\"confirm\" confirms; anything else, including Escape, cancels.",
+    "When no data-confirm-dialog is on the page, the browser's native confirm() is used.",
+    "After confirming, the original submission is replayed with form.requestSubmit(submitter) or link.click(), so other submit and click handlers still run.",
+    "This replaces css-zero's Turbo-specific turbo_confirm component."
+  ],
+  "examples": [
+    { "file": "form.html", "title": "Confirm a form submission" },
+    { "file": "link.html", "title": "Confirm a link" }
+  ]
+}

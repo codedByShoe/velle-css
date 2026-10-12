@@ -1,0 +1,25 @@
+{
+  "name": "group",
+  "title": "Group",
+  "category": "Elements",
+  "description": "Joins buttons and inputs into one segmented control by merging their borders and corners.",
+  "files": ["group.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "group", "description": "Horizontal group." },
+    { "name": "group-vertical", "description": "Vertical group." }
+  ],
+  "variables": [],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Give the group role=\"group\" and an aria-label so assistive technology announces it."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "sizes.html", "title": "Sizes" },
+    { "file": "input.html", "title": "With an input" },
+    { "file": "vertical.html", "title": "Vertical" }
+  ]
+}

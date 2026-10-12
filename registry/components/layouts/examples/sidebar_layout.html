@@ -1,0 +1,162 @@
+<div class="sidebar-layout" data-toggle-class="closed">
+  <header id="header" class="gap">
+    <button type="button" class="btn btn--icon hide@md" commandfor="layout_sheet" command="show-modal">
+      <span class="icon icon--panel-left" aria-hidden="true"></span>
+      <span class="sr-only">Open menu</span>
+    </button>
+    <span class="font-bold">Acme</span>
+  </header>
+
+  <dialog id="layout_sheet" class="sheet sheet--left" style="--sheet-size: 18rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-label="Menu">
+    <div class="sheet__content p-2">
+      <div class="sidebar-menu">
+        <nav class="sidebar-menu__content" aria-label="Sidebar">
+          <div class="sidebar-menu__group">
+            <div class="sidebar-menu__group-label" aria-hidden="true">Platform</div>
+            <ul class="sidebar-menu__items" aria-label="Platform">
+              <li>
+                <details open>
+                  <summary class="btn sidebar-menu__button">
+                    <span class="icon icon--panel-left" aria-hidden="true"></span>
+                    <span class="overflow-ellipsis">Playground</span>
+                  </summary>
+                  <ul class="sidebar-menu__sub">
+                    <li><a class="btn sidebar-menu__button" aria-current="page" href="#">History</a></li>
+                    <li><a class="btn sidebar-menu__button" href="#">Starred</a></li>
+                    <li><a class="btn sidebar-menu__button" href="#">Settings</a></li>
+                  </ul>
+                </details>
+              </li>
+              <li>
+                <details>
+                  <summary class="btn sidebar-menu__button">
+                    <span class="icon icon--search" aria-hidden="true"></span>
+                    <span class="overflow-ellipsis">Models</span>
+                  </summary>
+                  <ul class="sidebar-menu__sub">
+                    <li><a class="btn sidebar-menu__button" href="#">Genesis</a></li>
+                    <li><a class="btn sidebar-menu__button" href="#">Explorer</a></li>
+                  </ul>
+                </details>
+              </li>
+            </ul>
+          </div>
+          <div class="sidebar-menu__group">
+            <div class="sidebar-menu__group-label" aria-hidden="true">Projects</div>
+            <ul class="sidebar-menu__items" aria-label="Projects">
+              <li>
+                <a class="btn sidebar-menu__button" href="#">
+                  <span class="icon icon--share" aria-hidden="true"></span>
+                  <span class="overflow-ellipsis">Design Engineering</span>
+                </a>
+              </li>
+              <li>
+                <a class="btn sidebar-menu__button" href="#">
+                  <span class="icon icon--download" aria-hidden="true"></span>
+                  <span class="overflow-ellipsis">Sales &amp; Marketing</span>
+                </a>
+              </li>
+              <li>
+                <a class="btn sidebar-menu__button" aria-disabled="true">
+                  <span class="icon icon--ellipsis" aria-hidden="true"></span>
+                  <span class="overflow-ellipsis">More</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <a class="btn sidebar-menu__button" href="#">
+          <span class="avatar avatar--sm"><img alt="" src="assets/images/avatar.svg"></span>
+          <span class="flex flex-col text-start leading-tight overflow-hidden">
+            <span class="overflow-ellipsis font-semibold">Ada Lovelace</span>
+            <span class="overflow-ellipsis text-xs">ada@example.com</span>
+          </span>
+          <span class="icon icon--chevrons-up-down mis-auto" aria-hidden="true"></span>
+        </a>
+      </div>
+    </div>
+  </dialog>
+
+  <aside id="sidebar">
+    <div class="sidebar-menu">
+      <nav class="sidebar-menu__content" aria-label="Sidebar">
+        <div class="sidebar-menu__group">
+          <div class="sidebar-menu__group-label" aria-hidden="true">Platform</div>
+          <ul class="sidebar-menu__items" aria-label="Platform">
+            <li>
+              <details open>
+                <summary class="btn sidebar-menu__button">
+                  <span class="icon icon--panel-left" aria-hidden="true"></span>
+                  <span class="overflow-ellipsis">Playground</span>
+                </summary>
+                <ul class="sidebar-menu__sub">
+                  <li><a class="btn sidebar-menu__button" aria-current="page" href="#">History</a></li>
+                  <li><a class="btn sidebar-menu__button" href="#">Starred</a></li>
+                  <li><a class="btn sidebar-menu__button" href="#">Settings</a></li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <details>
+                <summary class="btn sidebar-menu__button">
+                  <span class="icon icon--search" aria-hidden="true"></span>
+                  <span class="overflow-ellipsis">Models</span>
+                </summary>
+                <ul class="sidebar-menu__sub">
+                  <li><a class="btn sidebar-menu__button" href="#">Genesis</a></li>
+                  <li><a class="btn sidebar-menu__button" href="#">Explorer</a></li>
+                </ul>
+              </details>
+            </li>
+          </ul>
+        </div>
+        <div class="sidebar-menu__group">
+          <div class="sidebar-menu__group-label" aria-hidden="true">Projects</div>
+          <ul class="sidebar-menu__items" aria-label="Projects">
+            <li>
+              <a class="btn sidebar-menu__button" href="#">
+                <span class="icon icon--share" aria-hidden="true"></span>
+                <span class="overflow-ellipsis">Design Engineering</span>
+              </a>
+            </li>
+            <li>
+              <a class="btn sidebar-menu__button" href="#">
+                <span class="icon icon--download" aria-hidden="true"></span>
+                <span class="overflow-ellipsis">Sales &amp; Marketing</span>
+              </a>
+            </li>
+            <li>
+              <a class="btn sidebar-menu__button" aria-disabled="true">
+                <span class="icon icon--ellipsis" aria-hidden="true"></span>
+                <span class="overflow-ellipsis">More</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <a class="btn sidebar-menu__button" href="#">
+        <span class="avatar avatar--sm"><img alt="" src="assets/images/avatar.svg"></span>
+        <span class="flex flex-col text-start leading-tight overflow-hidden">
+          <span class="overflow-ellipsis font-semibold">Ada Lovelace</span>
+          <span class="overflow-ellipsis text-xs">ada@example.com</span>
+        </span>
+        <span class="icon icon--chevrons-up-down mis-auto" aria-hidden="true"></span>
+      </a>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="flex items-center gap show@md">
+      <button type="button" class="btn btn--borderless p-1" data-toggle-class-action="toggle">
+        <span class="icon icon--panel-left" aria-hidden="true"></span>
+        <span class="sr-only">Toggle sidebar</span>
+      </button>
+      <span class="separator-vertical" aria-hidden="true"></span>
+      <span class="text-sm text-subtle">Playground / History</span>
+    </div>
+
+    <div class="rounded-lg bg-shade" style="min-block-size: 6rem"></div>
+    <div class="rounded-lg bg-shade" style="min-block-size: 6rem"></div>
+    <div class="rounded-lg bg-shade" style="min-block-size: 6rem"></div>
+  </main>
+</div>

@@ -1,0 +1,96 @@
+{
+  "name": "sortable",
+  "title": "Sortable",
+  "category": "Elements",
+  "description": "Reorder items by dragging them, within a list or between lists, with touch support.",
+  "files": [
+    "sortable.css",
+    "sortable.js"
+  ],
+  "dependencies": [],
+  "library": {
+    "package": "sortablejs",
+    "version": "1.15.7",
+    "homepage": "https://sortablejs.github.io/Sortable/",
+    "license": "MIT",
+    "esm": "https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/+esm",
+    "stylesheet": ""
+  },
+  "classes": [
+    {
+      "name": "sortable-ghost",
+      "description": "Added by SortableJS to the placeholder while dragging; faded by sortable.css."
+    },
+    {
+      "name": "sortable-handle",
+      "description": "A drag handle (cursor: grab). Use it with data-sortable-handle=\".sortable-handle\" and put the icon inside it, since icons ignore pointer events."
+    }
+  ],
+  "variables": [],
+  "attributes": [
+    {
+      "name": "data-sortable",
+      "element": "list",
+      "description": "Makes the list's children draggable."
+    },
+    {
+      "name": "data-sortable-group",
+      "element": "list",
+      "description": "Lists with the same group name can exchange items."
+    },
+    {
+      "name": "data-sortable-handle",
+      "element": "list",
+      "description": "CSS selector of the drag handle inside each item. Without it the whole item drags."
+    },
+    {
+      "name": "data-sortable-parent-id",
+      "element": "list",
+      "description": "Sent as parent_id when saving, so the server knows which list an item landed in."
+    },
+    {
+      "name": "data-sortable-url",
+      "element": "item",
+      "description": "Optional. After a move, the item's new position (0-based) and parent_id are sent here as form data."
+    },
+    {
+      "name": "data-sortable-method",
+      "element": "list",
+      "description": "HTTP method used with data-sortable-url. Defaults to PATCH."
+    }
+  ],
+  "actions": [],
+  "events": [
+    {
+      "name": "velle:sortable:move",
+      "description": "Dispatched from the list an item landed in. event.detail has item, from, to, oldIndex and newIndex."
+    },
+    {
+      "name": "velle:sortable:success",
+      "description": "The save request got a 2xx response. event.detail.response is the fetch Response."
+    },
+    {
+      "name": "velle:sortable:error",
+      "description": "The save request failed. event.detail has response or error."
+    }
+  ],
+  "notes": [
+    "Without data-sortable-url nothing is sent: listen for velle:sortable:move and save the order however you like.",
+    "Saving sends the X-CSRF-Token header when the page has <meta name=\"csrf-token\">.",
+    "css-zero always sent a Rails-style PUT with query parameters; velle sends form data, only when data-sortable-url is set."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "handle.html",
+      "title": "With a handle"
+    },
+    {
+      "file": "shared.html",
+      "title": "Between lists"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "separator",
+  "title": "Separator",
+  "category": "Elements",
+  "description": "A thin horizontal or vertical line between content.",
+  "files": ["separator.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "separator", "description": "Horizontal line." },
+    { "name": "separator-vertical", "description": "Vertical line that stretches to the height of a flex row." }
+  ],
+  "variables": [
+    { "name": "--sep-color", "default": "var(--color-border)", "description": "Line color." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Purely decorative separators should be aria-hidden=\"true\"."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Horizontal" },
+    { "file": "vertical.html", "title": "Vertical" }
+  ]
+}

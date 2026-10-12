@@ -1,0 +1,19 @@
+<div class="flex flex-col gap" style="max-inline-size: 20rem">
+  <div class="flex flex-col gap-half">
+    <label class="text-sm font-medium leading-none" for="input_required">Full name (required)</label>
+    <input type="text" id="input_required" placeholder="Type, then clear the field" required class="input">
+    <div feedback class="text-sm text-negative">can't be blank</div>
+  </div>
+
+  <div class="flex flex-col gap-half">
+    <label class="text-sm font-medium leading-none" for="input_minlength">Username (min. 3 characters)</label>
+    <input type="text" id="input_minlength" required minlength="3" class="input">
+    <div feedback class="text-sm text-negative">is too short (minimum is 3 characters)</div>
+  </div>
+
+  <div class="flex flex-col gap-half">
+    <label class="text-sm font-medium leading-none" for="input_server_error">Email (server error)</label>
+    <input type="email" id="input_server_error" value="ada@" class="input" aria-invalid="true" aria-describedby="input_server_error_message">
+    <div class="text-sm text-negative" id="input_server_error_message">is not a valid email address</div>
+  </div>
+</div>

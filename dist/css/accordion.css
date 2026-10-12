@@ -1,0 +1,62 @@
+:where(.accordion) {
+  details {
+    font-size: var(--text-sm);
+
+    &:not(:last-child) {
+      border-block-end-width: var(--border);
+    }
+
+    &::details-content {
+      block-size: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition-behavior: allow-discrete;
+      transition-duration: var(--time-200);
+      transition-property: content-visibility, block-size, opacity;
+      transition-timing-function: var(--ease-out-3);
+    }
+
+    &[open]::details-content {
+      block-size: auto; opacity: 1;
+    }
+  }
+
+  summary {
+    align-items: flex-start;
+    cursor: default;
+    display: flex;
+    font-weight: var(--font-medium);
+    padding-block: var(--size-2_5);
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: var(--border-2) solid var(--color-selected-dark);
+    }
+
+    &[aria-disabled="true"] {
+      opacity: var(--opacity-50);
+      pointer-events: none;
+    }
+
+    &::after {
+      background-color: currentColor;
+      block-size: var(--size-4);
+      color: var(--color-text-subtle);
+      content: "";
+      inline-size: var(--size-4);
+      margin-inline-start: auto;
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      mask-size: cover;
+      transition-duration: var(--time-200);
+      transition-property: transform;
+      transition-timing-function: var(--ease-out-3);
+    }
+
+    details[open] > &::after {
+      transform: var(--rotate-180);
+    }
+  }
+}

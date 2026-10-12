@@ -1,0 +1,14 @@
+<!-- Put data-color-scheme on <html>: <html data-color-scheme> -->
+<button type="button" class="btn btn--icon" popovertarget="color_scheme_popover" aria-haspopup="true">
+  <span class="icon icon--sun icon--color-scheme-light" aria-hidden="true"></span>
+  <span class="icon icon--moon icon--color-scheme-dark" aria-hidden="true"></span>
+  <span class="sr-only">Theme switcher</span>
+</button>
+
+<div popover id="color_scheme_popover" class="popover popover--block-end-start" role="menu" aria-label="Theme">
+  <div class="menu" data-menu>
+    <button type="button" class="btn menu__item" popovertarget="color_scheme_popover" data-color-scheme-action="setLight" data-menu-target="item" role="menuitem">Light</button>
+    <button type="button" class="btn menu__item" popovertarget="color_scheme_popover" data-color-scheme-action="setDark" data-menu-target="item" role="menuitem">Dark</button>
+    <button type="button" class="btn menu__item" popovertarget="color_scheme_popover" data-color-scheme-action="setSystem" data-menu-target="item" role="menuitem">System</button>
+  </div>
+</div>

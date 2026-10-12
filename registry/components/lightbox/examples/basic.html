@@ -1,0 +1,30 @@
+<div data-lightbox>
+  <div class="flex items-center gap">
+    <a class="inline-flex" href="assets/images/landscape-1.svg" data-lightbox-url="assets/images/landscape-1.svg" data-lightbox-action="show:prevent">
+      <img alt="Mountains at dusk" class="rounded-lg object-cover" src="assets/images/landscape-1.svg" width="160" height="90">
+    </a>
+    <a class="inline-flex" href="assets/images/landscape-2.svg" data-lightbox-url="assets/images/landscape-2.svg" data-lightbox-action="show:prevent">
+      <img alt="Sea at noon" class="rounded-lg object-cover" src="assets/images/landscape-2.svg" width="160" height="90">
+    </a>
+  </div>
+
+  <!-- One dialog is enough for the whole page; put it in your layout. -->
+  <dialog class="lightbox" aria-label="Image viewer (press Escape to close)" data-lightbox-target="dialog" data-lightbox-action="close->reset">
+    <img alt="" class="lightbox__image" data-lightbox-target="zoomedImage">
+
+    <button type="button" class="btn btn--icon lightbox__close" data-lightbox-action="close">
+      <span class="icon icon--x" style="--icon-size: 1.5rem" aria-hidden="true"></span>
+      <span class="sr-only">Close image viewer</span>
+    </button>
+
+    <a href="#" class="btn btn--icon lightbox__download" data-lightbox-target="download" download>
+      <span class="icon icon--download" style="--icon-size: 1.5rem" aria-hidden="true"></span>
+      <span class="sr-only">Download file</span>
+    </a>
+
+    <button type="button" class="btn btn--icon lightbox__share" data-web-share data-web-share-action="share" data-lightbox-target="share">
+      <span class="icon icon--share" style="--icon-size: 1.5rem" aria-hidden="true"></span>
+      <span class="sr-only">Share file</span>
+    </button>
+  </dialog>
+</div>

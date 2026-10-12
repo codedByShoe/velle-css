@@ -1,0 +1,35 @@
+{
+  "name": "badge",
+  "title": "Badge",
+  "category": "Elements",
+  "description": "A small label for statuses, counts and tags.",
+  "files": ["badge.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "badge", "description": "Outlined badge." },
+    { "name": "badge--primary", "description": "Solid primary color." },
+    { "name": "badge--secondary", "description": "Muted, borderless." },
+    { "name": "badge--negative", "description": "Red, for errors and destructive states." }
+  ],
+  "variables": [
+    { "name": "--badge-background", "default": "var(--color-bg)", "description": "Background color." },
+    { "name": "--badge-border-color", "default": "var(--color-border)", "description": "Border color." },
+    { "name": "--badge-color", "default": "var(--color-text)", "description": "Text color." },
+    { "name": "--badge-radius", "default": "var(--rounded-3xl)", "description": "Corner radius." },
+    { "name": "--badge-padding", "default": ".125rem .5rem", "description": "Inner padding." },
+    { "name": "--badge-min-inline-size", "default": "0", "description": "Minimum width, useful for numeric counters." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Icons inside a badge are sized to 0.75rem automatically."
+  ],
+  "examples": [
+    { "file": "variants.html", "title": "Variants" },
+    { "file": "with_icon.html", "title": "With an icon" },
+    { "file": "link.html", "title": "As a link" },
+    { "file": "colors.html", "title": "Custom colors" },
+    { "file": "counter.html", "title": "Counter" }
+  ]
+}

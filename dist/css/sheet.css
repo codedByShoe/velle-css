@@ -1,0 +1,67 @@
+.sheet {
+  background-color: var(--color-surface);
+  block-size: var(--size-full);
+  border-inline-width: var(--sheet-border);
+  box-shadow: var(--shadow-lg);
+  color: var(--color-text);
+  inline-size: var(--sheet-size, var(--size-3-4));
+  margin-inline: var(--sheet-margin-inline);
+  max-block-size: none;
+
+  &::backdrop {
+    backdrop-filter: var(--blur-xs);
+  }
+
+  /* Setup transition */
+  transition-behavior: allow-discrete;
+  transition-duration: var(--time-300);
+  transition-property: display, overlay, opacity, transform;
+  transition-timing-function: var(--ease-out-4);
+
+  &::backdrop {
+    transition-behavior: allow-discrete;
+    transition-duration: var(--time-150);
+    transition-property: display, overlay, opacity;
+    transition-timing-function: var(--ease-out-3);
+  }
+
+  /* Exit stage to */
+  & { opacity: 0; transform: var(--sheet-transform); }
+  &::backdrop { opacity: 0; }
+
+  /* On stage */
+  &[open] { opacity: 1; transform: translateX(0); }
+  &[open]::backdrop { opacity: 1; }
+
+  /* Enter stage from */
+  @starting-style {
+    &[open] { opacity: 0; transform: var(--sheet-transform); }
+    &[open]::backdrop { opacity: 0; }
+  }
+
+  @media (width >= 40rem) {
+    max-inline-size: var(--sheet-size, var(--max-i-sm));
+  }
+}
+
+.sheet--left {
+  --sheet-border: 0 1px;
+  --sheet-margin-inline: 0 auto;
+  --sheet-transform: translateX(-100%);
+}
+
+.sheet--right {
+  --sheet-border: 1px 0;
+  --sheet-margin-inline: auto 0;
+  --sheet-transform: translateX(100%);
+}
+
+.sheet__content {
+  block-size: inherit; padding: var(--size-4);
+}
+
+.sheet__close {
+  inset-block-start: var(--size-3);
+  inset-inline-end: var(--size-3);
+  position: absolute;
+}

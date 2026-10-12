@@ -1,0 +1,48 @@
+<div class="tabs" style="max-inline-size: 28rem" data-tabs data-tabs-index="0">
+  <div class="tabs__list" role="tablist" data-tabs-action="keydown.left->prev keydown.right->next">
+    <button type="button" id="tabs_trigger_overview" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_overview">Overview</button>
+    <button type="button" id="tabs_trigger_analytics" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_analytics">Analytics</button>
+    <button type="button" id="tabs_trigger_reports" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_reports">Reports</button>
+    <button type="button" id="tabs_trigger_settings" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_settings">Settings</button>
+  </div>
+
+  <div hidden id="tabs_panel_overview" data-tabs-target="tab" role="tabpanel" aria-labelledby="tabs_trigger_overview">
+    <div class="card flex flex-col gap">
+      <div class="flex flex-col">
+        <h3 class="font-medium leading-none mbe-1">Overview</h3>
+        <p class="text-sm text-subtle">View your key metrics and recent project activity.</p>
+      </div>
+      <p class="text-sm text-subtle">You have 12 active projects and 3 pending tasks.</p>
+    </div>
+  </div>
+
+  <div hidden id="tabs_panel_analytics" data-tabs-target="tab" role="tabpanel" aria-labelledby="tabs_trigger_analytics">
+    <div class="card flex flex-col gap">
+      <div class="flex flex-col">
+        <h3 class="font-medium leading-none mbe-1">Analytics</h3>
+        <p class="text-sm text-subtle">Track performance and user engagement.</p>
+      </div>
+      <p class="text-sm text-subtle">Page views are up 25% compared to last month.</p>
+    </div>
+  </div>
+
+  <div hidden id="tabs_panel_reports" data-tabs-target="tab" role="tabpanel" aria-labelledby="tabs_trigger_reports">
+    <div class="card flex flex-col gap">
+      <div class="flex flex-col">
+        <h3 class="font-medium leading-none mbe-1">Reports</h3>
+        <p class="text-sm text-subtle">Generate and download detailed reports.</p>
+      </div>
+      <p class="text-sm text-subtle">You have 5 reports ready to export.</p>
+    </div>
+  </div>
+
+  <div hidden id="tabs_panel_settings" data-tabs-target="tab" role="tabpanel" aria-labelledby="tabs_trigger_settings">
+    <div class="card flex flex-col gap">
+      <div class="flex flex-col">
+        <h3 class="font-medium leading-none mbe-1">Settings</h3>
+        <p class="text-sm text-subtle">Manage your account preferences.</p>
+      </div>
+      <p class="text-sm text-subtle">Configure notifications, security and themes.</p>
+    </div>
+  </div>
+</div>

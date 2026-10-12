@@ -1,0 +1,11 @@
+<button type="button" class="btn" commandfor="autoselect_dialog" command="show-modal">Rename file</button>
+
+<dialog id="autoselect_dialog" class="dialog" style="--dialog-size: 20rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-label="Rename file">
+  <form method="dialog" class="dialog__content flex flex-col gap">
+    <label class="text-sm font-medium leading-none" for="autoselect_name">File name</label>
+    <input type="text" id="autoselect_name" value="quarterly-report.pdf" class="input" autofocus data-autoselect>
+    <div class="flex justify-end">
+      <button class="btn btn--primary">Rename</button>
+    </div>
+  </form>
+</dialog>

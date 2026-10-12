@@ -1,0 +1,32 @@
+<form class="card flex flex-col gap" style="max-inline-size: 24rem" action="/verify" method="post" data-form data-form-action="velle:input-otp:complete->submit">
+  <div class="flex flex-col">
+    <h3 class="font-medium leading-none mbe-1">Verify your login</h3>
+    <p class="text-sm text-subtle">Enter the code we sent to <span class="font-medium">m@example.com</span>.</p>
+  </div>
+
+  <div class="flex flex-col gap-half">
+    <label class="text-sm font-medium leading-none" for="otp_form_code">Verification code</label>
+    <div class="input-otp input-otp--lg" data-input-otp>
+      <div class="input-otp__group">
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+      </div>
+
+      <div class="input-otp__separator" role="separator">
+        <span class="icon icon--minus" aria-hidden="true"></span>
+      </div>
+
+      <div class="input-otp__group">
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+        <div class="input-otp__slot" data-input-otp-target="slot"></div>
+      </div>
+      <input class="input-otp__input" name="code" id="otp_form_code" required data-input-otp-target="input">
+    </div>
+  </div>
+
+  <div class="card__footer">
+    <button type="submit" class="btn btn--primary i-full">Verify</button>
+  </div>
+</form>

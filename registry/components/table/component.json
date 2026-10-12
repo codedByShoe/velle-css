@@ -1,0 +1,23 @@
+{
+  "name": "table",
+  "title": "Table",
+  "category": "Elements",
+  "description": "Styles for data tables with row hover, selected rows, a caption and a footer.",
+  "files": ["table.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "table", "description": "Use it on a <table>." }
+  ],
+  "variables": [],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Rows that contain a checked checkbox are highlighted, which pairs well with check_all.",
+    "Wrap wide tables in an element with the overflow-i-auto utility to scroll them horizontally."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "selectable.html", "title": "Selectable rows", "description": "Uses check_all." }
+  ]
+}

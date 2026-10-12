@@ -1,0 +1,132 @@
+/*
+  Two native range inputs side by side. The script resizes them so they meet at the midpoint
+  between the two values, and paints the selected part of each track.
+  Technique from @stanko/dual-range-input (MIT, https://muffinman.io/dual-range-input).
+*/
+.dual-range {
+  --dual-range-height: var(--size-2_5);
+  --dual-range-thumb-size: var(--dual-range-height);
+  --dual-range-thumb-color: var(--color-primary);
+  --dual-range-thumb-active-color: var(--color-selected-dark);
+  --dual-range-track-height: calc(var(--dual-range-height) * .45);
+  --dual-range-track-color: var(--color-border);
+  --dual-range-fill-color: var(--color-primary);
+
+  block-size: var(--dual-range-height);
+  box-sizing: border-box;
+  display: flex;
+  inline-size: 100%;
+  padding-inline-end: calc(var(--dual-range-thumb-size) * 2);
+
+  &:has(input:focus-visible) {
+    border-radius: var(--rounded-xs);
+    outline: var(--border-2) solid var(--color-selected-dark);
+    outline-offset: var(--size-1);
+  }
+
+  input {
+    -webkit-tap-highlight-color: transparent;
+    appearance: none;
+    background: none;
+    block-size: 100%;
+    flex-basis: calc(50% + var(--dual-range-thumb-size));
+    flex-shrink: 0;
+    margin: 0;
+    min-inline-size: var(--dual-range-thumb-size);
+    outline: none;
+  }
+
+  /* WebKit and Blink */
+  input::-webkit-slider-runnable-track {
+    background-color: var(--dual-range-track-color);
+    background-repeat: no-repeat;
+    block-size: var(--dual-range-track-height);
+  }
+
+  input:first-child::-webkit-slider-runnable-track {
+    background-image: linear-gradient(to right, var(--dual-range-track-color) var(--dual-range-position), var(--dual-range-fill-color) var(--dual-range-position));
+    border-end-start-radius: var(--rounded-2xl);
+    border-start-start-radius: var(--rounded-2xl);
+  }
+
+  input:last-child::-webkit-slider-runnable-track {
+    background-image: linear-gradient(to right, var(--dual-range-fill-color) var(--dual-range-position), var(--dual-range-track-color) var(--dual-range-position));
+    border-end-end-radius: var(--rounded-2xl);
+    border-start-end-radius: var(--rounded-2xl);
+  }
+
+  input::-webkit-slider-thumb {
+    appearance: none;
+    background-color: var(--dual-range-thumb-color);
+    block-size: var(--dual-range-thumb-size);
+    border: var(--border) solid var(--dual-range-thumb-color);
+    border-radius: var(--rounded-2xl);
+    box-sizing: border-box;
+    inline-size: var(--dual-range-thumb-size);
+    margin-block-start: calc(var(--dual-range-track-height) / 2);
+    transform: translateY(-50%);
+  }
+
+  input:is(:active, :focus-visible)::-webkit-slider-thumb {
+    background-color: var(--dual-range-thumb-active-color);
+  }
+
+  input:not([data-ready])::-webkit-slider-thumb {
+    opacity: 0;
+  }
+
+  /* Firefox */
+  input::-moz-range-track {
+    background-color: var(--dual-range-track-color);
+    background-repeat: no-repeat;
+    block-size: var(--dual-range-track-height);
+  }
+
+  input:first-child::-moz-range-track {
+    background-image: linear-gradient(to right, var(--dual-range-track-color) var(--dual-range-position), var(--dual-range-fill-color) var(--dual-range-position));
+    border-end-start-radius: var(--rounded-2xl);
+    border-start-start-radius: var(--rounded-2xl);
+  }
+
+  input:last-child::-moz-range-track {
+    background-image: linear-gradient(to right, var(--dual-range-fill-color) var(--dual-range-position), var(--dual-range-track-color) var(--dual-range-position));
+    border-end-end-radius: var(--rounded-2xl);
+    border-start-end-radius: var(--rounded-2xl);
+  }
+
+  input::-moz-range-thumb {
+    background-color: var(--dual-range-thumb-color);
+    block-size: var(--dual-range-thumb-size);
+    border: var(--border) solid var(--dual-range-thumb-color);
+    border-radius: var(--rounded-2xl);
+    box-sizing: border-box;
+    inline-size: var(--dual-range-thumb-size);
+  }
+
+  input:is(:active, :focus-visible)::-moz-range-thumb {
+    background-color: var(--dual-range-thumb-active-color);
+  }
+
+  input:not([data-ready])::-moz-range-thumb {
+    opacity: 0;
+  }
+}
+
+/* Right-to-left: the tracks fill from the other side. */
+.dual-range:dir(rtl) {
+  input:first-child::-webkit-slider-runnable-track {
+    background-image: linear-gradient(to left, var(--dual-range-track-color) var(--dual-range-position), var(--dual-range-fill-color) var(--dual-range-position));
+  }
+
+  input:last-child::-webkit-slider-runnable-track {
+    background-image: linear-gradient(to left, var(--dual-range-fill-color) var(--dual-range-position), var(--dual-range-track-color) var(--dual-range-position));
+  }
+
+  input:first-child::-moz-range-track {
+    background-image: linear-gradient(to left, var(--dual-range-track-color) var(--dual-range-position), var(--dual-range-fill-color) var(--dual-range-position));
+  }
+
+  input:last-child::-moz-range-track {
+    background-image: linear-gradient(to left, var(--dual-range-fill-color) var(--dual-range-position), var(--dual-range-track-color) var(--dual-range-position));
+  }
+}

@@ -1,0 +1,10 @@
+<button type="button" class="btn" data-demo-flash="flash_success">Show flash</button>
+
+<template id="flash_success">
+  <div popover="manual" class="flash" data-flash data-flash-action="animationend->hide" role="alert">
+    <div class="flash__content flex items-center gap">
+      <span class="icon icon--circle-check" aria-hidden="true"></span>
+      <span class="font-medium">Event has been created</span>
+    </div>
+  </div>
+</template>

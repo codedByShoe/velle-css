@@ -1,0 +1,53 @@
+<div class="card" style="--card-padding: 0; max-inline-size: 24rem">
+  <div class="command" data-command>
+    <label class="input input--actor flex items-center gap command__input">
+      <span class="icon icon--search" aria-hidden="true"></span>
+      <input type="text" autocomplete="off" placeholder="Type a command or search…" aria-label="Search commands" aria-controls="command_inline_list" data-command-target="input">
+    </label>
+
+    <div class="command__list" id="command_inline_list" role="listbox" aria-label="Commands">
+      <div class="command__empty" hidden data-command-target="empty">No results found.</div>
+
+      <div class="command__group" role="group" aria-labelledby="command_inline_suggestions" data-command-target="group">
+        <div class="command__heading" id="command_inline_suggestions">Suggestions</div>
+        <a class="command__item" role="option" href="#" data-command-target="item">
+          <span class="icon icon--search" aria-hidden="true"></span>
+          <span>Search</span>
+        </a>
+        <a class="command__item" role="option" href="#" data-command-target="item" data-command-keywords="export pdf">
+          <span class="icon icon--download" aria-hidden="true"></span>
+          <span>Download report</span>
+        </a>
+        <a class="command__item" role="option" href="#" data-command-target="item">
+          <span class="icon icon--share" aria-hidden="true"></span>
+          <span>Share</span>
+        </a>
+      </div>
+
+      <hr class="command__separator" data-command-target="separator">
+
+      <div class="command__group" role="group" aria-labelledby="command_inline_settings" data-command-target="group">
+        <div class="command__heading" id="command_inline_settings">Settings</div>
+        <a class="command__item" role="option" href="#" data-command-target="item">
+          <span class="icon icon--sun" aria-hidden="true"></span>
+          <span>Light theme</span>
+          <span class="command__item-key">⌘L</span>
+        </a>
+        <a class="command__item" role="option" href="#" data-command-target="item">
+          <span class="icon icon--moon" aria-hidden="true"></span>
+          <span>Dark theme</span>
+          <span class="command__item-key">⌘D</span>
+        </a>
+        <a class="command__item" role="option" href="#" data-command-target="item">
+          <span class="icon icon--copy" aria-hidden="true"></span>
+          <span>Copy link</span>
+          <span class="command__item-key">⌘C</span>
+        </a>
+        <div class="command__item" role="option" aria-disabled="true" data-command-target="item">
+          <span class="icon icon--x" aria-hidden="true"></span>
+          <span>Delete workspace</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

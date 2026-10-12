@@ -1,0 +1,34 @@
+{{define "content"}}
+<header class="docs-intro">
+  <h1>Tokens</h1>
+  <p class="docs-lead">Design tokens are CSS custom properties defined on <code>:root</code> by <code>variables.css</code>, which imports one file per group. Use them in your own CSS, e.g. <code>padding: var(--size-4)</code>.</p>
+</header>
+
+{{range .Tokens}}
+<section class="docs-section" aria-labelledby="{{slug .Title}}">
+  <h2 id="{{slug .Title}}">{{.Title}} <span class="text-sm font-normal text-subtle">tokens/{{.File}}</span></h2>
+  {{range .Sections}}
+  {{if .Title}}<h3>{{.Title}}</h3>{{end}}
+  {{if and .Tokens (index .Tokens 0).Color}}
+  <div class="docs-swatches">
+    {{range .Tokens}}
+    <div class="docs-swatch">
+      <span class="docs-swatch__color" style="{{.Swatch}}"></span>
+      <code>{{.Name}}</code>
+    </div>
+    {{end}}
+  </div>
+  {{else}}
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+      <tbody>
+        {{range .Tokens}}<tr><td><code>{{.Name}}</code></td><td><code>{{.Value}}</code>{{if .Comment}} <span class="text-subtle">{{.Comment}}</span>{{end}}</td></tr>{{end}}
+      </tbody>
+    </table>
+  </div>
+  {{end}}
+  {{end}}
+</section>
+{{end}}
+{{end}}

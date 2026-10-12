@@ -1,0 +1,149 @@
+{
+  "name": "input",
+  "title": "Input",
+  "category": "Forms",
+  "description": "Styles for text fields, textareas, selects, checkboxes, radios, ranges and file inputs, including validation states.",
+  "files": [
+    "input.css"
+  ],
+  "dependencies": [],
+  "classes": [
+    {
+      "name": "input",
+      "description": "Apply to <input>, <textarea> or <select>. Checkboxes, radios and ranges get accent colors instead of the box style."
+    },
+    {
+      "name": "input--actor",
+      "description": "Turns a wrapper into the input box so you can put buttons or text next to a bare inner <input> or <textarea>."
+    }
+  ],
+  "variables": [
+    {
+      "name": "--input-background",
+      "default": "var(--color-surface)",
+      "description": "Background color."
+    },
+    {
+      "name": "--input-border-color",
+      "default": "var(--color-border)",
+      "description": "Border color."
+    },
+    {
+      "name": "--input-radius",
+      "default": "var(--rounded-md)",
+      "description": "Corner radius."
+    },
+    {
+      "name": "--input-box-shadow",
+      "default": "var(--shadow-xs)",
+      "description": "Shadow."
+    },
+    {
+      "name": "--input-padding",
+      "default": ".25rem .625rem",
+      "description": "Inner padding."
+    },
+    {
+      "name": "--input-font-size",
+      "default": "var(--text-sm)",
+      "description": "Font size."
+    },
+    {
+      "name": "--input-inline-size",
+      "default": "var(--size-full)",
+      "description": "Width."
+    },
+    {
+      "name": "--input-block-size",
+      "default": "auto",
+      "description": "Height."
+    },
+    {
+      "name": "--input-outline-size",
+      "default": "2px",
+      "description": "Focus ring width."
+    },
+    {
+      "name": "--input-accent-color",
+      "default": "var(--color-primary)",
+      "description": "Accent color of checkboxes, radios and ranges."
+    },
+    {
+      "name": "--input-check-size",
+      "default": "var(--size-4)",
+      "description": "Size of checkboxes and radios."
+    },
+    {
+      "name": "--input-range-zoom",
+      "default": ".625",
+      "description": "Scale of range inputs."
+    },
+    {
+      "name": "--input-rows",
+      "default": "2lh",
+      "description": "Minimum height of a rows=\"auto\" textarea."
+    },
+    {
+      "name": "--input-max-rows",
+      "default": "10lh",
+      "description": "Maximum height of a rows=\"auto\" textarea."
+    }
+  ],
+  "attributes": [
+    {
+      "name": "rows=\"auto\"",
+      "element": "<textarea class=\"input\"> or an input--actor wrapper",
+      "description": "Grows with its content (field-sizing: content) between --input-rows and --input-max-rows. On an input--actor wrapper, put rows=\"auto\" on the wrapper; the inner textarea inherits the sizing."
+    },
+    {
+      "name": "aria-invalid=\"true\"",
+      "element": ".input",
+      "description": "Red border, for errors reported by your server."
+    },
+    {
+      "name": "feedback",
+      "element": "element right after the input",
+      "description": "Hidden until the input is :user-invalid, then shown. Use it for client-side validation messages."
+    }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Invalid fields get a red border only after the user has interacted with them (:user-invalid).",
+    "css-zero's Rails-only .field_with_errors hook was replaced by the standard aria-invalid=\"true\" attribute."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Text fields"
+    },
+    {
+      "file": "select.html",
+      "title": "Select"
+    },
+    {
+      "file": "textarea.html",
+      "title": "Textarea"
+    },
+    {
+      "file": "checkbox.html",
+      "title": "Checkboxes and radios"
+    },
+    {
+      "file": "range.html",
+      "title": "Range"
+    },
+    {
+      "file": "file.html",
+      "title": "File"
+    },
+    {
+      "file": "validation.html",
+      "title": "Validation"
+    },
+    {
+      "file": "disabled.html",
+      "title": "Disabled"
+    }
+  ]
+}

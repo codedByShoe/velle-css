@@ -1,0 +1,184 @@
+/* Styles for the documentation site only. Not part of velle-css. */
+
+.docs-content {
+  --container-width: 52rem;
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--size-4) var(--size-16);
+  row-gap: var(--size-10);
+}
+
+.docs-content h1 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+}
+
+.docs-content h2 {
+  border-block-end-width: var(--border);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  padding-block-end: var(--size-2);
+}
+
+.docs-content h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin-block-start: var(--size-4);
+}
+
+.docs-content h3 > a:hover {
+  text-decoration: underline;
+}
+
+.docs-content :is(h2, h3) {
+  scroll-margin-block-start: var(--size-4);
+}
+
+.docs-content p {
+  line-height: var(--leading-relaxed);
+}
+
+.docs-content code {
+  font-family: var(--font-monospace-code);
+  font-size: 0.875em;
+}
+
+.docs-content :not(pre) > code {
+  background-color: var(--color-border-light);
+  border-radius: var(--rounded-sm);
+  padding: 0.1em 0.3em;
+  overflow-wrap: anywhere;
+}
+
+.docs-intro {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--size-3);
+}
+
+.docs-lead {
+  color: var(--color-text-subtle);
+  font-size: var(--text-lg);
+}
+
+.docs-section {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--size-3);
+}
+
+.docs-install {
+  max-inline-size: 24rem;
+  font-family: var(--font-monospace-code);
+}
+
+.docs-facts {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-sm);
+  row-gap: var(--size-2);
+
+  > div {
+    display: grid;
+    gap: var(--size-1) var(--size-4);
+    grid-template-columns: 8rem 1fr;
+  }
+
+  dt {
+    font-weight: var(--font-medium);
+  }
+}
+
+.docs-list {
+  display: flex;
+  flex-direction: column;
+  list-style: disc;
+  padding-inline-start: var(--size-5);
+  row-gap: var(--size-2);
+}
+
+.docs-example {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--size-3);
+}
+
+.docs-preview {
+  border-radius: var(--rounded-xl);
+  border-width: var(--border);
+  padding: var(--size-8) var(--size-6);
+}
+
+.docs-frame-preview {
+  border-radius: var(--rounded-xl);
+  border-width: var(--border);
+  inline-size: 100%;
+}
+
+.docs-frame {
+  background-color: var(--color-bg);
+}
+
+.docs-code {
+  position: relative;
+}
+
+.docs-code__copy {
+  inset-block-start: var(--size-2);
+  inset-inline-end: var(--size-2);
+  position: absolute;
+}
+
+.docs-code pre,
+.docs-pre {
+  background-color: rgb(from var(--color-border-light) r g b / .5);
+  border-radius: var(--rounded-xl);
+  border-width: var(--border);
+  font-family: var(--font-monospace-code);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  max-block-size: 28rem;
+  overflow: auto;
+  padding: var(--size-4);
+  tab-size: 2;
+}
+
+.docs-table {
+  td, th {
+    vertical-align: top;
+  }
+
+  td:first-child code {
+    white-space: nowrap;
+  }
+
+  tr:hover {
+    background-color: transparent;
+  }
+}
+
+.docs-grid {
+  display: grid;
+  gap: var(--size-2);
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+}
+
+.docs-swatches {
+  display: grid;
+  gap: var(--size-2);
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+}
+
+.docs-swatch {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-xs);
+  row-gap: var(--size-1);
+}
+
+.docs-swatch__color {
+  block-size: var(--size-10);
+  border-radius: var(--rounded-md);
+  border-width: var(--border);
+}

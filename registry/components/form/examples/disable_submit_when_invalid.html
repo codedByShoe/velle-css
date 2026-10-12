@@ -1,0 +1,26 @@
+<form class="card flex flex-col gap" action="/projects" method="post" autocomplete="off" data-form data-form-action="input->disableSubmitWhenInvalid" style="max-inline-size: 24rem">
+  <div class="flex flex-col">
+    <h3 class="font-medium leading-none mbe-1">Create project</h3>
+    <p class="text-sm text-subtle">Deploy your new project in one click.</p>
+  </div>
+
+  <div class="flex flex-col gap mb-2">
+    <div class="flex flex-col gap-half">
+      <label class="text-sm font-medium leading-none" for="form_project_name">Name (required)</label>
+      <input placeholder="Name of your project" class="input" required type="text" name="name" id="form_project_name">
+    </div>
+
+    <div class="flex flex-col gap-half">
+      <label class="text-sm font-medium leading-none" for="form_framework">Framework</label>
+      <select class="input" name="framework" id="form_framework">
+        <option value="go">Go</option>
+        <option value="node">Node</option>
+        <option value="django">Django</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex items-center">
+    <button type="submit" class="btn btn--primary" disabled data-form-target="submit">Create</button>
+  </div>
+</form>

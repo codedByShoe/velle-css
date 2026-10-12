@@ -1,0 +1,25 @@
+{
+  "name": "input_clearable",
+  "title": "Input Clearable",
+  "category": "Forms",
+  "description": "A text field with a clear button that only appears when the field has a value.",
+  "files": ["input_clearable.css", "input_clearable.js"],
+  "dependencies": ["input", "button", "icons"],
+  "classes": [
+    { "name": "input--clearable", "description": "Hides the clear button while the input shows its placeholder, and hides the browser's own search cancel button. Use it with input and input--actor. The inner input needs a placeholder." }
+  ],
+  "variables": [],
+  "attributes": [
+    { "name": "data-input-clearable", "element": "wrapper", "description": "Enables the behavior." },
+    { "name": "data-input-clearable-target=\"input\"", "element": "<input>", "description": "The field to clear." },
+    { "name": "data-input-clearable-action=\"clear\"", "element": "<button>", "description": "Clears the field and focuses it." }
+  ],
+  "actions": [
+    { "name": "clear", "description": "Empties the field and moves focus back to it." }
+  ],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" }
+  ]
+}

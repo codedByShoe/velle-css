@@ -1,0 +1,82 @@
+.resizable {
+  display: flex;
+
+  &[data-dragging] {
+    cursor: col-resize;
+    user-select: none;
+  }
+
+  /* Keep iframes and other panels from swallowing pointer events mid-drag. */
+  &[data-dragging] .resizable__panel {
+    pointer-events: none;
+  }
+}
+
+.resizable--vertical {
+  flex-direction: column;
+
+  &[data-dragging] {
+    cursor: row-resize;
+  }
+}
+
+.resizable__panel {
+  flex: 1 1 0;
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: auto;
+}
+
+.resizable__handle {
+  align-items: center;
+  background-color: var(--color-border);
+  cursor: col-resize;
+  display: flex;
+  flex: none;
+  inline-size: var(--border);
+  justify-content: center;
+  outline: none;
+  position: relative;
+  touch-action: none;
+  z-index: 1;
+
+  /* A wider, invisible area that is easier to grab. */
+  &::before {
+    content: "";
+    inset: 0 calc(var(--size-1) * -1);
+    position: absolute;
+  }
+
+  /* The visible grip. */
+  &::after {
+    background-color: var(--color-border);
+    block-size: var(--size-6);
+    border-radius: var(--rounded-lg);
+    content: "";
+    flex-shrink: 0;
+    inline-size: var(--size-1);
+  }
+
+  &:focus-visible::after {
+    outline: var(--border-2) solid var(--color-selected-dark);
+  }
+
+  &:is(:hover, [data-dragging])::after {
+    background-color: var(--color-border-dark);
+  }
+}
+
+.resizable--vertical > .resizable__handle {
+  block-size: var(--border);
+  cursor: row-resize;
+  inline-size: auto;
+
+  &::before {
+    inset: calc(var(--size-1) * -1) 0;
+  }
+
+  &::after {
+    block-size: var(--size-1);
+    inline-size: var(--size-6);
+  }
+}

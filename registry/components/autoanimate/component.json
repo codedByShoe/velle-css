@@ -1,0 +1,22 @@
+{
+  "name": "autoanimate",
+  "title": "Auto Animate",
+  "category": "Layout",
+  "description": "Animates children of a container as they are added, removed or moved, using the View Transitions API.",
+  "files": ["autoanimate.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "auto-animate", "description": "Every direct child gets its own view-transition name (match-element) so it animates during a view transition." }
+  ],
+  "variables": [],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The animation runs during a view transition. For changes made with JavaScript, wrap the DOM update in document.startViewTransition(() => { … }). For full page loads, opt in to cross-document transitions with @view-transition { navigation: auto; }.",
+    "Browsers without view transitions or view-transition-name: match-element apply the change without animating."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Add and remove items", "description": "The buttons wrap their DOM changes in document.startViewTransition()." }
+  ]
+}

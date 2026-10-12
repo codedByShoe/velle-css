@@ -1,0 +1,29 @@
+{
+  "name": "sheet",
+  "title": "Sheet",
+  "category": "Overlays",
+  "description": "A full-height panel that slides in from the left or right edge, built on <dialog>.",
+  "files": ["sheet.css"],
+  "dependencies": ["dialog"],
+  "classes": [
+    { "name": "sheet", "description": "The panel. Put it on a <dialog> together with sheet--left or sheet--right." },
+    { "name": "sheet--left", "description": "Slides in from the left." },
+    { "name": "sheet--right", "description": "Slides in from the right." },
+    { "name": "sheet__content", "description": "Padded, full-height content area." },
+    { "name": "sheet__close", "description": "Positions a close button in the top corner." }
+  ],
+  "variables": [
+    { "name": "--sheet-size", "default": "var(--size-3-4)", "description": "Width. On screens 40rem and wider it is also the maximum width (default var(--max-i-sm))." }
+  ],
+  "attributes": [
+    { "name": "commandfor / command", "element": "<button>", "description": "Open with command=\"show-modal\" and close with command=\"close\", like a dialog." },
+    { "name": "data-dialog / data-dialog-action", "element": "<dialog>", "description": "Optional: data-dialog-action=\"click->closeOnClickOutside\" closes the sheet when the backdrop is clicked." }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "right.html", "title": "Right" },
+    { "file": "left.html", "title": "Left" }
+  ]
+}

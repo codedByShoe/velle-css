@@ -1,0 +1,37 @@
+{
+  "name": "toggle",
+  "title": "Toggle",
+  "category": "Forms",
+  "description": "A button that stays pressed, made from a label with a hidden checkbox.",
+  "files": [
+    "toggle.css"
+  ],
+  "dependencies": [
+    "button"
+  ],
+  "classes": [
+    {
+      "name": "btn--toggle",
+      "description": "Use it on a <label class=\"btn\"> that contains a checkbox. Shaded while the checkbox is checked."
+    }
+  ],
+  "variables": [],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The checkbox stays in the accessibility tree and keyboard order; it is only visually hidden.",
+    "Only checkboxes are hidden by toggle.css; a radio inside a btn--toggle stays visible."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "group.html",
+      "title": "Toggle group",
+      "description": "Combine with group."
+    }
+  ]
+}

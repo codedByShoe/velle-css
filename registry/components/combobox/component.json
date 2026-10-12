@@ -1,0 +1,29 @@
+{
+  "name": "combobox",
+  "title": "Combobox",
+  "category": "Forms",
+  "description": "A fully styled select with a popover list, built on the browser's customizable <select>. Other browsers show a regular styled select.",
+  "files": ["combobox.css"],
+  "dependencies": ["input"],
+  "classes": [
+    { "name": "combobox", "description": "Use it on a <select>, together with input." }
+  ],
+  "variables": [
+    { "name": "--combobox-max-block-size", "default": "var(--size-72)", "description": "Maximum height of the list before it scrolls." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "This uses appearance: base-select, the customizable <select>. In browsers that do not support it yet, the same markup is a regular select with velle's input styling, so forms keep working everywhere.",
+    "Options can contain icons and other markup. Add <button><selectedcontent></selectedcontent></button> as the first child of the select to show the chosen option's markup in the field.",
+    "Being a real <select>, it supports keyboard navigation and typing the first letters of an option, and it submits like any select. It does not offer free-text search, creating new values or loading options from a server; css-zero used tom-select for those.",
+    "Without JavaScript and without a dependency, this replaces css-zero's tom-select based combobox."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "groups.html", "title": "Groups and disabled options" },
+    { "file": "icons.html", "title": "With icons" },
+    { "file": "disabled.html", "title": "Disabled" }
+  ]
+}

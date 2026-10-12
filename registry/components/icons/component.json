@@ -1,0 +1,45 @@
+{
+  "name": "icons",
+  "title": "Icons",
+  "category": "Elements",
+  "description": "Icons drawn with CSS masks, so they inherit the text color and scale with a custom property. Includes a set of Lucide icons.",
+  "files": ["icons.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "icon", "description": "Base icon. Combine it with one of the icon--* classes below, or set --svg yourself." },
+    { "name": "icon--loading", "description": "Spinning loading indicator." },
+    { "name": "icon--camera", "description": "Camera." },
+    { "name": "icon--chevron-left", "description": "Chevron pointing left." },
+    { "name": "icon--chevron-right", "description": "Chevron pointing right." },
+    { "name": "icon--chevrons-up-down", "description": "Up/down chevrons." },
+    { "name": "icon--circle-alert", "description": "Alert in a circle." },
+    { "name": "icon--circle-check", "description": "Check mark in a circle." },
+    { "name": "icon--copy", "description": "Copy." },
+    { "name": "icon--download", "description": "Download." },
+    { "name": "icon--ellipsis", "description": "Horizontal ellipsis." },
+    { "name": "icon--minus", "description": "Minus." },
+    { "name": "icon--moon", "description": "Moon." },
+    { "name": "icon--panel-left", "description": "Left panel." },
+    { "name": "icon--search", "description": "Magnifying glass." },
+    { "name": "icon--share", "description": "Share." },
+    { "name": "icon--sun", "description": "Sun." },
+    { "name": "icon--x", "description": "Close (X)." }
+  ],
+  "variables": [
+    { "name": "--icon-size", "default": "1rem", "description": "Width and height." },
+    { "name": "--icon-color", "default": "currentColor", "description": "Icon color." },
+    { "name": "--svg", "default": "none", "description": "The SVG image used as the mask: url(\"…\")." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The SVGs are inlined as data URIs, so icons work from any path or CDN.",
+    "Add your own icon with one rule: .icon--heart { --svg: url(\"heart.svg\"); }. Any SVG works, for example from lucide.dev.",
+    "Mark decorative icons aria-hidden=\"true\" and give icon-only buttons a text label (for example a .sr-only span)."
+  ],
+  "examples": [
+    { "file": "all.html", "title": "All icons" },
+    { "file": "customize.html", "title": "Color and size" }
+  ]
+}

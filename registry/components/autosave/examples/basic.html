@@ -1,0 +1,15 @@
+<form class="card flex flex-col gap" action="/notes/1" method="post" style="max-inline-size: 24rem" data-autosave data-autosave-action="input->change">
+  <div class="flex flex-col">
+    <h3 class="font-medium leading-none mbe-1">Autosave</h3>
+    <p class="text-sm text-subtle">Your changes are saved automatically, so there is no need to click the button.</p>
+  </div>
+
+  <div class="flex flex-col gap-half mb-2">
+    <label class="text-sm font-medium leading-none" for="autosave_content">Content</label>
+    <textarea rows="5" class="input" name="content" id="autosave_content"></textarea>
+  </div>
+
+  <div class="flex items-center">
+    <button type="submit" class="btn btn--busy btn--primary" data-autosave-target="submit"><span>Save changes</span></button>
+  </div>
+</form>

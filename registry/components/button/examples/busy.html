@@ -1,0 +1,20 @@
+<div id="busy_demo">
+  <button type="button" class="btn btn--primary btn--busy" id="busy_button"><span>Click and wait</span></button>
+</div>
+
+<script>
+  (() => {
+    const container = document.getElementById("busy_demo")
+    const button = document.getElementById("busy_button")
+
+    button.addEventListener("click", () => {
+      container.ariaBusy = "true"
+      button.disabled = true
+
+      setTimeout(() => {
+        container.removeAttribute("aria-busy")
+        button.disabled = false
+      }, 2000)
+    })
+  })()
+</script>

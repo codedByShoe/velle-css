@@ -1,0 +1,70 @@
+.popover {
+  background-color: var(--color-surface);
+  border-radius: var(--rounded-lg);
+  border-width: var(--border);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+  inline-size: var(--popover-size, max-content);
+
+  /* Anchor position */
+  position-area: var(--popover-position, block-end);
+  position-try: var(--popover-position-try, flip-block);
+  margin-block: var(--popover-margin-block, .25rem 0);
+
+  /* Setup transition */
+  transition-behavior: allow-discrete;
+  transition-duration: var(--time-150);
+  transition-property: display, opacity, overlay, transform;
+  transition-timing-function: var(--ease-out-3);
+
+  /* Exit stage to */
+  opacity: 0; transform: var(--scale-95);
+
+  /* On stage */
+  &:popover-open {
+    opacity: 1; transform: var(--scale-100);
+  }
+
+  /* Enter stage from */
+  @starting-style {
+    &:popover-open {
+      opacity: 0; transform: var(--scale-95);
+    }
+  }
+}
+
+.popover--unanchored {
+  --popover-position: none;
+  --popover-position-try: none;
+  --popover-margin-block: 0;
+}
+
+.popover--block-end-center {
+  --popover-position: block-end;
+  --popover-margin-block: .25rem 0;
+}
+
+.popover--block-end-start {
+  --popover-position: block-end span-inline-end;
+  --popover-margin-block: .25rem 0;
+}
+
+.popover--block-end-end {
+  --popover-position: block-end span-inline-start;
+  --popover-margin-block: .25rem 0;
+}
+
+.popover--block-start-center {
+  --popover-position: block-start;
+  --popover-margin-block: 0 .25rem;
+}
+
+.popover--block-start-start {
+  --popover-position: block-start span-inline-end;
+  --popover-margin-block: 0 .25rem;
+}
+
+.popover--block-start-end {
+  --popover-position: block-start span-inline-start;
+  --popover-margin-block: 0 .25rem;
+}

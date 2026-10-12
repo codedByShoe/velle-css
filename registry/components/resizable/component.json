@@ -1,0 +1,37 @@
+{
+  "name": "resizable",
+  "title": "Resizable",
+  "category": "Layout",
+  "description": "Panels separated by handles that resize them by dragging or with the keyboard. Groups can be nested.",
+  "files": ["resizable.css", "resizable.js"],
+  "dependencies": [],
+  "classes": [
+    { "name": "resizable", "description": "A row of panels. Give it a size; the panels fill it." },
+    { "name": "resizable--vertical", "description": "Stacks the panels vertically." },
+    { "name": "resizable__panel", "description": "A panel. Scrolls when its content does not fit." },
+    { "name": "resizable__handle", "description": "A handle between two panels." }
+  ],
+  "variables": [],
+  "attributes": [
+    { "name": "data-resizable", "element": ".resizable", "description": "Enables resizing." },
+    { "name": "data-resizable-target=\"panel\"", "element": ".resizable__panel", "description": "A panel." },
+    { "name": "data-resizable-target=\"handle\"", "element": ".resizable__handle", "description": "A handle. It resizes the panels directly before and after it." },
+    { "name": "data-resizable-size", "element": "panel", "description": "Initial size in percent of the group. Panels without it share the remaining space equally." },
+    { "name": "data-resizable-min", "element": "panel", "description": "Minimum size in percent. Defaults to 0." },
+    { "name": "data-resizable-max", "element": "panel", "description": "Maximum size in percent. Defaults to 100." }
+  ],
+  "actions": [],
+  "events": [
+    { "name": "velle:resizable:resize", "description": "Dispatched after the panels change size. event.detail.sizes lists every panel's size in percent." }
+  ],
+  "notes": [
+    "Handles are focusable separators (role=\"separator\" with aria-valuenow). Arrow keys move them by 1%, Shift + arrow keys by 10%, and Home/End move them all the way.",
+    "To nest groups, put another .resizable inside a panel and give it the full panel size, e.g. with the b-full utility.",
+    "This replaces css-zero's wrapper around the resizable-panels-zero web component; no library is needed."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Horizontal" },
+    { "file": "vertical.html", "title": "Vertical" },
+    { "file": "nested.html", "title": "Nested groups" }
+  ]
+}

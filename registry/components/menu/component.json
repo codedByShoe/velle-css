@@ -1,0 +1,66 @@
+{
+  "name": "menu",
+  "title": "Menu",
+  "category": "Overlays",
+  "description": "A vertical list of menu items with keyboard navigation. Used inside dropdowns, context menus and other popovers.",
+  "files": [
+    "menu.css",
+    "menu.js"
+  ],
+  "dependencies": [
+    "button"
+  ],
+  "classes": [
+    {
+      "name": "menu",
+      "description": "The menu container."
+    },
+    {
+      "name": "menu__header",
+      "description": "A small heading for a group of items."
+    },
+    {
+      "name": "menu__group",
+      "description": "Groups related items."
+    },
+    {
+      "name": "menu__separator",
+      "description": "A divider between groups. Use it on an <hr>."
+    },
+    {
+      "name": "menu__item",
+      "description": "A menu item. Combine it with btn."
+    },
+    {
+      "name": "menu__item-key",
+      "description": "A keyboard shortcut hint aligned to the end of the item."
+    }
+  ],
+  "variables": [],
+  "attributes": [
+    {
+      "name": "data-menu",
+      "element": ".menu",
+      "description": "Enables roving keyboard focus."
+    },
+    {
+      "name": "data-menu-target=\"item\"",
+      "element": "focusable items",
+      "description": "Items reachable with the arrow keys. Leave it off disabled items."
+    }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "Because the first item is focused whenever the menu becomes visible, put data-menu only on menus that start hidden, such as inside a popover.",
+    "Every time the menu becomes visible, its first item gets focus.",
+    "Arrow Down/Right move to the next item, Arrow Up/Left to the previous one (mirrored in right-to-left layouts), and Home/End jump to the first/last item.",
+    "Only the active item is in the tab order (tabindex=0); the rest get tabindex=-1."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Menu in a popover"
+    }
+  ]
+}

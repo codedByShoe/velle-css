@@ -1,0 +1,13 @@
+.alert {
+  background-color: var(--alert-background, var(--color-surface));
+  border: 1px solid var(--alert-border-color, var(--color-border));
+  border-radius: var(--rounded-lg);
+  color: var(--alert-color, var(--color-text));
+  font-size: var(--text-sm);
+  inline-size: var(--size-full);
+  padding: var(--size-2) var(--size-2_5);
+}
+
+.alert--negative {
+  --alert-color: light-dark(var(--red-600), var(--red-400));
+}

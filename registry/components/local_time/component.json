@@ -1,0 +1,38 @@
+{
+  "name": "local_time",
+  "title": "Local Time",
+  "category": "Behaviors",
+  "description": "Formats <time> elements in the visitor's own locale and time zone, including relative \"5 minutes ago\" times.",
+  "files": [
+    "local_time.js"
+  ],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    {
+      "name": "datetime",
+      "element": "<time>",
+      "description": "An ISO 8601 timestamp, ideally in UTC, e.g. 2026-10-11T22:20:21Z."
+    },
+    {
+      "name": "data-local-time",
+      "element": "<time>",
+      "description": "The format: time, date, shortdate, datetime or ago."
+    }
+  ],
+  "actions": [],
+  "events": [],
+  "notes": [
+    "The full date and time is added as a title, so it shows on hover.",
+    "\"ago\" values refresh every 30 seconds. Times less than a minute old show the clock time.",
+    "Unlike css-zero, no root element is needed: every <time data-local-time> on the page is formatted, including ones inserted later."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Formats",
+      "description": "A small demo script points the timestamps at the current time when the page loads."
+    }
+  ]
+}

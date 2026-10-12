@@ -1,0 +1,26 @@
+{
+  "name": "switch",
+  "title": "Switch",
+  "category": "Forms",
+  "description": "A toggle switch made from a native checkbox.",
+  "files": ["switch.css"],
+  "dependencies": [],
+  "classes": [
+    { "name": "switch", "description": "Use it on <input type=\"checkbox\" role=\"switch\">." },
+    { "name": "switch--sm", "description": "Small switch." }
+  ],
+  "variables": [
+    { "name": "--switch-size", "default": "var(--size-4)", "description": "Diameter of the thumb; the track scales with it." }
+  ],
+  "attributes": [],
+  "actions": [],
+  "events": [],
+  "notes": [],
+  "examples": [
+    { "file": "basic.html", "title": "Basic" },
+    { "file": "sizes.html", "title": "Sizes" },
+    { "file": "description.html", "title": "With a description" },
+    { "file": "choice_card.html", "title": "Choice card" },
+    { "file": "disabled.html", "title": "Disabled" }
+  ]
+}

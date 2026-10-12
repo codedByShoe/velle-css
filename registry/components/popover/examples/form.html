@@ -1,0 +1,21 @@
+<button type="button" class="btn" popovertarget="popover_form">Open popover</button>
+
+<div popover id="popover_form" class="popover popover--block-end-start" role="dialog" aria-label="Dimensions" style="--popover-size: 16rem">
+  <form class="flex flex-col gap p-3" action="/layers" method="post">
+    <div class="flex flex-col text-sm">
+      <h3 class="font-medium leading-none mbe-1">Dimensions</h3>
+      <p class="text-subtle">Set the dimensions for the layer.</p>
+    </div>
+
+    <div class="flex flex-col gap">
+      <div class="flex items-center gap">
+        <label class="text-sm font-medium leading-none" style="inline-size: 50%;" for="popover_width">Width</label>
+        <input value="100%" class="input" autofocus type="text" name="width" id="popover_width">
+      </div>
+      <div class="flex items-center gap">
+        <label class="text-sm font-medium leading-none" style="inline-size: 50%;" for="popover_height">Height</label>
+        <input value="25px" class="input" type="text" name="height" id="popover_height">
+      </div>
+    </div>
+  </form>
+</div>

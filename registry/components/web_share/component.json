@@ -1,0 +1,28 @@
+{
+  "name": "web_share",
+  "title": "Web Share",
+  "category": "Behaviors",
+  "description": "Opens the operating system's share sheet for a URL, text or file. The button hides itself where the Web Share API is unavailable.",
+  "files": ["web_share.js"],
+  "dependencies": [],
+  "classes": [],
+  "variables": [],
+  "attributes": [
+    { "name": "data-web-share", "element": "<button>", "description": "Enables the behavior. Start the button hidden; it is shown only where sharing is supported." },
+    { "name": "data-web-share-action=\"share\"", "element": "<button>", "description": "Opens the share sheet." },
+    { "name": "data-web-share-title", "element": "<button>", "description": "Title of the shared content." },
+    { "name": "data-web-share-text", "element": "<button>", "description": "Text of the shared content." },
+    { "name": "data-web-share-url", "element": "<button>", "description": "URL to share." },
+    { "name": "data-web-share-file", "element": "<button>", "description": "URL of a file to download and share as a file." }
+  ],
+  "actions": [
+    { "name": "share", "description": "Calls navigator.share() with the data attributes. Errors and cancellations are ignored." }
+  ],
+  "events": [],
+  "notes": [
+    "Shared files are named my_application_<random>.<extension>. Change the APPLICATION_NAME constant at the top of web_share.js to use your app's name."
+  ],
+  "examples": [
+    { "file": "basic.html", "title": "Share a URL and a file", "description": "The buttons only appear in browsers that support sharing." }
+  ]
+}

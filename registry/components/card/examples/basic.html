@@ -1,0 +1,30 @@
+<form class="card flex flex-col gap" style="max-inline-size: 24rem" action="/sign_in" method="post">
+  <div class="flex items-start gap">
+    <div class="flex flex-col flex-item-grow">
+      <h3 class="font-medium leading-none mbe-1">Log in to your account</h3>
+      <p class="text-sm text-subtle">Enter your email below to log in.</p>
+    </div>
+
+    <a class="btn btn--plain" href="#">Sign up</a>
+  </div>
+
+  <div class="flex flex-col gap">
+    <div class="flex flex-col gap-half">
+      <label class="text-sm font-medium leading-none" for="card_email">Email</label>
+      <input placeholder="m@example.com" required class="input" type="email" name="email" id="card_email">
+    </div>
+
+    <div class="flex flex-col gap-half">
+      <div class="flex items-center">
+        <label class="text-sm font-medium leading-none" for="card_password">Password</label>
+        <a class="text-sm mis-auto" href="#">Forgot your password?</a>
+      </div>
+      <input required class="input" type="password" name="password" id="card_password">
+    </div>
+  </div>
+
+  <div class="card__footer flex flex-col gap-half">
+    <button type="submit" class="btn btn--primary">Log in</button>
+    <button type="button" class="btn">Log in with a passkey</button>
+  </div>
+</form>
