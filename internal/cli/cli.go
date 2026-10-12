@@ -342,12 +342,30 @@ func (a *App) add(args []string) error {
 func (a *App) printLibrary(c *registry.Component) {
 	lib := c.Library
 	fmt.Fprintf(a.Stdout, "\n%s needs %s %s, which velle does not install. Either:\n\n", c.Name, lib.Package, lib.Version)
-	fmt.Fprintf(a.Stdout, "  • with a bundler:   npm install %s@%s\n", lib.Package, lib.Version)
+	fmt.Fprintf(a.Stdout, "  • with a bundler:   npm install %s\n", strings.Join(lib.Packages(), " "))
 	if lib.Stylesheet != "" {
 		fmt.Fprintf(a.Stdout, "                      and import \"%s/%s\" before %s.css\n", lib.Package, lib.Stylesheet, c.Name)
 	}
 	fmt.Fprintf(a.Stdout, "  • without a build:  add it to your import map (before any module script):\n\n")
-	fmt.Fprintf(a.Stdout, "      <script type=\"importmap\">{ \"imports\": { \"%s\": \"%s\" } }</script>\n", lib.Package, lib.ESM)
+	if len(lib.Modules) == 0 {
+		fmt.Fprintf(a.Stdout, "      <script type=\"importmap\">{ \"imports\": { \"%s\": \"%s\" } }</script>\n", lib.Package, lib.ESM)
+	} else {
+		fmt.Fprintf(a.Stdout, "      <script type=\"importmap\">{ \"imports\": {\n")
+		imports := lib.Imports()
+		packages := make([]string, 0, len(imports))
+		for pkg := range imports {
+			packages = append(packages, pkg)
+		}
+		sort.Strings(packages)
+		for i, pkg := range packages {
+			comma := ","
+			if i == len(packages)-1 {
+				comma = ""
+			}
+			fmt.Fprintf(a.Stdout, "        \"%s\": \"%s\"%s\n", pkg, imports[pkg], comma)
+		}
+		fmt.Fprintf(a.Stdout, "      } }</script>\n")
+	}
 	if url := lib.StylesheetURL(); url != "" {
 		fmt.Fprintf(a.Stdout, "      <link rel=\"stylesheet\" href=\"%s\">  <!-- before %s.css -->\n", url, c.Name)
 	}

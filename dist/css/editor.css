@@ -1,0 +1,122 @@
+.editor {
+  --editor-min-height: 8rem;
+  --editor-max-height: 32rem;
+
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--rounded-md);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--size-full);
+
+  &:focus-within:has(.tiptap:focus-visible) {
+    outline: 2px solid var(--color-selected-dark);
+  }
+}
+
+.editor__toolbar {
+  align-items: center;
+  border-block-end: 1px solid var(--color-border);
+  column-gap: var(--size-1);
+  display: flex;
+  flex-wrap: wrap;
+  padding: var(--size-1);
+  row-gap: var(--size-1);
+
+  .btn[aria-pressed="true"] {
+    --btn-background: var(--color-border-light);
+  }
+}
+
+.editor__group {
+  display: flex;
+  gap: var(--size-0_5);
+
+  & + & {
+    border-inline-start: 1px solid var(--color-border);
+    padding-inline-start: var(--size-1);
+  }
+}
+
+.editor__content {
+  max-block-size: var(--editor-max-height);
+  overflow-y: auto;
+
+  .tiptap {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    min-block-size: var(--editor-min-height);
+    outline: none;
+    padding: var(--size-2) var(--size-3);
+
+    > * + * {
+      margin-block-start: var(--size-3);
+    }
+
+    h1, h2, h3 {
+      font-weight: var(--font-semibold);
+      line-height: var(--leading-tight);
+    }
+
+    h1 { font-size: var(--text-2xl); }
+    h2 { font-size: var(--text-xl); }
+    h3 { font-size: var(--text-lg); }
+
+    ul, ol {
+      padding-inline-start: var(--size-5);
+    }
+
+    ul { list-style: disc; }
+    ol { list-style: decimal; }
+
+    li > p {
+      margin: 0;
+    }
+
+    a {
+      color: var(--color-link);
+      text-decoration: underline;
+    }
+
+    blockquote {
+      border-inline-start: 3px solid var(--color-border);
+      color: var(--color-text-subtle);
+      padding-inline-start: var(--size-3);
+    }
+
+    code {
+      background-color: var(--color-border-light);
+      border-radius: var(--rounded-sm);
+      font-family: var(--font-monospace-code);
+      font-size: .875em;
+      padding: .1em .3em;
+    }
+
+    pre {
+      background-color: var(--color-border-light);
+      border-radius: var(--rounded-md);
+      font-family: var(--font-monospace-code);
+      overflow-x: auto;
+      padding: var(--size-2) var(--size-3);
+
+      code {
+        background: none;
+        padding: 0;
+      }
+    }
+
+    hr {
+      border: 0;
+      border-block-start: 1px solid var(--color-border);
+    }
+
+    p.is-editor-empty:first-child::before {
+      color: var(--color-text-subtle);
+      content: attr(data-placeholder);
+      float: inline-start;
+      block-size: 0;
+      pointer-events: none;
+    }
+  }
+}

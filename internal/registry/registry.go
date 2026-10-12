@@ -45,6 +45,33 @@ type Library struct {
 	ESM string `json:"esm"`
 	// Stylesheet is the package's own stylesheet path inside the package, if it has one.
 	Stylesheet string `json:"stylesheet"`
+	// Modules are other packages the adapter imports, all at Version. Libraries split
+	// into several packages (like Tiptap) list them here.
+	Modules []Module `json:"modules"`
+}
+
+// Module is an extra package an adapter imports, with the CDN URL of its ES module build.
+type Module struct {
+	Package string `json:"package"`
+	ESM     string `json:"esm"`
+}
+
+// Imports maps every package the adapter imports to its CDN build, for import maps.
+func (l *Library) Imports() map[string]string {
+	imports := map[string]string{l.Package: l.ESM}
+	for _, m := range l.Modules {
+		imports[m.Package] = m.ESM
+	}
+	return imports
+}
+
+// Packages returns the npm packages to install, pinned to Version, primary package first.
+func (l *Library) Packages() []string {
+	packages := []string{l.Package + "@" + l.Version}
+	for _, m := range l.Modules {
+		packages = append(packages, m.Package+"@"+l.Version)
+	}
+	return packages
 }
 
 // StylesheetURL returns a CDN URL for the library's stylesheet, or "" if it has none.

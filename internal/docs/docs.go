@@ -200,7 +200,9 @@ func importMap(reg *registry.Registry) (template.HTML, error) {
 	imports := map[string]string{}
 	for _, name := range reg.Names() {
 		if lib := reg.Components[name].Library; lib != nil {
-			imports[lib.Package] = lib.ESM
+			for pkg, esm := range lib.Imports() {
+				imports[pkg] = esm
+			}
 		}
 	}
 	if len(imports) == 0 {
@@ -213,6 +215,21 @@ func importMap(reg *registry.Registry) (template.HTML, error) {
 	// The JSON comes from component.json files in this repository; json.Marshal escapes
 	// <, > and & so it cannot close the script element.
 	return template.HTML(`<script type="importmap">` + "\n  " + string(data) + "\n  </script>"), nil
+}
+
+// importMapEntry is the import map an adapter's install instructions show: one line for a
+// single package, one line per package otherwise.
+func importMapEntry(lib *registry.Library) (string, error) {
+	if len(lib.Modules) == 0 {
+		return `<script type="importmap">
+  { "imports": { "` + lib.Package + `": "` + lib.ESM + `" } }
+</script>`, nil
+	}
+	data, err := json.MarshalIndent(map[string]any{"imports": lib.Imports()}, "  ", "  ")
+	if err != nil {
+		return "", err
+	}
+	return "<script type=\"importmap\">\n  " + string(data) + "\n</script>", nil
 }
 
 func navigation(reg *registry.Registry) []NavGroup {
@@ -261,9 +278,11 @@ func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component) (*
 				page.Scripts = append(page.Scripts, "assets/adapters/"+f)
 			}
 		}
-		page.ImportMapEntry = `<script type="importmap">
-  { "imports": { "` + lib.Package + `": "` + lib.ESM + `" } }
-</script>`
+		entry, err := importMapEntry(lib)
+		if err != nil {
+			return nil, err
+		}
+		page.ImportMapEntry = entry
 	}
 
 	for _, e := range c.Examples {

@@ -212,8 +212,13 @@ func TestAdapters(t *testing.T) {
 		if lib.Package == "" || lib.Version == "" || lib.Homepage == "" || lib.License == "" || lib.ESM == "" {
 			t.Errorf("%s: library needs package, version, homepage, license and esm", c.Name)
 		}
-		if !strings.Contains(lib.ESM, lib.Package+"@"+lib.Version) {
-			t.Errorf("%s: esm URL %q does not pin %s@%s", c.Name, lib.ESM, lib.Package, lib.Version)
+		for pkg, esm := range lib.Imports() {
+			if pkg == "" || esm == "" {
+				t.Errorf("%s: every library module needs package and esm", c.Name)
+			}
+			if !strings.Contains(esm, pkg+"@"+lib.Version) {
+				t.Errorf("%s: esm URL %q does not pin %s@%s", c.Name, esm, pkg, lib.Version)
+			}
 		}
 		if !c.HasJS() {
 			t.Errorf("%s: an adapter must ship JavaScript", c.Name)
@@ -403,6 +408,22 @@ func TestExampleActionsAreValid(t *testing.T) {
 	}
 }
 
+// usesESMSh reports whether p is the component.json of an adapter that imports its
+// library from esm.sh.
+func usesESMSh(r *registry.Registry, p string) bool {
+	for _, c := range r.Components {
+		if c.Library == nil || p != "components/"+c.Name+"/component.json" {
+			continue
+		}
+		for _, esm := range c.Library.Imports() {
+			if strings.HasPrefix(esm, "https://esm.sh/") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func TestNoFrameworkLeftovers(t *testing.T) {
 	forbidden := regexp.MustCompile(`(?i)turbo|stimulus|hotwired|data-controller|data-action=|lexxy|field_with_errors|esm\.sh|authenticity_token|data-turbo`)
 	r := load(t)
@@ -414,6 +435,10 @@ func TestNoFrameworkLeftovers(t *testing.T) {
 		if p == "components/confirm/component.json" || p == "components/form/component.json" || p == "components/input/component.json" {
 			// These docs explain what replaced the Turbo-specific behavior.
 			return nil
+		}
+		if usesESMSh(r, p) {
+			// An adapter whose library is served from esm.sh on purpose (not a leftover pin).
+			content = strings.ReplaceAll(content, "esm.sh", "")
 		}
 		if loc := forbidden.FindStringIndex(content); loc != nil {
 			t.Errorf("%s: contains %q", p, content[loc[0]:loc[1]])
@@ -455,13 +480,22 @@ func TestJavaScriptImportsOnlyTheRuntime(t *testing.T) {
 				if strings.HasSuffix(line, `from "./velle.js"`) {
 					continue
 				}
-				if c.Library != nil && strings.HasSuffix(line, `from "`+c.Library.Package+`"`) {
+				if c.Library != nil && importsLibrary(line, c.Library) {
 					continue
 				}
 				t.Errorf("%s/%s: only ./velle.js (and an adapter's own library) may be imported, got %s", c.Name, f, line)
 			}
 		}
 	}
+}
+
+func importsLibrary(line string, lib *registry.Library) bool {
+	for pkg := range lib.Imports() {
+		if strings.HasSuffix(line, `from "`+pkg+`"`) {
+			return true
+		}
+	}
+	return false
 }
 
 func TestControllersMatchComponentNames(t *testing.T) {

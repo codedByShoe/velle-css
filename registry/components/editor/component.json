@@ -1,0 +1,155 @@
+{
+  "name": "editor",
+  "title": "Rich text editor",
+  "category": "Forms",
+  "description": "A rich text editor with a toolbar you write as markup. It submits HTML or Markdown through a hidden input.",
+  "files": [
+    "editor.css",
+    "editor.js"
+  ],
+  "dependencies": [
+    "button",
+    "icons"
+  ],
+  "library": {
+    "package": "@tiptap/core",
+    "version": "3.31.4",
+    "homepage": "https://tiptap.dev",
+    "license": "MIT",
+    "esm": "https://esm.sh/@tiptap/core@3.31.4",
+    "stylesheet": "",
+    "modules": [
+      {
+        "package": "@tiptap/starter-kit",
+        "esm": "https://esm.sh/@tiptap/starter-kit@3.31.4"
+      },
+      {
+        "package": "@tiptap/extensions",
+        "esm": "https://esm.sh/@tiptap/extensions@3.31.4"
+      },
+      {
+        "package": "@tiptap/markdown",
+        "esm": "https://esm.sh/@tiptap/markdown@3.31.4"
+      }
+    ]
+  },
+  "classes": [
+    {
+      "name": "editor",
+      "description": "The editor frame: a bordered box like an input, holding the toolbar and the content."
+    },
+    {
+      "name": "editor__toolbar",
+      "description": "Row of formatting buttons above the content. Give it role=\"toolbar\" and an aria-label."
+    },
+    {
+      "name": "editor__group",
+      "description": "A set of related toolbar buttons, separated from the next set by a line."
+    },
+    {
+      "name": "editor__content",
+      "description": "Where the editable document goes. Also styles saved rich text: headings, lists, quotes, code and links."
+    }
+  ],
+  "variables": [
+    {
+      "name": "--editor-min-height",
+      "default": "8rem",
+      "description": "Minimum height of the content."
+    },
+    {
+      "name": "--editor-max-height",
+      "default": "32rem",
+      "description": "Height after which the content scrolls."
+    }
+  ],
+  "attributes": [
+    {
+      "name": "data-editor",
+      "element": "container",
+      "description": "Turns the container into an editor."
+    },
+    {
+      "name": "data-editor-target=\"content\"",
+      "element": "div",
+      "description": "The element Tiptap renders the document into."
+    },
+    {
+      "name": "data-editor-target=\"input\"",
+      "element": "<input type=\"hidden\">",
+      "description": "Holds the document: its value is the initial content and it is updated on every change, so the form submits it."
+    },
+    {
+      "name": "data-editor-format",
+      "element": "container",
+      "description": "\"html\" (default) or \"markdown\". Markdown reads and writes the input as Markdown and needs @tiptap/markdown."
+    },
+    {
+      "name": "data-editor-placeholder",
+      "element": "container",
+      "description": "Text shown while the editor is empty."
+    },
+    {
+      "name": "data-editor-editable",
+      "element": "container",
+      "description": "Set to \"false\" to show the content read-only."
+    },
+    {
+      "name": "data-editor-level-param",
+      "element": "heading button",
+      "description": "Heading level (1–6) for the heading action. Defaults to 2."
+    }
+  ],
+  "actions": [
+    { "name": "bold", "description": "Toggles bold." },
+    { "name": "italic", "description": "Toggles italic." },
+    { "name": "underline", "description": "Toggles underline." },
+    { "name": "strike", "description": "Toggles strikethrough." },
+    { "name": "code", "description": "Toggles inline code." },
+    { "name": "link", "description": "Asks for a URL and links the selection. An empty URL removes the link." },
+    { "name": "heading", "description": "Toggles a heading of the level in data-editor-level-param." },
+    { "name": "bulletList", "description": "Toggles a bulleted list." },
+    { "name": "orderedList", "description": "Toggles a numbered list." },
+    { "name": "blockquote", "description": "Toggles a quote." },
+    { "name": "codeBlock", "description": "Toggles a code block." },
+    { "name": "horizontalRule", "description": "Inserts a divider." },
+    { "name": "undo", "description": "Undoes the last change." },
+    { "name": "redo", "description": "Redoes the last undone change." }
+  ],
+  "events": [
+    {
+      "name": "velle:editor:ready",
+      "description": "The editor was created. event.detail.editor is the Tiptap Editor, for adding your own commands."
+    },
+    {
+      "name": "velle:editor:change",
+      "description": "The document changed. event.detail has editor and value (the HTML or Markdown)."
+    }
+  ],
+  "notes": [
+    "Toolbar buttons get aria-pressed when their format applies to the selection, and are disabled when their action cannot run there. Use any subset of buttons, in any order.",
+    "@tiptap/markdown is loaded only when data-editor-format=\"markdown\" is used, so an HTML-only page can leave it out of the import map.",
+    "Keep every @tiptap package on the same version. Mixing versions loads two copies of ProseMirror and breaks the editor.",
+    "The import map uses esm.sh, as Tiptap's docs do, because it shares one copy of each ProseMirror package. jsDelivr's +esm builds load several copies and the editor fails with \"Adding different instances of a keyed plugin\".",
+    "The hidden input also fires an input event on every change, so autosave and other form behaviors see edits.",
+    "Sanitize submitted HTML on the server before showing it to other people."
+  ],
+  "examples": [
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "minimal.html",
+      "title": "Minimal toolbar"
+    },
+    {
+      "file": "markdown.html",
+      "title": "Markdown"
+    },
+    {
+      "file": "readonly.html",
+      "title": "Read-only"
+    }
+  ]
+}
