@@ -3,13 +3,24 @@
   "title": "Combobox",
   "category": "Forms",
   "description": "A fully styled select with a popover list, built on the browser's customizable <select>. Other browsers show a regular styled select.",
-  "files": ["combobox.css"],
-  "dependencies": ["input"],
+  "files": [
+    "combobox.css"
+  ],
+  "dependencies": [
+    "input"
+  ],
   "classes": [
-    { "name": "combobox", "description": "Use it on a <select>, together with input." }
+    {
+      "name": "combobox",
+      "description": "Use it on a <select>, together with input."
+    }
   ],
   "variables": [
-    { "name": "--combobox-max-block-size", "default": "var(--size-72)", "description": "Maximum height of the list before it scrolls." }
+    {
+      "name": "--combobox-max-block-size",
+      "default": "var(--size-72)",
+      "description": "Maximum height of the list before it scrolls."
+    }
   ],
   "attributes": [],
   "actions": [],
@@ -21,9 +32,24 @@
     "Without JavaScript and without a dependency, this replaces css-zero's tom-select based combobox."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "groups.html", "title": "Groups and disabled options" },
-    { "file": "icons.html", "title": "With icons" },
-    { "file": "disabled.html", "title": "Disabled" }
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "groups.html",
+      "title": "Groups and disabled options"
+    },
+    {
+      "file": "icons.html",
+      "title": "With icons",
+      "requires": [
+        "icons"
+      ]
+    },
+    {
+      "file": "disabled.html",
+      "title": "Disabled"
+    }
   ]
 }

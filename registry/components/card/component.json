@@ -3,22 +3,54 @@
   "title": "Card",
   "category": "Elements",
   "description": "A bordered surface that groups related content, with an optional footer.",
-  "files": ["card.css"],
+  "files": [
+    "card.css"
+  ],
   "dependencies": [],
   "classes": [
-    { "name": "card", "description": "The card surface." },
-    { "name": "card__footer", "description": "A shaded footer that bleeds to the card's edges. Must be the last child." }
+    {
+      "name": "card",
+      "description": "The card surface."
+    },
+    {
+      "name": "card__footer",
+      "description": "A shaded footer that bleeds to the card's edges. Must be the last child."
+    }
   ],
   "variables": [
-    { "name": "--card-padding", "default": "var(--size-4)", "description": "Inner padding. The footer uses it to reach the card edges." }
+    {
+      "name": "--card-padding",
+      "default": "var(--size-4)",
+      "description": "Inner padding. The footer uses it to reach the card edges."
+    }
   ],
   "attributes": [],
   "actions": [],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Login form" },
-    { "file": "with_image.html", "title": "With an image" },
-    { "file": "size.html", "title": "Compact", "description": "Change --card-padding for a denser card." }
+    {
+      "file": "basic.html",
+      "title": "Login form",
+      "requires": [
+        "button",
+        "input"
+      ]
+    },
+    {
+      "file": "with_image.html",
+      "title": "With an image",
+      "requires": [
+        "button"
+      ]
+    },
+    {
+      "file": "size.html",
+      "title": "Compact",
+      "description": "Change --card-padding for a denser card.",
+      "requires": [
+        "button"
+      ]
+    }
   ]
 }

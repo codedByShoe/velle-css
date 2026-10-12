@@ -6,7 +6,7 @@
 
 <section class="docs-section" aria-labelledby="loading">
   <h2 id="loading">Loading</h2>
-  <p>Every behavior is an ES module that imports <code>./velle.js</code> and starts working as soon as it loads. Include the behaviors you use:</p>
+  <p>Every behavior is an ES module that imports <code>./velle.js</code> and starts working as soon as it loads. The CLI imports the behaviors you install in <code>main.js</code>, so one <code>&lt;script type="module" src="/assets/js/velle/main.js"&gt;</code> is enough. To include them yourself:</p>
   <pre class="docs-pre"><code>&lt;script type="module" src="/assets/js/velle/dialog.js"&gt;&lt;/script&gt;
 &lt;script type="module" src="/assets/js/velle/tabs.js"&gt;&lt;/script&gt;</code></pre>
   <p>Or load the bundle, which contains the runtime and every behavior:</p>

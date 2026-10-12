@@ -3,34 +3,105 @@
   "title": "Form",
   "category": "Forms",
   "description": "Small form helpers: submit on change, debounced submit, keyboard submit, and disabling submit until the form is valid.",
-  "files": ["form.js"],
+  "files": [
+    "form.js"
+  ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-form", "element": "<form>", "description": "Enables the form behavior." },
-    { "name": "data-form-action", "element": "the form or any field inside it", "description": "Wires events to actions, e.g. \"change->submit\" or \"keydown.meta+enter->submit\"." },
-    { "name": "data-form-debounce", "element": "<form>", "description": "Delay in milliseconds for debouncedSubmit. Defaults to 300." },
-    { "name": "data-form-target=\"submit\"", "element": "submit button", "description": "The button toggled by disableSubmitWhenInvalid." },
-    { "name": "data-form-target=\"cancel\"", "element": "button or link", "description": "Clicked by the cancel action." },
-    { "name": "data-form-submitter-param", "element": "element with the action", "description": "Id of a submit button to submit with, so its name and value are sent." }
+    {
+      "name": "data-form",
+      "element": "<form>",
+      "description": "Enables the form behavior."
+    },
+    {
+      "name": "data-form-action",
+      "element": "the form or any field inside it",
+      "description": "Wires events to actions, e.g. \"change->submit\" or \"keydown.meta+enter->submit\"."
+    },
+    {
+      "name": "data-form-debounce",
+      "element": "<form>",
+      "description": "Delay in milliseconds for debouncedSubmit. Defaults to 300."
+    },
+    {
+      "name": "data-form-target=\"submit\"",
+      "element": "submit button",
+      "description": "The button toggled by disableSubmitWhenInvalid."
+    },
+    {
+      "name": "data-form-target=\"cancel\"",
+      "element": "button or link",
+      "description": "Clicked by the cancel action."
+    },
+    {
+      "name": "data-form-submitter-param",
+      "element": "element with the action",
+      "description": "Id of a submit button to submit with, so its name and value are sent."
+    }
   ],
   "actions": [
-    { "name": "submit", "description": "Submits the form with requestSubmit(), so validation and submit listeners still run." },
-    { "name": "debouncedSubmit", "description": "Submits after the input has been idle for data-form-debounce milliseconds." },
-    { "name": "disableSubmitWhenInvalid", "description": "Disables the submit target while form.checkValidity() is false." },
-    { "name": "select", "description": "Selects the text of the field that triggered the event." },
-    { "name": "reset", "description": "Resets the form." },
-    { "name": "cancel", "description": "Clicks the cancel target, if there is one." }
+    {
+      "name": "submit",
+      "description": "Submits the form with requestSubmit(), so validation and submit listeners still run."
+    },
+    {
+      "name": "debouncedSubmit",
+      "description": "Submits after the input has been idle for data-form-debounce milliseconds."
+    },
+    {
+      "name": "disableSubmitWhenInvalid",
+      "description": "Disables the submit target while form.checkValidity() is false."
+    },
+    {
+      "name": "select",
+      "description": "Selects the text of the field that triggered the event."
+    },
+    {
+      "name": "reset",
+      "description": "Resets the form."
+    },
+    {
+      "name": "cancel",
+      "description": "Clicks the cancel target, if there is one."
+    }
   ],
   "events": [],
   "notes": [
     "css-zero's submitToTopTarget (Turbo frames) and preventAttachment (Trix/Lexxy) actions were removed because they only applied to Hotwire."
   ],
   "examples": [
-    { "file": "submit_on_change.html", "title": "Submit on change" },
-    { "file": "submit_with_debounce.html", "title": "Submit with debounce" },
-    { "file": "submit_on_cmd_enter.html", "title": "Submit with ⌘/Ctrl + Enter" },
-    { "file": "disable_submit_when_invalid.html", "title": "Disable submit when invalid" }
+    {
+      "file": "submit_on_change.html",
+      "title": "Submit on change",
+      "requires": [
+        "switch"
+      ]
+    },
+    {
+      "file": "submit_with_debounce.html",
+      "title": "Submit with debounce",
+      "requires": [
+        "input"
+      ]
+    },
+    {
+      "file": "submit_on_cmd_enter.html",
+      "title": "Submit with ⌘/Ctrl + Enter",
+      "requires": [
+        "button",
+        "input"
+      ]
+    },
+    {
+      "file": "disable_submit_when_invalid.html",
+      "title": "Disable submit when invalid",
+      "requires": [
+        "button",
+        "card",
+        "input"
+      ]
+    }
   ]
 }

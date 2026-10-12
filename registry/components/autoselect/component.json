@@ -3,17 +3,32 @@
   "title": "Autoselect",
   "category": "Forms",
   "description": "Selects the text of an autofocused field, so typing replaces the value.",
-  "files": ["autoselect.js"],
+  "files": [
+    "autoselect.js"
+  ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-autoselect", "element": "<input> or <textarea>", "description": "Selects the content when the element appears, if it also has autofocus." }
+    {
+      "name": "data-autoselect",
+      "element": "<input> or <textarea>",
+      "description": "Selects the content when the element appears, if it also has autofocus."
+    }
   ],
   "actions": [],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic", "description": "The selection happens when the field appears with autofocus, as in a dialog or a freshly loaded page." }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "description": "The selection happens when the field appears with autofocus, as in a dialog or a freshly loaded page.",
+      "requires": [
+        "button",
+        "dialog",
+        "input"
+      ]
+    }
   ]
 }

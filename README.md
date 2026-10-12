@@ -11,13 +11,22 @@ Language and framework agnostic CSS components. Plain CSS with design tokens and
 ```sh
 go install github.com/codedbyshoe/velle-css/cmd/velle@latest
 
-velle init                # writes velle.json and copies reset, tokens, base and utilities
-velle add button dialog   # copies components plus everything they depend on
+velle init                # writes velle.json, copies the core styles, creates main.css and main.js
+velle add button dialog   # copies components plus everything they depend on, and imports them
 velle add --all           # or every component
 velle list                # what is available
 ```
 
-`velle init` uses `assets/css/velle`, `assets/js/velle` and `assets/images/velle`. Change them with `--css-dir`, `--js-dir` and `--images-dir`, or edit `velle.json`. `velle add` never replaces a file you changed unless you pass `--overwrite`, and prints the `<link>`/`<script>` tags to add.
+`velle init` uses `assets/css/velle`, `assets/js/velle` and `assets/images/velle`. Change them with `--css-dir`, `--js-dir` and `--images-dir`, or edit `velle.json`. `velle add` never replaces a file you changed unless you pass `--overwrite`.
+
+Your layout only needs two tags:
+
+```html
+<link rel="stylesheet" href="/assets/css/velle/main.css">
+<script type="module" src="/assets/js/velle/main.js"></script>
+```
+
+`main.css` and `main.js` are entry files the CLI maintains: each `velle add` adds imports to a block between `velle:begin` and `velle:end` and keeps it in load order (reset, tokens, base, components alphabetically, utilities). Anything you add after `velle:end` is yours. Point `cssEntry`/`jsEntry` in `velle.json` at other files, or set them to `""` to manage the tags yourself.
 
 ### From GitHub
 
@@ -32,7 +41,7 @@ Or copy individual files from `dist/css`, `dist/js` and `dist/images`. They are 
 
 ## Use
 
-Load stylesheets in this order: `reset.css`, `variables.css`, `base.css`, the component stylesheets **in alphabetical order** (as css-zero did; a few rules rely on it), then `utilities.css`. Load each behavior you use as a module, e.g. `<script type="module" src="/assets/js/velle/dialog.js">`.
+The entry files handle load order. If you load files yourself, use this order: `reset.css`, `variables.css`, `base.css`, the component stylesheets **in alphabetical order** (a few rules rely on it), then `utilities.css`. Load each behavior you use as a module, e.g. `<script type="module" src="/assets/js/velle/dialog.js">`.
 
 ```html
 <button type="button" class="btn btn--primary" commandfor="welcome" command="show-modal">Open</button>

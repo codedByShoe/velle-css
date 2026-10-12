@@ -3,15 +3,28 @@
   "title": "Accordion",
   "category": "Elements",
   "description": "A vertically stacked set of collapsible sections built on native <details> and <summary>, with an animated open and close.",
-  "files": ["accordion.css"],
+  "files": [
+    "accordion.css"
+  ],
   "dependencies": [],
   "classes": [
-    { "name": "accordion", "description": "Wraps a group of <details> elements. Give the <details> the same name attribute to allow only one open at a time." }
+    {
+      "name": "accordion",
+      "description": "Wraps a group of <details> elements. Give the <details> the same name attribute to allow only one open at a time."
+    }
   ],
   "variables": [],
   "attributes": [
-    { "name": "name", "element": "<details>", "description": "Native attribute. Sections that share a name form an exclusive group, so opening one closes the others." },
-    { "name": "aria-disabled=\"true\"", "element": "<summary>", "description": "Dims the summary and blocks pointer interaction." }
+    {
+      "name": "name",
+      "element": "<details>",
+      "description": "Native attribute. Sections that share a name form an exclusive group, so opening one closes the others."
+    },
+    {
+      "name": "aria-disabled=\"true\"",
+      "element": "<summary>",
+      "description": "Dims the summary and blocks pointer interaction."
+    }
   ],
   "actions": [],
   "events": [],
@@ -19,9 +32,26 @@
     "No JavaScript is needed. The open/close animation uses ::details-content and interpolate-size, so browsers without them simply open instantly."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Basic", "description": "Only one section can be open at a time because every <details> shares the same name." },
-    { "file": "multiple.html", "title": "Multiple", "description": "Leave out the name attribute to let several sections stay open." },
-    { "file": "disabled.html", "title": "Disabled" },
-    { "file": "card.html", "title": "Inside a card" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "description": "Only one section can be open at a time because every <details> shares the same name."
+    },
+    {
+      "file": "multiple.html",
+      "title": "Multiple",
+      "description": "Leave out the name attribute to let several sections stay open."
+    },
+    {
+      "file": "disabled.html",
+      "title": "Disabled"
+    },
+    {
+      "file": "card.html",
+      "title": "Inside a card",
+      "requires": [
+        "card"
+      ]
+    }
   ]
 }

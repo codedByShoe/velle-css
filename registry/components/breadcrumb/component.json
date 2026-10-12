@@ -3,14 +3,25 @@
   "title": "Breadcrumb",
   "category": "Elements",
   "description": "Shows where the current page sits in the site hierarchy.",
-  "files": ["breadcrumb.css"],
-  "dependencies": ["icons"],
+  "files": [
+    "breadcrumb.css"
+  ],
+  "dependencies": [
+    "icons"
+  ],
   "classes": [
-    { "name": "breadcrumb", "description": "A wrapping row of links and separators, usually a <nav>." }
+    {
+      "name": "breadcrumb",
+      "description": "A wrapping row of links and separators, usually a <nav>."
+    }
   ],
   "variables": [],
   "attributes": [
-    { "name": "aria-current=\"page\"", "element": "last item", "description": "Marks the current page for assistive technology." }
+    {
+      "name": "aria-current=\"page\"",
+      "element": "last item",
+      "description": "Marks the current page for assistive technology."
+    }
   ],
   "actions": [],
   "events": [],
@@ -18,8 +29,21 @@
     "Any element can be the separator. Icons such as icon--chevron-right work well."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "collapsed.html", "title": "Collapsed" },
-    { "file": "dropdown.html", "title": "With a dropdown", "description": "Combine with the dropdown component to show hidden levels." }
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "collapsed.html",
+      "title": "Collapsed"
+    },
+    {
+      "file": "dropdown.html",
+      "title": "With a dropdown",
+      "description": "Combine with the dropdown component to show hidden levels.",
+      "requires": [
+        "dropdown"
+      ]
+    }
   ]
 }

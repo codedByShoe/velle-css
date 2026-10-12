@@ -31,7 +31,10 @@
     {
       "file": "group.html",
       "title": "Toggle group",
-      "description": "Combine with group."
+      "description": "Combine with group.",
+      "requires": [
+        "group"
+      ]
     }
   ]
 }

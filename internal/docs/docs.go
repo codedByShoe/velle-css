@@ -74,6 +74,8 @@ type ComponentPage struct {
 
 type ExamplePage struct {
 	registry.Example
+	// Uses links to the other components the example needs (its requires).
+	Uses     []NavLink
 	ID       string
 	HTML     template.HTML
 	Code     string
@@ -183,7 +185,7 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 	if err := write(filepath.Join(out, "assets", "velle.js"), []byte(js)); err != nil {
 		return err
 	}
-	avatar, err := fs.ReadFile(fsys, "components/upload_preview/avatar.svg")
+	avatar, err := fs.ReadFile(fsys, "components/avatar/avatar.svg")
 	if err != nil {
 		return err
 	}
@@ -274,6 +276,9 @@ func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component) (*
 			Example: e,
 			ID:      "example-" + strings.TrimSuffix(e.File, ".html"),
 			Code:    demoAttribute.ReplaceAllString(source, ""),
+		}
+		for _, name := range e.Requires {
+			example.Uses = append(example.Uses, NavLink{Title: reg.Components[name].Title, Href: name + ".html"})
 		}
 		if e.Frame {
 			var doc bytes.Buffer

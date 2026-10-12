@@ -82,15 +82,25 @@
   "examples": [
     {
       "file": "basic.html",
-      "title": "Basic"
+      "title": "Basic",
+      "requires": [
+        "card"
+      ]
     },
     {
       "file": "handle.html",
-      "title": "With a handle"
+      "title": "With a handle",
+      "requires": [
+        "card",
+        "icons"
+      ]
     },
     {
       "file": "shared.html",
-      "title": "Between lists"
+      "title": "Between lists",
+      "requires": [
+        "card"
+      ]
     }
   ]
 }

@@ -3,31 +3,91 @@
   "title": "Carousel",
   "category": "Elements",
   "description": "A horizontally scrolling row of slides with scroll snapping and previous/next buttons.",
-  "files": ["carousel.css", "carousel.js"],
-  "dependencies": ["button", "icons"],
+  "files": [
+    "carousel.css",
+    "carousel.js"
+  ],
+  "dependencies": [
+    "button",
+    "icons"
+  ],
   "classes": [
-    { "name": "carousel", "description": "Row that holds the buttons and the content." },
-    { "name": "carousel__content", "description": "The scrolling track. Mark it data-carousel-target=\"content\"." },
-    { "name": "carousel__item", "description": "One slide." }
+    {
+      "name": "carousel",
+      "description": "Row that holds the buttons and the content."
+    },
+    {
+      "name": "carousel__content",
+      "description": "The scrolling track. Mark it data-carousel-target=\"content\"."
+    },
+    {
+      "name": "carousel__item",
+      "description": "One slide."
+    }
   ],
   "variables": [
-    { "name": "--carousel-items", "default": "1", "description": "How many slides are visible at once." },
-    { "name": "--carousel-items-gap", "default": "1rem", "description": "Gap between slides." }
+    {
+      "name": "--carousel-items",
+      "default": "1",
+      "description": "How many slides are visible at once."
+    },
+    {
+      "name": "--carousel-items-gap",
+      "default": "1rem",
+      "description": "Gap between slides."
+    }
   ],
   "attributes": [
-    { "name": "data-carousel", "element": "root", "description": "Marks the carousel root." },
-    { "name": "data-carousel-target=\"content\"", "element": ".carousel__content", "description": "The element that scrolls." },
-    { "name": "data-carousel-action", "element": "buttons, root", "description": "Wires events to the prev and next actions, e.g. \"prev\" on a button or \"keydown.left->prev\" on the root." }
+    {
+      "name": "data-carousel",
+      "element": "root",
+      "description": "Marks the carousel root."
+    },
+    {
+      "name": "data-carousel-target=\"content\"",
+      "element": ".carousel__content",
+      "description": "The element that scrolls."
+    },
+    {
+      "name": "data-carousel-action",
+      "element": "buttons, root",
+      "description": "Wires events to the prev and next actions, e.g. \"prev\" on a button or \"keydown.left->prev\" on the root."
+    }
   ],
   "actions": [
-    { "name": "prev", "description": "Scrolls the content back by 100px; scroll snapping settles on the nearest slide." },
-    { "name": "next", "description": "Scrolls the content forward by 100px." }
+    {
+      "name": "prev",
+      "description": "Scrolls the content back by 100px; scroll snapping settles on the nearest slide."
+    },
+    {
+      "name": "next",
+      "description": "Scrolls the content forward by 100px."
+    }
   ],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "sizes.html", "title": "Multiple items", "description": "Show several slides at once with --carousel-items." },
-    { "file": "spacing.html", "title": "Spacing" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "requires": [
+        "card"
+      ]
+    },
+    {
+      "file": "sizes.html",
+      "title": "Multiple items",
+      "description": "Show several slides at once with --carousel-items.",
+      "requires": [
+        "card"
+      ]
+    },
+    {
+      "file": "spacing.html",
+      "title": "Spacing",
+      "requires": [
+        "card"
+      ]
+    }
   ]
 }

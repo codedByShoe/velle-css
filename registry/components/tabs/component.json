@@ -3,35 +3,90 @@
   "title": "Tabs",
   "category": "Elements",
   "description": "Tabbed panels with an animated indicator, plus a tab-styled navigation bar.",
-  "files": ["tabs.css", "tabs.js"],
-  "dependencies": ["button"],
+  "files": [
+    "tabs.css",
+    "tabs.js"
+  ],
+  "dependencies": [
+    "button"
+  ],
   "classes": [
-    { "name": "tabs", "description": "Stacks the tab list above the panels." },
-    { "name": "tabs__list", "description": "The bar holding the tab buttons. The sliding indicator follows the selected tab." },
-    { "name": "tabs__button", "description": "A tab. Combine it with btn. Selected when aria-selected=\"true\" (tabs) or aria-current=\"page\" (navigation)." }
+    {
+      "name": "tabs",
+      "description": "Stacks the tab list above the panels."
+    },
+    {
+      "name": "tabs__list",
+      "description": "The bar holding the tab buttons. The sliding indicator follows the selected tab."
+    },
+    {
+      "name": "tabs__button",
+      "description": "A tab. Combine it with btn. Selected when aria-selected=\"true\" (tabs) or aria-current=\"page\" (navigation)."
+    }
   ],
   "variables": [],
   "attributes": [
-    { "name": "data-tabs", "element": ".tabs", "description": "Enables the tabs behavior." },
-    { "name": "data-tabs-index", "element": ".tabs", "description": "Index of the selected tab, starting at 0. Updated as tabs change. Defaults to 0." },
-    { "name": "data-tabs-target=\"button\"", "element": "tab buttons", "description": "The tabs, in order." },
-    { "name": "data-tabs-target=\"tab\"", "element": "panels", "description": "The panels, in the same order as the buttons. Start them hidden." },
-    { "name": "data-tabs-action", "element": "buttons and the list", "description": "\"select\" on each button; \"keydown.left->prev keydown.right->next\" on the list." }
+    {
+      "name": "data-tabs",
+      "element": ".tabs",
+      "description": "Enables the tabs behavior."
+    },
+    {
+      "name": "data-tabs-index",
+      "element": ".tabs",
+      "description": "Index of the selected tab, starting at 0. Updated as tabs change. Defaults to 0."
+    },
+    {
+      "name": "data-tabs-target=\"button\"",
+      "element": "tab buttons",
+      "description": "The tabs, in order."
+    },
+    {
+      "name": "data-tabs-target=\"tab\"",
+      "element": "panels",
+      "description": "The panels, in the same order as the buttons. Start them hidden."
+    },
+    {
+      "name": "data-tabs-action",
+      "element": "buttons and the list",
+      "description": "\"select\" on each button; \"keydown.left->prev keydown.right->next\" on the list."
+    }
   ],
   "actions": [
-    { "name": "select", "description": "Selects the clicked tab." },
-    { "name": "prev", "description": "Selects and focuses the previous tab." },
-    { "name": "next", "description": "Selects and focuses the next tab." }
+    {
+      "name": "select",
+      "description": "Selects the clicked tab."
+    },
+    {
+      "name": "prev",
+      "description": "Selects and focuses the previous tab."
+    },
+    {
+      "name": "next",
+      "description": "Selects and focuses the next tab."
+    }
   ],
   "events": [
-    { "name": "velle:tabs:change", "description": "Dispatched whenever the visible tab is set, including on connect. event.detail.index is the selected index." }
+    {
+      "name": "velle:tabs:change",
+      "description": "Dispatched whenever the visible tab is set, including on connect. event.detail.index is the selected index."
+    }
   ],
   "notes": [
     "The selected button gets aria-selected=\"true\" and tabindex=\"0\"; the others get tabindex=\"-1\", so Tab moves straight into the panel.",
     "For navigation between pages, use tabs__list and tabs__button without JavaScript and mark the current link with aria-current=\"page\"."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Tabs" },
-    { "file": "navigation.html", "title": "Navigation bar" }
+    {
+      "file": "basic.html",
+      "title": "Tabs",
+      "requires": [
+        "card"
+      ]
+    },
+    {
+      "file": "navigation.html",
+      "title": "Navigation bar"
+    }
   ]
 }

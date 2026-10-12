@@ -12,10 +12,17 @@
   <p>Install the <code>velle</code> command with Go, then run it in your project:</p>
   <pre class="docs-pre"><code>go install github.com/codedbyshoe/velle-css/cmd/velle@latest
 
-velle init                  # writes velle.json and copies the core styles
-velle add button dialog     # copies components and everything they need
+velle init                  # writes velle.json, copies the core styles, creates main.css and main.js
+velle add button dialog     # copies components and everything they need, and imports them
 velle list                  # shows every component</code></pre>
-  <p><code>velle init</code> puts files in <code>assets/css/velle</code>, <code>assets/js/velle</code> and <code>assets/images/velle</code>. Choose other directories with <code>--css-dir</code>, <code>--js-dir</code> and <code>--images-dir</code>, or edit <code>velle.json</code> later. <code>velle add</code> never replaces a file you have changed unless you pass <code>--overwrite</code>, and it prints the <code>&lt;link&gt;</code> and <code>&lt;script&gt;</code> tags to add to your page.</p>
+  <p><code>velle init</code> puts files in <code>assets/css/velle</code>, <code>assets/js/velle</code> and <code>assets/images/velle</code>. Choose other directories with <code>--css-dir</code>, <code>--js-dir</code> and <code>--images-dir</code>, or edit <code>velle.json</code> later. <code>velle add</code> never replaces a file you have changed unless you pass <code>--overwrite</code>.</p>
+
+  <h3 id="entries">One stylesheet, one script</h3>
+  <p>The CLI keeps two entry files up to date: <code>main.css</code>, which <code>@import</code>s every installed stylesheet, and <code>main.js</code>, which imports every installed behavior. Add them to your layout once:</p>
+  <pre class="docs-pre"><code>&lt;link rel="stylesheet" href="/assets/css/velle/main.css"&gt;
+&lt;script type="module" src="/assets/js/velle/main.js"&gt;&lt;/script&gt;</code></pre>
+  <p>Each <code>velle add</code> adds the new imports to a block marked <code>velle:begin</code>/<code>velle:end</code> and rewrites it in load order: reset, tokens, base, components alphabetically, then utilities. Imports that are already there are left alone, and anything you write after <code>velle:end</code> is kept. The browser loads the imported files itself; bundle or inline them later if you want fewer requests.</p>
+  <p>Set <code>cssEntry</code> and <code>jsEntry</code> in <code>velle.json</code> (or pass <code>--css-entry</code>/<code>--js-entry</code> to <code>velle init</code>) to use other files, for example your own <code>app.css</code>. Set them to <code>""</code> (or pass <code>none</code>) to manage tags yourself; <code>velle add</code> then prints the tags to add.</p>
 
   <h3 id="install-cdn">From GitHub, without the CLI</h3>
   <p>Every release includes a <code>dist/</code> folder. Load everything from the jsDelivr CDN, replacing <code>v{{.Site.Version}}</code> with the release you want:</p>
@@ -36,7 +43,7 @@ velle list                  # shows every component</code></pre>
 
 <section class="docs-section" aria-labelledby="usage">
   <h2 id="usage">Usage</h2>
-  <p>Load the stylesheets in this order. The order matters: component styles override the base styles, and utilities override components.</p>
+  <p>With the CLI's <a class="text-link" href="#entries">entry files</a> the order is handled for you. Loading files yourself? Use this order. It matters: component styles override the base styles, and utilities override components.</p>
   <pre class="docs-pre"><code>&lt;head&gt;
   &lt;link rel="stylesheet" href="/assets/css/velle/reset.css"&gt;
   &lt;link rel="stylesheet" href="/assets/css/velle/variables.css"&gt;

@@ -3,32 +3,100 @@
   "title": "List",
   "category": "Elements",
   "description": "Stacked rows for settings, links, selectable options and media items.",
-  "files": ["list.css"],
+  "files": [
+    "list.css"
+  ],
   "dependencies": [],
   "classes": [
-    { "name": "list", "description": "Vertical stack of rows." },
-    { "name": "list-row", "description": "A bordered row." },
-    { "name": "list-row__media", "description": "A square image or icon box at the start of a row." },
-    { "name": "list-row--muted", "description": "Shaded background." },
-    { "name": "list-row--borderless", "description": "No border." },
-    { "name": "list-row--link", "description": "Hover and focus styles for rows that are links." },
-    { "name": "list-row--check", "description": "Highlights the row while a checkbox or radio inside it is checked." }
+    {
+      "name": "list",
+      "description": "Vertical stack of rows."
+    },
+    {
+      "name": "list-row",
+      "description": "A bordered row."
+    },
+    {
+      "name": "list-row__media",
+      "description": "A square image or icon box at the start of a row."
+    },
+    {
+      "name": "list-row--muted",
+      "description": "Shaded background."
+    },
+    {
+      "name": "list-row--borderless",
+      "description": "No border."
+    },
+    {
+      "name": "list-row--link",
+      "description": "Hover and focus styles for rows that are links."
+    },
+    {
+      "name": "list-row--check",
+      "description": "Highlights the row while a checkbox or radio inside it is checked."
+    }
   ],
   "variables": [
-    { "name": "--list-gap", "default": "var(--size-4)", "description": "Space between rows." },
-    { "name": "--list-padding", "default": ".625rem .75rem", "description": "Row padding." },
-    { "name": "--list-background", "default": "transparent", "description": "Row background." },
-    { "name": "--list-border-color", "default": "var(--color-border)", "description": "Row border color." },
-    { "name": "--list-row-media-size", "default": "2.5rem", "description": "Size of list-row__media." }
+    {
+      "name": "--list-gap",
+      "default": "var(--size-4)",
+      "description": "Space between rows."
+    },
+    {
+      "name": "--list-padding",
+      "default": ".625rem .75rem",
+      "description": "Row padding."
+    },
+    {
+      "name": "--list-background",
+      "default": "transparent",
+      "description": "Row background."
+    },
+    {
+      "name": "--list-border-color",
+      "default": "var(--color-border)",
+      "description": "Row border color."
+    },
+    {
+      "name": "--list-row-media-size",
+      "default": "2.5rem",
+      "description": "Size of list-row__media."
+    }
   ],
   "attributes": [],
   "actions": [],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "variants.html", "title": "Variants" },
-    { "file": "link.html", "title": "Links" },
-    { "file": "check.html", "title": "Selectable" },
-    { "file": "media.html", "title": "With media" }
+    {
+      "file": "variants.html",
+      "title": "Variants",
+      "requires": [
+        "icons"
+      ]
+    },
+    {
+      "file": "link.html",
+      "title": "Links",
+      "requires": [
+        "icons"
+      ]
+    },
+    {
+      "file": "check.html",
+      "title": "Selectable",
+      "requires": [
+        "input"
+      ]
+    },
+    {
+      "file": "media.html",
+      "title": "With media",
+      "requires": [
+        "button",
+        "icons"
+      ]
+    }
   ]
 }

@@ -4,12 +4,23 @@
   "category": "Overlays",
   "description": "A menu that opens from a button. It combines the popover and menu components.",
   "files": [],
-  "dependencies": ["popover", "menu"],
+  "dependencies": [
+    "popover",
+    "menu"
+  ],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "popovertarget", "element": "trigger <button>", "description": "Native attribute that opens the popover with the given id. No JavaScript needed." },
-    { "name": "popover", "element": ".popover", "description": "Native attribute that turns the element into a popover. Closes on outside click and Escape." }
+    {
+      "name": "popovertarget",
+      "element": "trigger <button>",
+      "description": "Native attribute that opens the popover with the given id. No JavaScript needed."
+    },
+    {
+      "name": "popover",
+      "element": ".popover",
+      "description": "Native attribute that turns the element into a popover. Closes on outside click and Escape."
+    }
   ],
   "actions": [],
   "events": [],
@@ -17,11 +28,35 @@
     "The popover is anchored to its trigger with CSS anchor positioning. Pick a placement with the popover--* modifiers documented on the popover page."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "icons.html", "title": "With icons" },
-    { "file": "shortcuts.html", "title": "With shortcuts" },
-    { "file": "checkbox.html", "title": "Checkboxes" },
-    { "file": "radio.html", "title": "Radio items" },
-    { "file": "destructive.html", "title": "Destructive item" }
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "icons.html",
+      "title": "With icons"
+    },
+    {
+      "file": "shortcuts.html",
+      "title": "With shortcuts"
+    },
+    {
+      "file": "checkbox.html",
+      "title": "Checkboxes",
+      "requires": [
+        "input"
+      ]
+    },
+    {
+      "file": "radio.html",
+      "title": "Radio items",
+      "requires": [
+        "input"
+      ]
+    },
+    {
+      "file": "destructive.html",
+      "title": "Destructive item"
+    }
   ]
 }

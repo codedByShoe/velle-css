@@ -3,33 +3,90 @@
   "title": "Avatar",
   "category": "Elements",
   "description": "A round image or initials representing a user, with optional status badge and overlapping groups.",
-  "files": ["avatar.css"],
+  "files": [
+    "avatar.css",
+    "avatar.svg"
+  ],
   "dependencies": [],
   "classes": [
-    { "name": "avatar", "description": "Avatar container. Holds an <img> or a <span role=\"img\"> with initials." },
-    { "name": "avatar--sm", "description": "Small avatar (1.5rem)." },
-    { "name": "avatar--lg", "description": "Large avatar (2.5rem)." },
-    { "name": "avatar__badge", "description": "A status dot in the bottom corner. Can hold an icon." },
-    { "name": "avatar-group", "description": "Overlaps a row of avatars." }
+    {
+      "name": "avatar",
+      "description": "Avatar container. Holds an <img> or a <span role=\"img\"> with initials."
+    },
+    {
+      "name": "avatar--sm",
+      "description": "Small avatar (1.5rem)."
+    },
+    {
+      "name": "avatar--lg",
+      "description": "Large avatar (2.5rem)."
+    },
+    {
+      "name": "avatar__badge",
+      "description": "A status dot in the bottom corner. Can hold an icon."
+    },
+    {
+      "name": "avatar-group",
+      "description": "Overlaps a row of avatars."
+    }
   ],
   "variables": [
-    { "name": "--avatar-size", "default": "var(--size-8)", "description": "Width and height of the avatar." },
-    { "name": "--avatar-radius", "default": "var(--rounded-full)", "description": "Corner radius." },
-    { "name": "--avatar-badge-size", "default": "calc(var(--avatar-size) * .3125)", "description": "Size of the badge." },
-    { "name": "--avatar-badge-color", "default": "var(--color-primary)", "description": "Badge background color." },
-    { "name": "--avatar-box-shadow", "default": "0 0 0 2px var(--color-bg)", "description": "Ring used to separate grouped avatars and badges." }
+    {
+      "name": "--avatar-size",
+      "default": "var(--size-8)",
+      "description": "Width and height of the avatar."
+    },
+    {
+      "name": "--avatar-radius",
+      "default": "var(--rounded-full)",
+      "description": "Corner radius."
+    },
+    {
+      "name": "--avatar-badge-size",
+      "default": "calc(var(--avatar-size) * .3125)",
+      "description": "Size of the badge."
+    },
+    {
+      "name": "--avatar-badge-color",
+      "default": "var(--color-primary)",
+      "description": "Badge background color."
+    },
+    {
+      "name": "--avatar-box-shadow",
+      "default": "0 0 0 2px var(--color-bg)",
+      "description": "Ring used to separate grouped avatars and badges."
+    }
   ],
   "attributes": [],
   "actions": [],
   "events": [],
   "notes": [
-    "Add the btn class to make the avatar clickable, for example as a dropdown trigger."
+    "Add the btn class to make the avatar clickable, for example as a dropdown trigger.",
+    "velle add avatar also installs avatar.svg, a placeholder picture, in your images directory. Use it as the fallback for users without a photo."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Image and initials" },
-    { "file": "sizes.html", "title": "Sizes" },
-    { "file": "badge.html", "title": "Badge" },
-    { "file": "group.html", "title": "Group" },
-    { "file": "button.html", "title": "As a button" }
+    {
+      "file": "basic.html",
+      "title": "Image and initials"
+    },
+    {
+      "file": "sizes.html",
+      "title": "Sizes"
+    },
+    {
+      "file": "badge.html",
+      "title": "Badge",
+      "requires": [
+        "icons"
+      ]
+    },
+    {
+      "file": "group.html",
+      "title": "Group"
+    },
+    {
+      "file": "button.html",
+      "title": "As a button"
+    }
   ]
 }

@@ -56,6 +56,7 @@
   <div class="docs-example">
     <h3 id="{{.ID}}"><a href="#{{.ID}}">{{.Title}}</a></h3>
     {{if .Description}}<p class="text-sm text-subtle">{{.Description}}</p>{{end}}
+    {{if .Uses}}<p class="text-sm text-subtle">Also uses {{range $i, $u := .Uses}}{{if $i}}, {{end}}<a class="text-link" href="{{$u.Href}}">{{$u.Title}}</a>{{end}}: add {{if eq (len .Uses) 1}}it{{else}}them{{end}} with <code>velle add{{range .Requires}} {{.}}{{end}}</code>.</p>{{end}}
 
     {{if .Frame}}
     <iframe class="docs-frame-preview" srcdoc="{{.FrameDoc}}" style="block-size: {{if .Height}}{{.Height}}{{else}}24rem{{end}}" title="{{.Title}} example"></iframe>

@@ -3,21 +3,44 @@
   "title": "Fullscreen",
   "category": "Behaviors",
   "description": "A button that toggles fullscreen mode for the whole page. It hides itself in browsers without the Fullscreen API.",
-  "files": ["fullscreen.js"],
+  "files": [
+    "fullscreen.js"
+  ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-fullscreen", "element": "root, often <body>", "description": "Enables the behavior for the buttons inside it." },
-    { "name": "data-fullscreen-target=\"button\"", "element": "<button>", "description": "Hidden when fullscreen is not supported. Start it hidden so it never flashes." },
-    { "name": "data-fullscreen-action=\"toggle\"", "element": "<button>", "description": "Enters or leaves fullscreen." }
+    {
+      "name": "data-fullscreen",
+      "element": "root, often <body>",
+      "description": "Enables the behavior for the buttons inside it."
+    },
+    {
+      "name": "data-fullscreen-target=\"button\"",
+      "element": "<button>",
+      "description": "Hidden when fullscreen is not supported. Start it hidden so it never flashes."
+    },
+    {
+      "name": "data-fullscreen-action=\"toggle\"",
+      "element": "<button>",
+      "description": "Enters or leaves fullscreen."
+    }
   ],
   "actions": [
-    { "name": "toggle", "description": "Calls document.documentElement.requestFullscreen() or document.exitFullscreen()." }
+    {
+      "name": "toggle",
+      "description": "Calls document.documentElement.requestFullscreen() or document.exitFullscreen()."
+    }
   ],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "requires": [
+        "button"
+      ]
+    }
   ]
 }

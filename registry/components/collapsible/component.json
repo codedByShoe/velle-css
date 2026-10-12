@@ -3,23 +3,53 @@
   "title": "Collapsible",
   "category": "Behaviors",
   "description": "Opens and closes a <details> element from a button placed anywhere inside the root.",
-  "files": ["collapsible.js"],
+  "files": [
+    "collapsible.js"
+  ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-collapsible", "element": "root", "description": "Wraps the trigger and the <details>." },
-    { "name": "data-collapsible-target=\"details\"", "element": "<details>", "description": "The element to open and close. Add a hidden <summary> to hide the native toggle." },
-    { "name": "data-collapsible-action", "element": "trigger", "description": "e.g. \"toggle\" on a button." }
+    {
+      "name": "data-collapsible",
+      "element": "root",
+      "description": "Wraps the trigger and the <details>."
+    },
+    {
+      "name": "data-collapsible-target=\"details\"",
+      "element": "<details>",
+      "description": "The element to open and close. Add a hidden <summary> to hide the native toggle."
+    },
+    {
+      "name": "data-collapsible-action",
+      "element": "trigger",
+      "description": "e.g. \"toggle\" on a button."
+    }
   ],
   "actions": [
-    { "name": "open", "description": "Opens the details." },
-    { "name": "close", "description": "Closes the details." },
-    { "name": "toggle", "description": "Opens or closes the details." }
+    {
+      "name": "open",
+      "description": "Opens the details."
+    },
+    {
+      "name": "close",
+      "description": "Closes the details."
+    },
+    {
+      "name": "toggle",
+      "description": "Opens or closes the details."
+    }
   ],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "requires": [
+        "button",
+        "icons"
+      ]
+    }
   ]
 }

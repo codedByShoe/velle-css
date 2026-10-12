@@ -73,11 +73,6 @@ func TestComponentsLoad(t *testing.T) {
 	if len(r.Components) == 0 {
 		t.Fatal("no components loaded")
 	}
-	for _, name := range r.Names() {
-		if _, deferred := registry.Deferred[name]; deferred {
-			t.Errorf("%s is both ported and listed as deferred", name)
-		}
-	}
 }
 
 func TestRequiredFields(t *testing.T) {
@@ -156,6 +151,8 @@ func TestFileNamesAreUnique(t *testing.T) {
 		seen[path.Base(f)] = "core"
 	}
 	seen[path.Base(registry.RuntimeFile)] = "runtime"
+	seen["main.css"] = "the default CSS entry"
+	seen["main.js"] = "the default JS entry"
 
 	r := load(t)
 	for _, name := range r.Names() {
@@ -198,16 +195,8 @@ func TestResolveErrors(t *testing.T) {
 	if _, err := r.Resolve([]string{"nope"}); err == nil || !strings.Contains(err.Error(), "unknown component") {
 		t.Errorf("unknown component: got %v", err)
 	}
-	if _, err := r.Resolve([]string{"lexxy"}); err == nil || !strings.Contains(err.Error(), "not available yet") {
-		t.Errorf("deferred component: got %v", err)
-	}
-	if _, err := r.Resolve([]string{"sound"}); err == nil || !strings.Contains(err.Error(), "removed") {
-		t.Errorf("removed component: got %v", err)
-	}
-	for name := range registry.Removed {
-		if _, ok := r.Components[name]; ok {
-			t.Errorf("%s is listed as removed but still exists", name)
-		}
+	if _, err := r.Resolve([]string{"dropdown", "nope"}); err == nil || !strings.Contains(err.Error(), `unknown component "nope"`) {
+		t.Errorf("unknown component after a valid one: got %v", err)
 	}
 }
 
@@ -493,6 +482,82 @@ func TestControllersMatchComponentNames(t *testing.T) {
 	for i := 1; i < len(names); i++ {
 		if names[i] == names[i-1] {
 			t.Errorf("controller %q is defined twice", names[i])
+		}
+	}
+}
+
+var (
+	defineName   = regexp.MustCompile(`define\("([a-z-]+)"`)
+	rootSelector = regexp.MustCompile(`\[data-([a-z-]+)\]`)
+	dataAttr     = regexp.MustCompile(`\sdata-([a-z-]+)`)
+)
+
+// TestExamplesOnlyUseInstalledComponents checks that everything an example uses is
+// installed by `velle add <component>` (the component and its dependencies, plus the core
+// styles) or is listed in the example's "requires". Otherwise copying an example from the
+// docs into a project would break.
+func TestExamplesOnlyUseInstalledComponents(t *testing.T) {
+	r := load(t)
+
+	var core strings.Builder
+	for _, f := range registry.CoreFiles {
+		core.WriteString(read(t, r.FS, f))
+	}
+	coreClasses := cssinfo.Classes(core.String())
+
+	// Map each behavior's root attribute (data-tabs, data-local-time, …) to its component.
+	roots := map[string]string{}
+	for _, c := range r.Components {
+		for _, f := range c.Files {
+			if registry.Kind(f) != registry.KindJS {
+				continue
+			}
+			js := read(t, r.FS, c.FilePath(f))
+			for _, m := range defineName.FindAllStringSubmatch(js, -1) {
+				roots[m[1]] = c.Name
+			}
+			for _, m := range rootSelector.FindAllStringSubmatch(js, -1) {
+				roots[m[1]] = c.Name
+			}
+		}
+	}
+
+	for _, c := range r.Components {
+		for _, e := range c.Examples {
+			for _, name := range e.Requires {
+				if _, ok := r.Components[name]; !ok {
+					t.Errorf("%s/%s: requires unknown component %q", c.Name, e.File, name)
+				}
+			}
+
+			resolved, err := r.Resolve(append([]string{c.Name}, e.Requires...))
+			if err != nil {
+				t.Errorf("%s/%s: %v", c.Name, e.File, err)
+				continue
+			}
+			installed := map[string]bool{}
+			var css strings.Builder
+			for _, dep := range resolved {
+				installed[dep.Name] = true
+				for _, f := range dep.Files {
+					if registry.Kind(f) == registry.KindCSS {
+						css.WriteString(read(t, r.FS, dep.FilePath(f)))
+					}
+				}
+			}
+			classes := cssinfo.Classes(css.String())
+
+			html := read(t, r.FS, c.ExamplePath(e.File))
+			for _, class := range cssinfo.HTMLClasses(html) {
+				if !classes[class] && !coreClasses[class] {
+					t.Errorf("%s/%s: class %q is not installed by `velle add %s`; add the component that defines it to the dependencies or to the example's requires", c.Name, e.File, class, c.Name)
+				}
+			}
+			for _, m := range dataAttr.FindAllStringSubmatch(html, -1) {
+				if owner, ok := roots[m[1]]; ok && !installed[owner] {
+					t.Errorf("%s/%s: data-%s needs the %s component; add it to the dependencies or to the example's requires", c.Name, e.File, m[1], owner)
+				}
+			}
 		}
 	}
 }

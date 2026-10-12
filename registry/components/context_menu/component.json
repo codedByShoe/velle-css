@@ -3,22 +3,51 @@
   "title": "Context Menu",
   "category": "Overlays",
   "description": "A menu that opens at the pointer on right click.",
-  "files": ["context_menu.js"],
-  "dependencies": ["popover", "menu"],
+  "files": [
+    "context_menu.js"
+  ],
+  "dependencies": [
+    "popover",
+    "menu"
+  ],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-context-menu", "element": "root", "description": "Wraps the trigger area and the menu popover." },
-    { "name": "data-context-menu-target=\"content\"", "element": "popover=\"manual\" element", "description": "The menu to show. Use the popover--unanchored modifier so it can be placed at the pointer." },
-    { "name": "data-context-menu-action", "element": "trigger area", "description": "Usually \"contextmenu->show:prevent click@document->hide\"." }
+    {
+      "name": "data-context-menu",
+      "element": "root",
+      "description": "Wraps the trigger area and the menu popover."
+    },
+    {
+      "name": "data-context-menu-target=\"content\"",
+      "element": "popover=\"manual\" element",
+      "description": "The menu to show. Use the popover--unanchored modifier so it can be placed at the pointer."
+    },
+    {
+      "name": "data-context-menu-action",
+      "element": "trigger area",
+      "description": "Usually \"contextmenu->show:prevent click@document->hide\"."
+    }
   ],
   "actions": [
-    { "name": "show", "description": "Moves the menu to the pointer position and opens it." },
-    { "name": "hide", "description": "Closes the menu unless the click happened inside it." }
+    {
+      "name": "show",
+      "description": "Moves the menu to the pointer position and opens it."
+    },
+    {
+      "name": "hide",
+      "description": "Closes the menu unless the click happened inside it."
+    }
   ],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "requires": [
+        "card"
+      ]
+    }
   ]
 }

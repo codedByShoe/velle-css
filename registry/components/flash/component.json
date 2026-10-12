@@ -3,33 +3,95 @@
   "title": "Flash",
   "category": "Overlays",
   "description": "A toast notification that slides in at the top of the page, then hides itself after 5 seconds. Hovering or focusing pauses it.",
-  "files": ["flash.css", "flash.js"],
+  "files": [
+    "flash.css",
+    "flash.js"
+  ],
   "dependencies": [],
   "classes": [
-    { "name": "flash", "description": "The notification. Put it on an element with popover=\"manual\"." },
-    { "name": "flash__content", "description": "Padded content area." },
-    { "name": "flash--extended", "description": "Stays visible for 12 seconds instead of 5." }
+    {
+      "name": "flash",
+      "description": "The notification. Put it on an element with popover=\"manual\"."
+    },
+    {
+      "name": "flash__content",
+      "description": "Padded content area."
+    },
+    {
+      "name": "flash--extended",
+      "description": "Stays visible for 12 seconds instead of 5."
+    }
   ],
   "variables": [
-    { "name": "--flash-position", "default": "var(--size-6)", "description": "Distance from the top of the viewport." },
-    { "name": "--flash-size", "default": "var(--max-i-sm)", "description": "Maximum width on screens 40rem and wider." }
+    {
+      "name": "--flash-position",
+      "default": "var(--size-6)",
+      "description": "Distance from the top of the viewport."
+    },
+    {
+      "name": "--flash-size",
+      "default": "var(--max-i-sm)",
+      "description": "Maximum width on screens 40rem and wider."
+    }
   ],
   "attributes": [
-    { "name": "data-flash", "element": ".flash", "description": "Shows the popover as soon as the element is on the page, including elements inserted later." },
-    { "name": "data-flash-action=\"animationend->hide\"", "element": ".flash", "description": "Hides the popover when the CSS animation finishes." }
+    {
+      "name": "data-flash",
+      "element": ".flash",
+      "description": "Shows the popover as soon as the element is on the page, including elements inserted later."
+    },
+    {
+      "name": "data-flash-action=\"animationend->hide\"",
+      "element": ".flash",
+      "description": "Hides the popover when the CSS animation finishes."
+    }
   ],
   "actions": [
-    { "name": "hide", "description": "Hides the popover." }
+    {
+      "name": "hide",
+      "description": "Hides the popover."
+    }
   ],
   "events": [],
   "notes": [
     "Render the flash from your server after a redirect, or insert it with JavaScript. In these demos a button inserts the markup from a <template>."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "success.html", "title": "With an icon" },
-    { "file": "description.html", "title": "With a description" },
-    { "file": "action.html", "title": "With an action" },
-    { "file": "extended.html", "title": "Extended" }
+    {
+      "file": "basic.html",
+      "title": "Basic",
+      "requires": [
+        "button"
+      ]
+    },
+    {
+      "file": "success.html",
+      "title": "With an icon",
+      "requires": [
+        "button",
+        "icons"
+      ]
+    },
+    {
+      "file": "description.html",
+      "title": "With a description",
+      "requires": [
+        "button"
+      ]
+    },
+    {
+      "file": "action.html",
+      "title": "With an action",
+      "requires": [
+        "button"
+      ]
+    },
+    {
+      "file": "extended.html",
+      "title": "Extended",
+      "requires": [
+        "button"
+      ]
+    }
   ]
 }

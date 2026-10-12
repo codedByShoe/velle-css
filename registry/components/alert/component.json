@@ -3,25 +3,63 @@
   "title": "Alert",
   "category": "Elements",
   "description": "A callout box for important messages.",
-  "files": ["alert.css"],
-  "dependencies": ["icons"],
+  "files": [
+    "alert.css"
+  ],
+  "dependencies": [
+    "icons"
+  ],
   "classes": [
-    { "name": "alert", "description": "The alert box." },
-    { "name": "alert--negative", "description": "Red text for errors and destructive messages." }
+    {
+      "name": "alert",
+      "description": "The alert box."
+    },
+    {
+      "name": "alert--negative",
+      "description": "Red text for errors and destructive messages."
+    }
   ],
   "variables": [
-    { "name": "--alert-background", "default": "var(--color-surface)", "description": "Background color." },
-    { "name": "--alert-border-color", "default": "var(--color-border)", "description": "Border color." },
-    { "name": "--alert-color", "default": "var(--color-text)", "description": "Text color." }
+    {
+      "name": "--alert-background",
+      "default": "var(--color-surface)",
+      "description": "Background color."
+    },
+    {
+      "name": "--alert-border-color",
+      "default": "var(--color-border)",
+      "description": "Border color."
+    },
+    {
+      "name": "--alert-color",
+      "default": "var(--color-text)",
+      "description": "Text color."
+    }
   ],
   "attributes": [],
   "actions": [],
   "events": [],
   "notes": [],
   "examples": [
-    { "file": "basic.html", "title": "Basic" },
-    { "file": "negative.html", "title": "Negative" },
-    { "file": "action.html", "title": "With an action" },
-    { "file": "colors.html", "title": "Custom colors", "description": "Override the --alert-* variables with any palette color." }
+    {
+      "file": "basic.html",
+      "title": "Basic"
+    },
+    {
+      "file": "negative.html",
+      "title": "Negative"
+    },
+    {
+      "file": "action.html",
+      "title": "With an action",
+      "requires": [
+        "button"
+      ]
+    },
+    {
+      "file": "colors.html",
+      "title": "Custom colors",
+      "description": "Override the --alert-* variables with any palette color."
+    }
   ]
 }

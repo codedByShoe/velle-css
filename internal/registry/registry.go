@@ -84,18 +84,9 @@ type Example struct {
 	Frame bool `json:"frame"`
 	// Height is the iframe height in CSS units when Frame is set.
 	Height string `json:"height"`
-}
-
-// Deferred lists css-zero components that are intentionally not ported yet.
-var Deferred = map[string]string{
-	"lexxy": "the Lexxy rich text editor is planned for a later phase",
-}
-
-// Removed lists css-zero components that velle-css does not carry over, with the reason.
-var Removed = map[string]string{
-	"back_navigation": "it depended on Turbo's history tracking",
-	"sound":           "playing UI sounds is outside the scope of a CSS library",
-	"turbo_confirm":   "use the confirm component instead",
+	// Requires lists other components the example uses on top of the component's own
+	// dependencies, e.g. a breadcrumb example that opens a dropdown.
+	Requires []string `json:"requires"`
 }
 
 // Core files copied by `velle init`, relative to the registry root, in load order.
@@ -174,12 +165,6 @@ func (r *Registry) Resolve(names []string) ([]*Component, error) {
 	visit = func(name string, chain []string) error {
 		c, ok := r.Components[name]
 		if !ok {
-			if reason, deferred := Deferred[name]; deferred {
-				return fmt.Errorf("%q is not available yet: %s", name, reason)
-			}
-			if reason, removed := Removed[name]; removed {
-				return fmt.Errorf("%q was removed: %s", name, reason)
-			}
 			if len(chain) > 0 {
 				return fmt.Errorf("unknown component %q (required by %q)", name, chain[len(chain)-1])
 			}

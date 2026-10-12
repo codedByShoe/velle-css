@@ -3,25 +3,56 @@
   "title": "Upload Preview",
   "category": "Forms",
   "description": "Shows a picked image before the form is submitted, and lets the user remove it.",
-  "files": ["upload_preview.js", "avatar.svg"],
-  "dependencies": ["avatar", "button", "icons"],
+  "files": [
+    "upload_preview.js"
+  ],
+  "dependencies": [
+    "avatar",
+    "button",
+    "icons"
+  ],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-upload-preview", "element": "root", "description": "Wraps the file input, the image and the remove button." },
-    { "name": "data-upload-preview-default-image", "element": "root", "description": "Image shown after the user removes the picture. The CLI installs a placeholder avatar.svg in your images directory." },
-    { "name": "data-upload-preview-target", "element": "inside the root", "description": "input (the <input type=\"file\">), image (the <img>) and removeInput (a hidden input set to true when the picture is removed)." },
-    { "name": "data-upload-preview-action", "element": "file input, remove button", "description": "\"previewImage\" on the file input (it runs on input); \"click->clear\" on the remove button." }
+    {
+      "name": "data-upload-preview",
+      "element": "root",
+      "description": "Wraps the file input, the image and the remove button."
+    },
+    {
+      "name": "data-upload-preview-default-image",
+      "element": "root",
+      "description": "Image shown after the user removes the picture, e.g. the avatar.svg placeholder that velle add avatar installs."
+    },
+    {
+      "name": "data-upload-preview-target",
+      "element": "inside the root",
+      "description": "input (the <input type=\"file\">), image (the <img>) and removeInput (a hidden input set to true when the picture is removed)."
+    },
+    {
+      "name": "data-upload-preview-action",
+      "element": "file input, remove button",
+      "description": "\"previewImage\" on the file input (it runs on input); \"click->clear\" on the remove button."
+    }
   ],
   "actions": [
-    { "name": "previewImage", "description": "Shows the selected file in the image and sets removeInput to false." },
-    { "name": "clear", "description": "Shows the default image and sets removeInput to true." }
+    {
+      "name": "previewImage",
+      "description": "Shows the selected file in the image and sets removeInput to false."
+    },
+    {
+      "name": "clear",
+      "description": "Shows the default image and sets removeInput to true."
+    }
   ],
   "events": [],
   "notes": [
     "Your server decides what to do with the removeInput value, e.g. delete the stored picture when it is \"true\"."
   ],
   "examples": [
-    { "file": "basic.html", "title": "Avatar picker" }
+    {
+      "file": "basic.html",
+      "title": "Avatar picker"
+    }
   ]
 }

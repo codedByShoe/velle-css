@@ -45,7 +45,10 @@
   "examples": [
     {
       "file": "basic.html",
-      "title": "Basic"
+      "title": "Basic",
+      "requires": [
+        "input"
+      ]
     }
   ]
 }

@@ -60,7 +60,10 @@
   "examples": [
     {
       "file": "basic.html",
-      "title": "Menu in a popover"
+      "title": "Menu in a popover",
+      "requires": [
+        "popover"
+      ]
     }
   ]
 }

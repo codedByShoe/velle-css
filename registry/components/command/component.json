@@ -3,34 +3,98 @@
   "title": "Command",
   "category": "Overlays",
   "description": "A command palette: type to filter a list of links or actions, move with the arrow keys and press Enter to run one.",
-  "files": ["command.css", "command.js"],
-  "dependencies": ["input", "dialog", "icons"],
+  "files": [
+    "command.css",
+    "command.js"
+  ],
+  "dependencies": [
+    "input",
+    "dialog",
+    "icons"
+  ],
   "classes": [
-    { "name": "command", "description": "The palette. Usually placed inside a .dialog." },
-    { "name": "command__input", "description": "Muted styling for the search field; use it on an input input--actor wrapper." },
-    { "name": "command__list", "description": "The scrolling list of groups and items." },
-    { "name": "command__group", "description": "A group of items. Hidden while none of its items match." },
-    { "name": "command__heading", "description": "The group's heading." },
-    { "name": "command__item", "description": "An item: a link, a button or any element. Highlighted while selected." },
-    { "name": "command__item-key", "description": "A shortcut hint aligned to the end of an item." },
-    { "name": "command__separator", "description": "A divider between groups (an <hr>). Hidden while filtering." },
-    { "name": "command__empty", "description": "Shown when nothing matches." }
+    {
+      "name": "command",
+      "description": "The palette. Usually placed inside a .dialog."
+    },
+    {
+      "name": "command__input",
+      "description": "Muted styling for the search field; use it on an input input--actor wrapper."
+    },
+    {
+      "name": "command__list",
+      "description": "The scrolling list of groups and items."
+    },
+    {
+      "name": "command__group",
+      "description": "A group of items. Hidden while none of its items match."
+    },
+    {
+      "name": "command__heading",
+      "description": "The group's heading."
+    },
+    {
+      "name": "command__item",
+      "description": "An item: a link, a button or any element. Highlighted while selected."
+    },
+    {
+      "name": "command__item-key",
+      "description": "A shortcut hint aligned to the end of an item."
+    },
+    {
+      "name": "command__separator",
+      "description": "A divider between groups (an <hr>). Hidden while filtering."
+    },
+    {
+      "name": "command__empty",
+      "description": "Shown when nothing matches."
+    }
   ],
   "variables": [
-    { "name": "--command-list-size", "default": "var(--size-72)", "description": "Maximum height of the list before it scrolls." }
+    {
+      "name": "--command-list-size",
+      "default": "var(--size-72)",
+      "description": "Maximum height of the list before it scrolls."
+    }
   ],
   "attributes": [
-    { "name": "data-command", "element": ".command", "description": "Enables the palette." },
-    { "name": "data-command-target", "element": "inside the palette", "description": "input (the search <input>), item, group, separator and empty." },
-    { "name": "data-command-value", "element": "item", "description": "Text to match instead of the item's text content." },
-    { "name": "data-command-keywords", "element": "item", "description": "Extra words that also match the item, e.g. \"preferences account\"." },
-    { "name": "aria-disabled=\"true\"", "element": "item", "description": "Shown but cannot be selected." }
+    {
+      "name": "data-command",
+      "element": ".command",
+      "description": "Enables the palette."
+    },
+    {
+      "name": "data-command-target",
+      "element": "inside the palette",
+      "description": "input (the search <input>), item, group, separator and empty."
+    },
+    {
+      "name": "data-command-value",
+      "element": "item",
+      "description": "Text to match instead of the item's text content."
+    },
+    {
+      "name": "data-command-keywords",
+      "element": "item",
+      "description": "Extra words that also match the item, e.g. \"preferences account\"."
+    },
+    {
+      "name": "aria-disabled=\"true\"",
+      "element": "item",
+      "description": "Shown but cannot be selected."
+    }
   ],
   "actions": [
-    { "name": "reset", "description": "Clears the search and selects the first item. Runs automatically whenever the palette becomes visible." }
+    {
+      "name": "reset",
+      "description": "Clears the search and selects the first item. Runs automatically whenever the palette becomes visible."
+    }
   ],
   "events": [
-    { "name": "velle:command:select", "description": "Dispatched when an item is activated by click or Enter. event.detail has item and value." }
+    {
+      "name": "velle:command:select",
+      "description": "Dispatched when an item is activated by click or Enter. event.detail has item and value."
+    }
   ],
   "notes": [
     "An item matches when its text contains every word typed, in any order. Items keep their order.",
@@ -40,7 +104,21 @@
     "This replaces css-zero's wrapper around the cmdk-zero web component; no library is needed."
   ],
   "examples": [
-    { "file": "basic.html", "title": "In a dialog", "description": "Press ⌘K / Ctrl+K or click the button." },
-    { "file": "inline.html", "title": "Inline" }
+    {
+      "file": "basic.html",
+      "title": "In a dialog",
+      "description": "Press ⌘K / Ctrl+K or click the button.",
+      "requires": [
+        "hotkey",
+        "keyboard"
+      ]
+    },
+    {
+      "file": "inline.html",
+      "title": "Inline",
+      "requires": [
+        "card"
+      ]
+    }
   ]
 }
