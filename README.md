@@ -2,15 +2,17 @@
 
 Language and framework agnostic CSS components. Plain CSS with design tokens and utilities, a small dependency-free JavaScript runtime for the interactive pieces, and a Go CLI that copies only what you use into your project.
 
-**Documentation:** https://codedbyshoe.github.io/velle-css/ (built and published by the GitHub Pages workflow). To browse it locally, run `go run ./cmd/docsgen` and open `docs/index.html`.
+**Documentation:** https://codedbyshoe.github.io/velle-css/ (built and published by the GitHub Pages workflow). To browse it locally, run `go run ./cmd/docsgen` and open `docs/index.html`. For AI assistants, the docs also publish [llms.txt](https://codedbyshoe.github.io/velle-css/llms.txt) (an index of Markdown pages) and [llms-full.txt](https://codedbyshoe.github.io/velle-css/llms-full.txt) (everything in one file).
 
-## Install
-
-### With the CLI
+## Install with Go
 
 ```sh
 go install github.com/codedbyshoe/velle-css/cmd/velle@latest
+```
 
+### CLI overview
+
+```sh
 velle init                # writes velle.json, copies the core styles, creates main.css and main.js
 velle add button dialog   # copies components plus everything they depend on, and imports them
 velle add --all           # or every component
@@ -55,7 +57,7 @@ Interactive components use data attributes (`data-tabs`, `data-tabs-target="butt
 
 ## Adapters
 
-`chart`, `datepicker`, `inputmask` and `sortable` wrap Chart.js, flatpickr, maska and SortableJS. velle ships the adapter (controller and theme) but not the library: install it with npm or map it in an import map; `velle add` and each docs page show how. Adapters are left out of `dist/velle.js`/`dist/velle.css`; with the bundles, load them from `dist/adapters/`.
+`chart`, `datepicker`, `editor`, `inputmask` and `sortable` wrap Chart.js, flatpickr, Tiptap, maska and SortableJS. velle ships the adapter (controller and theme) but not the library: install it with npm or map it in an import map; `velle add` and each docs page show how. Adapters are left out of `dist/velle.js`/`dist/velle.css`; with the bundles, load them from `dist/adapters/`.
 
 ## Development
 
