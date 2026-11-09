@@ -355,3 +355,214 @@ func TestOlderConfigGetsDefaultEntries(t *testing.T) {
 		t.Error("a velle.json without entry keys should use the default entries")
 	}
 }
+
+func TestNewControllerRequiresInit(t *testing.T) {
+	code, _, errOut := run(t, t.TempDir(), "new", "controller", "cart")
+	if code == 0 || !strings.Contains(errOut, "velle init") {
+		t.Errorf("new without init should ask for init, got %d %q", code, errOut)
+	}
+}
+
+func TestNewControllerWritesFileAndRuntime(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+
+	code, _, errOut := run(t, dir, "new", "controller", "cart")
+	if code != 0 {
+		t.Fatalf("new exited %d: %s", code, errOut)
+	}
+
+	got, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/cart.js"))
+	want := `// @ts-check
+import { define, controller } from "./velle.js"
+
+define("cart", class extends controller({
+  targets: {},
+  values: {},
+}) {
+  connect() {}
+})
+`
+	if string(got) != want {
+		t.Errorf("unexpected controller file:\n%s", got)
+	}
+
+	// velle init does not install the runtime, and the controller imports it.
+	for _, f := range []string{"assets/js/velle/velle.js", "assets/js/velle/velle.d.ts"} {
+		if !exists(t, filepath.Join(dir, f)) {
+			t.Errorf("%s was not created", f)
+		}
+	}
+}
+
+func TestNewControllerImportsAfterTheManagedBlock(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "add", "tabs")
+	entry := filepath.Join(dir, "assets/js/velle/main.js")
+
+	run(t, dir, "new", "controller", "cart")
+	first, _ := os.ReadFile(entry)
+	end := strings.Index(string(first), "velle:end")
+	imported := strings.Index(string(first), `import "./cart.js"`)
+	if end < 0 || imported < end {
+		t.Fatalf("the import belongs after velle:end:\n%s", first)
+	}
+
+	run(t, dir, "new", "controller", "cart")
+	second, _ := os.ReadFile(entry)
+	if string(second) != string(first) {
+		t.Errorf("creating the same controller twice changed the entry:\n%s", second)
+	}
+
+	run(t, dir, "add", "dialog")
+	third, _ := os.ReadFile(entry)
+	if strings.Count(string(third), `import "./cart.js"`) != 1 || strings.Index(string(third), `import "./cart.js"`) < strings.Index(string(third), "velle:end") {
+		t.Errorf("velle add should leave the user's import alone:\n%s", third)
+	}
+}
+
+func TestNewControllerKeepsExistingFiles(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "new", "controller", "cart")
+
+	target := filepath.Join(dir, "assets/js/velle/cart.js")
+	if err := os.WriteFile(target, []byte("// customized"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, out, _ := run(t, dir, "new", "controller", "cart")
+	if !strings.Contains(out, "skip") {
+		t.Errorf("a second new should skip the customized file, got:\n%s", out)
+	}
+	if got, _ := os.ReadFile(target); string(got) != "// customized" {
+		t.Error("customized file was overwritten without --overwrite")
+	}
+
+	for _, args := range [][]string{{"new", "--overwrite", "controller", "cart"}, {"new", "controller", "cart", "--overwrite"}} {
+		if err := os.WriteFile(target, []byte("// customized"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if code, _, errOut := run(t, dir, args...); code != 0 {
+			t.Fatalf("%v exited %d: %s", args, code, errOut)
+		}
+		if got, _ := os.ReadFile(target); string(got) == "// customized" {
+			t.Errorf("%v did not replace the file", args)
+		}
+	}
+}
+
+func TestNewControllerOverwriteLeavesTheRuntimeAlone(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "new", "controller", "cart")
+
+	runtime := filepath.Join(dir, "assets/js/velle/velle.js")
+	original, _ := os.ReadFile(runtime)
+	customized := append([]byte("// customized\n"), original...)
+	if err := os.WriteFile(runtime, customized, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	run(t, dir, "new", "controller", "--overwrite", "cart")
+	if got, _ := os.ReadFile(runtime); string(got) != string(customized) {
+		t.Error("--overwrite must only apply to the controller file")
+	}
+}
+
+func TestNewControllerWritesJSConfigOnce(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "new", "controller", "cart")
+
+	target := filepath.Join(dir, "jsconfig.json")
+	got, _ := os.ReadFile(target)
+	for _, want := range []string{`"checkJs": true`, `"strict": true`, `"module": "esnext"`, `"target": "es2022"`, `"moduleResolution": "bundler"`} {
+		if !strings.Contains(string(got), want) {
+			t.Errorf("jsconfig.json is missing %s:\n%s", want, got)
+		}
+	}
+
+	if err := os.WriteFile(target, []byte("{}"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	run(t, dir, "new", "controller", "--overwrite", "other")
+	if got, _ := os.ReadFile(target); string(got) != "{}" {
+		t.Error("an existing jsconfig.json must never be replaced")
+	}
+}
+
+func TestNewControllerNames(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+
+	for _, args := range [][]string{
+		{"new"},
+		{"new", "controller"},
+		{"new", "widget", "cart"},
+		{"new", "controller", "a", "b"},
+		{"new", "controller", "../evil"},
+		{"new", "controller", "Cart"},
+		{"new", "controller", "velle"},          // the runtime
+		{"new", "controller", "main"},           // the entry
+		{"new", "controller", "tabs"},           // a shipped component
+		{"new", "controller", "local-time"},     // shipped as local_time.js
+		{"new", "controller", "confirm-dialog"}, // defined by confirm.js
+	} {
+		if code, _, _ := run(t, dir, args...); code == 0 {
+			t.Errorf("%v should fail", args)
+		}
+	}
+	if exists(t, filepath.Join(dir, "assets/js/velle/velle.js")) {
+		t.Error("rejected names should not write files")
+	}
+
+	if code, _, errOut := run(t, dir, "new", "controller", "shopping_cart"); code != 0 {
+		t.Fatalf("new exited %d: %s", code, errOut)
+	}
+	got, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/shopping_cart.js"))
+	if !strings.Contains(string(got), `define("shopping-cart"`) {
+		t.Errorf("attribute names use dashes, got:\n%s", got)
+	}
+}
+
+func TestNewControllerWithCustomEntry(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init", "--js-entry", "app/app.js")
+	run(t, dir, "new", "controller", "cart")
+
+	js, _ := os.ReadFile(filepath.Join(dir, "app/app.js"))
+	if !strings.Contains(string(js), `import "../assets/js/velle/cart.js"`) {
+		t.Errorf("imports should be relative to the entry, got:\n%s", js)
+	}
+}
+
+func TestNewControllerWithEntriesTurnedOff(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init", "--js-entry", "none")
+	_, out, _ := run(t, dir, "new", "controller", "cart")
+
+	if exists(t, filepath.Join(dir, "assets/js/velle/main.js")) {
+		t.Error("an entry that is turned off should not be created")
+	}
+	if !strings.Contains(out, `<script type="module" src="/assets/js/velle/cart.js"></script>`) {
+		t.Errorf("without an entry, new should print the tag, got:\n%s", out)
+	}
+}
+
+func TestNewControllerRestoresAMissingBlock(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	entry := filepath.Join(dir, "assets/js/velle/main.js")
+	if err := os.WriteFile(entry, []byte("console.log(1)"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	run(t, dir, "new", "controller", "cart")
+
+	got, _ := os.ReadFile(entry)
+	if !strings.Contains(string(got), "console.log(1)") || strings.Index(string(got), `import "./cart.js"`) < strings.Index(string(got), "velle:end") {
+		t.Errorf("unexpected entry:\n%s", got)
+	}
+}

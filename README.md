@@ -16,6 +16,7 @@ go install github.com/codedbyshoe/velle-css/cmd/velle@latest
 velle init                # writes velle.json, copies the core styles, creates main.css and main.js
 velle add button dialog   # copies components plus everything they depend on, and imports them
 velle add --all           # or every component
+velle new controller cart # creates a controller of your own and imports it
 velle list                # what is available
 ```
 
@@ -53,7 +54,7 @@ The entry files handle load order. If you load files yourself, use this order: `
 </dialog>
 ```
 
-Interactive components use data attributes (`data-tabs`, `data-tabs-target="button"`, `data-tabs-action="select"`) handled by `velle.js`, a ~300-line runtime with no dependencies. It picks up markup added at any time, so it works with server-rendered pages, htmx, or markup from a client framework. See the JavaScript page in the docs.
+Interactive components use data attributes (`data-tabs`, `data-tabs-target="button"`, `data-tabs-action="select"`) handled by `velle.js`, a runtime of under 400 lines with no dependencies. It picks up markup added at any time, so it works with server-rendered pages, htmx, or markup from a client framework. It ships with types: `velle.d.ts` sits next to it, so `// @ts-check` gives you checked targets and values in plain JavaScript with no build step. See the JavaScript page in the docs.
 
 ## Adapters
 
@@ -65,6 +66,7 @@ Interactive components use data attributes (`data-tabs`, `data-tabs-target="butt
 registry/                  source of truth, embedded into the CLI
   core/                    reset, tokens, base, utilities
   js/velle.js              shared JavaScript runtime
+  js/velle.d.ts            its type declarations
   components/<name>/       CSS/JS, component.json (metadata) and examples/*.html
 cmd/velle                  the CLI
 cmd/docsgen                builds dist/ and docs/

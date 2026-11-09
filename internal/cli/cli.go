@@ -63,6 +63,7 @@ Usage:
   velle init [--css-dir DIR] [--js-dir DIR] [--images-dir DIR] [--css-entry FILE] [--js-entry FILE]
   velle add [--overwrite] COMPONENT...
   velle add --all [--overwrite]
+  velle new controller [--overwrite] NAME
   velle list
   velle version
 
@@ -71,6 +72,7 @@ Commands:
             create main.css and main.js, which import everything velle installs.
   add       Copy components and their dependencies and import them in main.css and main.js.
             Existing files are kept unless --overwrite is given.
+  new       Create a controller of your own, import it in main.js and set up editor types.
   list      Show the available components.
   version   Print the version.
 
@@ -90,6 +92,8 @@ func (a *App) Run(args []string) int {
 		err = a.init(args[1:])
 	case "add":
 		err = a.add(args[1:])
+	case "new":
+		err = a.newCommand(args[1:])
 	case "list":
 		err = a.list(args[1:])
 	case "version", "--version", "-v":
@@ -220,16 +224,7 @@ func entryFlag(value, fallback string) string {
 
 // updateEntries imports the given project-relative files in the configured entries.
 func (a *App) updateEntries(config Config, reg *registry.Registry, stylesheets, scripts []string) error {
-	known := map[string]bool{}
-	for _, f := range registry.CoreFiles {
-		known[path.Base(f)] = true
-	}
-	for _, c := range reg.Components {
-		for _, f := range c.Files {
-			known[f] = true
-		}
-	}
-	isKnown := func(name string) bool { return known[name] }
+	isKnown := knownFiles(reg)
 
 	if config.CSSEntry != "" {
 		if err := a.updateEntry(cssEntry(config.CSSEntry), stylesheets, isKnown); err != nil {
@@ -242,6 +237,20 @@ func (a *App) updateEntries(config Config, reg *registry.Registry, stylesheets, 
 		}
 	}
 	return nil
+}
+
+// knownFiles reports whether a file name is one velle installs.
+func knownFiles(reg *registry.Registry) func(string) bool {
+	known := map[string]bool{}
+	for _, f := range registry.CoreFiles {
+		known[path.Base(f)] = true
+	}
+	for _, c := range reg.Components {
+		for _, f := range c.Files {
+			known[f] = true
+		}
+	}
+	return func(name string) bool { return known[name] }
 }
 
 func (a *App) add(args []string) error {

@@ -1,7 +1,7 @@
 {{define "content"}}
 <header class="docs-intro">
   <h1>JavaScript</h1>
-  <p class="docs-lead">Interactive components use plain data attributes and a runtime of about 300 lines with no dependencies. It works on any HTML: server-rendered pages, htmx swaps, or markup rendered by a client framework.</p>
+  <p class="docs-lead">Interactive components use plain data attributes and a runtime of under 400 lines with no dependencies. It works on any HTML: server-rendered pages, htmx swaps, or markup rendered by a client framework.</p>
 </header>
 
 <section class="docs-section" aria-labelledby="loading">
@@ -41,7 +41,7 @@
       <thead><tr><th>Part</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td><code>event</code></td><td>Any DOM event name, including custom events. When omitted, the element's default event is used: <code>click</code> for buttons and links, <code>input</code> for inputs and textareas (<code>click</code> for submit inputs), <code>change</code> for selects, <code>submit</code> for forms and <code>toggle</code> for <code>&lt;details&gt;</code>.</td></tr>
-        <tr><td><code>.keyfilter</code></td><td>For <code>keydown</code>, <code>keyup</code> and <code>keypress</code>: only run for this key. Keys: <code>a</code>–<code>z</code>, <code>0</code>–<code>9</code>, <code>enter</code>, <code>tab</code>, <code>esc</code>, <code>space</code>, <code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>home</code>, <code>end</code>, <code>page_up</code>, <code>page_down</code>. Prefix with <code>ctrl+</code>, <code>meta+</code>, <code>alt+</code> or <code>shift+</code>; modifiers must match exactly.</td></tr>
+        <tr><td><code>.keyfilter</code></td><td>For <code>keydown</code>, <code>keyup</code> and <code>keypress</code>: only run for this key. Keys: any single character, such as <code>k</code> or <code>7</code>, or <code>enter</code>, <code>tab</code>, <code>esc</code>, <code>space</code>, <code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>home</code>, <code>end</code>, <code>page_up</code>, <code>page_down</code>. Prefix with <code>ctrl+</code>, <code>meta+</code>, <code>alt+</code> or <code>shift+</code>; modifiers must match exactly.</td></tr>
         <tr><td><code>@document</code>, <code>@window</code></td><td>Listen on the document or window instead of the element, e.g. for keyboard shortcuts and outside clicks.</td></tr>
         <tr><td><code>:prevent</code></td><td>Calls <code>event.preventDefault()</code> before the action.</td></tr>
         <tr><td><code>:stop</code></td><td>Calls <code>event.stopPropagation()</code> before the action.</td></tr>
@@ -61,8 +61,100 @@
 })</code></pre>
 </section>
 
+<section class="docs-section" aria-labelledby="controllers">
+  <h2 id="controllers">Writing your own controllers</h2>
+  <p>Use <code>controller({ targets, values })</code> as the base class for behavior specific to your app. <code>velle new controller cart</code> creates a file to start from and imports it in <code>main.js</code>.</p>
+  <p>This example has a counter and a cart badge that follows it:</p>
+  <pre class="docs-pre"><code>&lt;div data-counter&gt;
+  &lt;output data-counter-target="output"&gt;&lt;/output&gt;
+  &lt;button data-counter-action="increment"&gt;Add to cart&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;nav data-cart data-cart-count="0" data-cart-action="velle:counter:change@window-&gt;refresh"&gt;
+  &lt;span class="badge" data-cart-target="badge"&gt;&lt;/span&gt;
+  &lt;span data-cart-target="total"&gt;&lt;/span&gt;
+&lt;/nav&gt;</code></pre>
+  <pre class="docs-pre"><code>// @ts-check
+import { define, controller } from "./velle.js"
+
+define("counter", class extends controller({
+  targets: { output: HTMLElement },
+  values: { count: 0 },
+}) {
+  connect() {
+    this.countChanged()
+  }
+
+  increment() {
+    this.count++
+  }
+
+  countChanged() {
+    const { output } = this.$
+    if (output) output.textContent = String(this.count)
+    this.dispatch("change", { count: this.count })
+  }
+})
+
+define("cart", class extends controller({
+  targets: { badge: HTMLElement, total: HTMLElement },
+  values: { count: 0, url: "/cart/total" },
+}) {
+  connect() {
+    this.on(document, "visibilitychange", () =&gt; this.#loadTotal())
+    this.countChanged()
+  }
+
+  /** @param {CustomEvent&lt;{ count: number }&gt;} event */
+  refresh(event) {
+    this.count = event.detail.count
+  }
+
+  countChanged() {
+    const { badge } = this.$
+    if (badge) badge.textContent = String(this.count)
+    this.#loadTotal()
+  }
+
+  async #loadTotal() {
+    try {
+      const response = await fetch(this.url, { signal: this.signal })
+      const { total } = this.$
+      if (total) total.textContent = await response.text()
+    } catch (error) {
+      if (!this.signal.aborted) throw error
+    }
+  }
+})</code></pre>
+  <p><strong>Targets.</strong> <code>targets</code> maps each name to the element class you expect. <code>this.$.total</code> is the first match or <code>null</code>, <code>this.$$.total</code> is an array, and an undeclared name is a type error.</p>
+  <p><strong>Values.</strong> <code>values</code> maps each name to its default, and the default's type decides how the attribute is parsed: numbers, strings, booleans (present means true, <code>"false"</code> means false), or JSON for arrays and objects. <code>this.count</code> reads <code>data-cart-count</code> and assigning to it writes the attribute; <code>showMonths</code> maps to <code>data-NAME-show-months</code>. Names the controller already uses, such as <code>data</code>, <code>element</code>, <code>target</code> and <code>action</code>, throw an error.</p>
+  <p><strong>Callbacks.</strong> <code>countChanged(value, oldValue)</code> runs after the attribute changes, whoever changed it. It runs asynchronously and never during <code>connect()</code>, so call it from <code>connect()</code> to render the initial state.</p>
+  <p><strong>Styling.</strong> State lives in attributes, so CSS can read it directly:</p>
+  <pre class="docs-pre"><code>[data-cart-count="0"] .badge { display: none }</code></pre>
+  <p><strong>Cleanup.</strong> <code>this.on(target, type, listener, options)</code> adds a listener that is removed when the controller disconnects. <code>this.signal</code> aborts at the same moment; pass it to <code>fetch(url, { signal: this.signal })</code> or anything else that accepts one.</p>
+  <p><strong>Talking to other controllers.</strong> Actions accept any event name, so one controller can listen for another's <code>dispatch()</code> with <code>data-cart-action="velle:counter:change@window-&gt;refresh"</code>.</p>
+  <p><strong>Reaching a controller from outside.</strong> <code>controllerFor(element, name)</code> returns the connected instance or <code>null</code>, for htmx hooks and inline scripts. Its result is a plain <code>Controller</code> to the type checker, so annotate it to use your own properties:</p>
+  <pre class="docs-pre"><code>import { controllerFor } from "./velle.js"
+
+/** @type {any} */
+const cart = controllerFor(document.querySelector("[data-cart]"), "cart")
+if (cart) cart.count = 0</code></pre>
+  <p><strong>Several controllers on one element.</strong> Each name gets its own instance, and an action goes to the controller its attribute names:</p>
+  <pre class="docs-pre"><code>&lt;form data-form data-autosave data-form-action="keydown.ctrl+enter-&gt;submit"&gt;</code></pre>
+  <p><strong>Editor setup.</strong> <code>velle.d.ts</code> sits next to <code>velle.js</code>, and <code>velle new controller</code> writes this <code>jsconfig.json</code> at the project root unless you already have one. Start a file with <code>// @ts-check</code> to see errors for that file in any editor that uses TypeScript.</p>
+  <pre class="docs-pre"><code>{
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": true,
+    "module": "esnext",
+    "target": "es2022",
+    "moduleResolution": "bundler"
+  }
+}</code></pre>
+</section>
+
 <section class="docs-section" aria-labelledby="custom">
-  <h2 id="custom">Writing your own behavior</h2>
+  <h2 id="custom">Runtime API</h2>
   <p>The runtime exports what the built-in behaviors use, so your own code can follow the same conventions:</p>
   <pre class="docs-pre"><code>import { define, Controller } from "./velle.js"
 
@@ -93,7 +185,9 @@ define("counter", class extends Controller {
       <thead><tr><th>Export</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td><code>define(name, Class)</code></td><td>Registers a controller class for <code>data-NAME</code> roots.</td></tr>
-        <tr><td><code>Controller</code></td><td>Base class. Provides <code>this.element</code>, <code>connect()</code>, <code>disconnect()</code>, <code>target(name)</code>, <code>targets(name)</code>, <code>hasTarget(name)</code>, <code>data(key)</code>, <code>hasData(key)</code> and <code>dispatch(type, detail)</code>. Actions are called with the event and the element that declared the action.</td></tr>
+        <tr><td><code>Controller</code></td><td>Base class. Provides <code>this.element</code>, <code>connect()</code>, <code>disconnect()</code>, <code>target(name)</code>, <code>targets(name)</code>, <code>hasTarget(name)</code>, <code>data(key)</code>, <code>hasData(key)</code>, <code>dispatch(type, detail)</code>, <code>$</code>, <code>$$</code>, <code>on(target, type, listener, options)</code> and <code>signal</code>. Actions are called with the event and the element that declared the action.</td></tr>
+        <tr><td><code>controller({ targets, values })</code></td><td>Builds a <code>Controller</code> subclass with typed targets and values stored in data attributes.</td></tr>
+        <tr><td><code>controllerFor(element, name)</code></td><td>Returns the connected controller instance on an element, or <code>null</code>.</td></tr>
         <tr><td><code>observe(selector, { connect, disconnect })</code></td><td>Runs callbacks when elements start or stop matching a selector. Use it for behaviors that need no root.</td></tr>
         <tr><td><code>debounce(fn, wait)</code></td><td>A trailing-edge debounce.</td></tr>
       </tbody>
