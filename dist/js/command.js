@@ -12,10 +12,10 @@ define("command", class extends Controller {
     this.#input.setAttribute("role", "combobox")
     this.#input.setAttribute("aria-expanded", "true")
     this.#input.setAttribute("aria-autocomplete", "list")
-    this.#input.addEventListener("input", this.#filter)
-    this.#input.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("pointermove", this.#pointermove)
-    this.element.addEventListener("click", this.#click)
+    this.on(this.#input, "input", this.#filter)
+    this.on(this.#input, "keydown", this.#keydown)
+    this.on(this.element, "pointermove", this.#pointermove)
+    this.on(this.element, "click", this.#click)
 
     // Start fresh every time the palette becomes visible, e.g. when its dialog opens.
     this.#observer = new IntersectionObserver(([ entry ]) => entry.isIntersecting && this.reset())
@@ -24,10 +24,6 @@ define("command", class extends Controller {
   }
 
   disconnect() {
-    this.#input.removeEventListener("input", this.#filter)
-    this.#input.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("pointermove", this.#pointermove)
-    this.element.removeEventListener("click", this.#click)
     this.#observer.disconnect()
   }
 

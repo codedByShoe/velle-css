@@ -19,12 +19,11 @@ define("confirm-dialog", class extends Controller {
 
   connect() {
     confirmDialog = this
-    this.element.addEventListener("close", this.#submit)
+    this.on(this.element, "close", this.#submit)
   }
 
   disconnect() {
     if (confirmDialog === this) confirmDialog = null
-    this.element.removeEventListener("close", this.#submit)
   }
 
   confirm(message, text) {

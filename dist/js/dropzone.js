@@ -1,4 +1,4 @@
-import { define, Controller } from "./velle.js"
+import { define, controller } from "./velle.js"
 
 const MESSAGES = {
   type: "This file type is not accepted.",
@@ -8,7 +8,15 @@ const MESSAGES = {
 
 // A drop area for a file input. Dropped and picked files are validated, previewed and kept
 // in the input, so they are submitted with the form like any other file field.
-define("dropzone", class extends Controller {
+define("dropzone", class extends controller({
+  values: {
+    typeMessage: MESSAGES.type,
+    sizeMessage: MESSAGES.size,
+    countMessage: MESSAGES.count,
+    maxFileSize: Infinity,
+    maxFiles: Infinity,
+  },
+}) {
   #files = []
   #rejected = []
   #urls = new Map()
@@ -16,19 +24,14 @@ define("dropzone", class extends Controller {
 
   connect() {
     for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.addEventListener(type, this.#drag)
+      this.on(this.element, type, this.#drag)
     }
-    this.#input.addEventListener("change", this.#picked)
-    this.#input.form?.addEventListener("reset", this.#reset)
+    this.on(this.#input, "change", this.#picked)
+    if (this.#input.form) this.on(this.#input.form, "reset", this.#reset)
     this.#render()
   }
 
   disconnect() {
-    for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.removeEventListener(type, this.#drag)
-    }
-    this.#input.removeEventListener("change", this.#picked)
-    this.#input.form?.removeEventListener("reset", this.#reset)
     this.#urls.forEach(url => URL.revokeObjectURL(url))
     this.#urls.clear()
   }
@@ -91,9 +94,9 @@ define("dropzone", class extends Controller {
   }
 
   #validate(file) {
-    if (!this.#accepts(file)) return this.data("type-message") ?? MESSAGES.type
-    if (this.hasData("max-file-size") && file.size > Number(this.data("max-file-size")) * 1024 * 1024) return this.data("size-message") ?? MESSAGES.size
-    if (this.hasData("max-files") && this.#files.length >= Number(this.data("max-files"))) return this.data("count-message") ?? MESSAGES.count
+    if (!this.#accepts(file)) return this.typeMessage
+    if (file.size > this.maxFileSize * 1024 * 1024) return this.sizeMessage
+    if (this.#files.length >= this.maxFiles) return this.countMessage
     return null
   }
 

@@ -50,6 +50,29 @@ func TestBundles(t *testing.T) {
 	}
 }
 
+func TestDistShipsRuntimeTypes(t *testing.T) {
+	fsys := velle.Registry()
+	reg, err := registry.Load(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := t.TempDir()
+	if err := build.Dist(fsys, reg, out, "test"); err != nil {
+		t.Fatal(err)
+	}
+
+	want, _ := fs.ReadFile(fsys, registry.RuntimeTypesFile)
+	got, err := os.ReadFile(filepath.Join(out, "js", "velle.d.ts"))
+	if err != nil || string(got) != string(want) {
+		t.Errorf("js/velle.d.ts should be a copy of the registry file: %v", err)
+	}
+	bundle, err := os.ReadFile(filepath.Join(out, "velle.d.ts"))
+	if err != nil || !strings.Contains(string(bundle), `"./js/velle.js"`) {
+		t.Errorf("velle.d.ts should re-export the runtime's declarations, got %q: %v", bundle, err)
+	}
+}
+
 // TestCommittedDistIsCurrent fails when dist/ was not regenerated after a registry change.
 // Run `go run ./cmd/docsgen` to fix it.
 func TestCommittedDistIsCurrent(t *testing.T) {

@@ -1,21 +1,19 @@
-import { define, Controller } from "./velle.js"
+import { define, controller } from "./velle.js"
 
 // Roving tabindex for menus: arrow keys move focus between data-menu-target="item"
 // elements, and the first item is focused every time the menu becomes visible.
-define("menu", class extends Controller {
+define("menu", class extends controller({ targets: { item: HTMLElement } }) {
   #observer
   #index = 0
 
   connect() {
-    this.element.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("focusin", this.#focusin)
+    this.on(this.element, "keydown", this.#keydown)
+    this.on(this.element, "focusin", this.#focusin)
     this.#observer = new IntersectionObserver(this.#reset.bind(this))
     this.#observer.observe(this.element)
   }
 
   disconnect() {
-    this.element.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("focusin", this.#focusin)
     this.#observer.disconnect()
   }
 
@@ -82,6 +80,6 @@ define("menu", class extends Controller {
   }
 
   get #items() {
-    return this.targets("item")
+    return this.$$.item
   }
 })

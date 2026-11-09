@@ -1,14 +1,14 @@
-import { define, Controller } from "./velle.js"
+import { define, controller } from "./velle.js"
 import { Editor } from "@tiptap/core"
 import StarterKit from "@tiptap/starter-kit"
 import { Placeholder } from "@tiptap/extensions"
 
 // Adapter for Tiptap (https://tiptap.dev). Install the @tiptap packages yourself; see the docs.
-define("editor", class extends Controller {
+define("editor", class extends controller({ values: { placeholder: "", editable: true, format: "html" } }) {
   async connect() {
     const extensions = [
       StarterKit.configure({ link: { openOnClick: false } }),
-      Placeholder.configure({ placeholder: this.data("placeholder") ?? "" })
+      Placeholder.configure({ placeholder: this.placeholder })
     ]
 
     if (this.#markdown) {
@@ -25,20 +25,19 @@ define("editor", class extends Controller {
       extensions,
       content: this.initialValue,
       contentType: this.#markdown ? "markdown" : "html",
-      editable: this.data("editable") != "false",
+      editable: this.editable,
       onUpdate: this.#updated,
       onTransaction: this.#refresh
     })
 
     this.form = this.element.closest("form")
-    this.form?.addEventListener("reset", this.#reset)
+    if (this.form) this.on(this.form, "reset", this.#reset)
 
     this.#refresh()
     this.dispatch("ready", { editor: this.editor })
   }
 
   disconnect() {
-    this.form?.removeEventListener("reset", this.#reset)
     this.editor?.destroy()
     this.editor = null
   }
@@ -147,6 +146,6 @@ define("editor", class extends Controller {
   }
 
   get #markdown() {
-    return this.data("format") == "markdown"
+    return this.format == "markdown"
   }
 })

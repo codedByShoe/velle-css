@@ -1,40 +1,42 @@
-import { define, Controller } from "./velle.js"
+// @ts-check
+import { define, controller } from "./velle.js"
 
-define("tabs", class extends Controller {
+define("tabs", class extends controller({
+  targets: { button: HTMLElement, tab: HTMLElement },
+  values: { index: 0 },
+}) {
   connect() {
-    this.#showCurrentTab()
+    this.indexChanged()
   }
 
+  /** @param {Event & { target: Element }} event */
   select({ target }) {
-    this.#index = this.targets("button").indexOf(target.closest(`[data-tabs-target~="button"]`))
-    this.#showCurrentTab()
+    this.index = this.$$.button.indexOf(/** @type {HTMLElement} */ (target.closest(`[data-tabs-target~="button"]`)))
   }
 
   prev() {
-    if (this.#index > 0) {
-      this.#index--
-      this.#showCurrentTab()
+    if (this.index > 0) {
+      this.index--
       this.#focusCurrentButton()
     }
   }
 
   next() {
-    if (this.#index < this.#lastIndex) {
-      this.#index++
-      this.#showCurrentTab()
+    if (this.index < this.#lastIndex) {
+      this.index++
       this.#focusCurrentButton()
     }
   }
 
-  #showCurrentTab() {
-    const index = this.#index
+  indexChanged() {
+    const index = this.index
 
-    this.targets("button").forEach((it, i) => {
-      it.ariaSelected = i === index
+    this.$$.button.forEach((it, i) => {
+      it.ariaSelected = String(i === index)
       it.tabIndex = i === index ? 0 : -1
     })
 
-    this.targets("tab").forEach((it, i) => {
+    this.$$.tab.forEach((it, i) => {
       it.hidden = i !== index
     })
 
@@ -42,18 +44,10 @@ define("tabs", class extends Controller {
   }
 
   #focusCurrentButton() {
-    this.targets("button")[this.#index].focus()
-  }
-
-  get #index() {
-    return Number(this.data("index")) || 0
-  }
-
-  set #index(value) {
-    this.element.setAttribute("data-tabs-index", value)
+    this.$$.button[this.index].focus()
   }
 
   get #lastIndex() {
-    return this.targets("tab").length - 1
+    return this.$$.tab.length - 1
   }
 })

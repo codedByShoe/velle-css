@@ -15,10 +15,18 @@
 // separated by whitespace. When the event is omitted the element's default event is used
 // (click for buttons and links, input for inputs and textareas, change for selects,
 // submit for forms, toggle for details).
+//
+// controller({ targets, values }) builds a base class. Each value is a property stored in
+// data-<name>-<key> and parsed by its default's type. <key>Changed(value, oldValue) runs
+// after the attribute changes, never during connect(), so call it from connect() to render
+// the initial state. this.$.x and this.$$.x are target("x") and targets("x"). Listeners
+// added with on(), and anything given this.signal, end when the controller disconnects.
+// controllerFor(element, name) returns a connected instance to code outside controllers.
 
 const registrations = []
 const instances = new WeakMap()
 const bindings = new WeakMap()
+const abort = Symbol("abort")
 let observer = null
 
 // observe(selector, { connect, disconnect }) runs connect(element) once for every element
@@ -44,17 +52,18 @@ export function define(name, Controller) {
   observe(rootSelector, {
     connect(element) {
       const controller = new Controller(element, name)
-      instances.set(element, controller)
+      if (!instances.has(element)) instances.set(element, new Map())
+      instances.get(element).set(name, controller)
       controller.connect()
     },
     disconnect(element) {
-      const controller = instances.get(element)
-      instances.delete(element)
-      controller?.disconnect()
+      const controller = instances.get(element)?.get(name)
+      instances.get(element)?.delete(name)
+      try { controller?.disconnect() } finally { controller?.[abort].abort() }
     }
   })
 
-  observe(`[${actionAttribute}]`, {
+  const actions = observe(`[${actionAttribute}]`, {
     connect(element) {
       const listeners = parseActions(element.getAttribute(actionAttribute), element).map(action => {
         const listener = event => invoke(name, rootSelector, action, element, event)
@@ -69,17 +78,33 @@ export function define(name, Controller) {
       bindings.delete(element)
     }
   })
+  actions.attribute = actionAttribute
+}
+
+// The connected instance of a controller on an element, or null.
+export function controllerFor(element, name) {
+  return instances.get(element)?.get(name) ?? null
 }
 
 export class Controller {
   constructor(element, name) {
     this.element = element
     this.name = name
+    this[abort] = new AbortController()
+    this.$ = new Proxy({}, { get: (_, key) => this.target(key) })
+    this.$$ = new Proxy({}, { get: (_, key) => this.targets(key) })
   }
 
   connect() {}
 
   disconnect() {}
+
+  get signal() { return this[abort].signal }
+
+  // addEventListener that is removed automatically when the controller disconnects.
+  on(target, type, listener, options) {
+    target.addEventListener(type, listener, { ...options, signal: this.signal })
+  }
 
   // All elements with data-<name>-target="<target>" that belong to this root.
   targets(target) {
@@ -110,6 +135,47 @@ export class Controller {
   }
 }
 
+// A Controller subclass with a property for each value. `targets` only feeds the types.
+export function controller({ values = {} } = {}) {
+  const Base = class extends Controller {}
+  Base.values = values
+  for (const [ key, fallback ] of Object.entries(values)) {
+    if (key in Base.prototype || [ "element", "name", "action", "$", "$$" ].includes(key)) throw new Error(`[velle] "${key}" is reserved`)
+    Object.defineProperty(Base.prototype, key, {
+      get() { return read(this.data(dasherize(key)), fallback) },
+      set(value) {
+        this.element.setAttribute(`data-${this.name}-${dasherize(key)}`, typeof value === "string" ? value : JSON.stringify(value))
+      }
+    })
+  }
+  return Base
+}
+
+function read(raw, fallback) {
+  if (raw === null) return structuredClone(fallback)
+  if (typeof fallback === "number") return Number(raw)
+  if (typeof fallback === "boolean") return raw !== "false"
+  if (typeof fallback === "string") return raw
+  return JSON.parse(raw)
+}
+
+function dasherize(value) {
+  return value.replace(/[A-Z]/g, character => `-${character.toLowerCase()}`)
+}
+
+function valueChanged(element, attribute, oldRaw) {
+  if (!element.isConnected) return
+
+  instances.get(element)?.forEach((controller, name) => {
+    const prefix = `data-${name}-`
+    if (!attribute.startsWith(prefix)) return
+    const key = camelize(attribute.slice(prefix.length))
+    const fallback = controller.constructor.values?.[key]
+    if (fallback === undefined || typeof controller[`${key}Changed`] !== "function") return
+    run(() => controller[`${key}Changed`](controller[key], read(oldRaw, fallback)), element)
+  })
+}
+
 // Trailing-edge debounce.
 export function debounce(fn, wait) {
   let timeout
@@ -136,9 +202,7 @@ const defaultEvents = {
 const keyMappings = {
   enter: "Enter", tab: "Tab", esc: "Escape", space: " ",
   up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
-  home: "Home", end: "End", page_up: "PageUp", page_down: "PageDown",
-  ...Object.fromEntries("abcdefghijklmnopqrstuvwxyz".split("").map(key => [ key, key ])),
-  ...Object.fromEntries("0123456789".split("").map(key => [ key, key ]))
+  home: "Home", end: "End", page_up: "PageUp", page_down: "PageDown"
 }
 
 const modifierKeys = [ "meta", "ctrl", "alt", "shift" ]
@@ -169,7 +233,7 @@ function invoke(name, rootSelector, action, element, event) {
   if (action.options.includes("self") && event.target !== element) return
 
   const root = element.closest(rootSelector)
-  const controller = root && instances.get(root)
+  const controller = root && instances.get(root)?.get(name)
 
   if (!controller) {
     console.error(`[velle] No ${rootSelector} root found for action "${action.method}"`, element)
@@ -201,7 +265,7 @@ function keyFilterMatches(event, keyFilter) {
   const standardFilter = filters.find(key => !modifierKeys.includes(key))
   if (!standardFilter) return true
 
-  const key = keyMappings[standardFilter]
+  const key = standardFilter.length === 1 ? standardFilter : keyMappings[standardFilter]
   if (!key) {
     console.error(`[velle] Unknown key filter "${standardFilter}"`)
     return false
@@ -259,14 +323,18 @@ function start() {
         }
         if (mutation.removedNodes.length) removed = true
       } else if (mutation.type === "attributes") {
-        registrations.forEach(registration => refresh(registration, mutation.target))
+        registrations.forEach(registration => {
+          if (registration.attribute === mutation.attributeName) remove(registration, mutation.target)
+          refresh(registration, mutation.target)
+        })
+        valueChanged(mutation.target, mutation.attributeName, mutation.oldValue)
       }
     }
 
     if (removed) registrations.forEach(prune)
   })
 
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true })
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeOldValue: true })
 }
 
 function scan(registration, root) {
@@ -530,10 +598,10 @@ define("command", class extends Controller {
     this.#input.setAttribute("role", "combobox")
     this.#input.setAttribute("aria-expanded", "true")
     this.#input.setAttribute("aria-autocomplete", "list")
-    this.#input.addEventListener("input", this.#filter)
-    this.#input.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("pointermove", this.#pointermove)
-    this.element.addEventListener("click", this.#click)
+    this.on(this.#input, "input", this.#filter)
+    this.on(this.#input, "keydown", this.#keydown)
+    this.on(this.element, "pointermove", this.#pointermove)
+    this.on(this.element, "click", this.#click)
 
     // Start fresh every time the palette becomes visible, e.g. when its dialog opens.
     this.#observer = new IntersectionObserver(([ entry ]) => entry.isIntersecting && this.reset())
@@ -542,10 +610,6 @@ define("command", class extends Controller {
   }
 
   disconnect() {
-    this.#input.removeEventListener("input", this.#filter)
-    this.#input.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("pointermove", this.#pointermove)
-    this.element.removeEventListener("click", this.#click)
     this.#observer.disconnect()
   }
 
@@ -664,12 +728,11 @@ define("confirm-dialog", class extends Controller {
 
   connect() {
     confirmDialog = this
-    this.element.addEventListener("close", this.#submit)
+    this.on(this.element, "close", this.#submit)
   }
 
   disconnect() {
     if (confirmDialog === this) confirmDialog = null
-    this.element.removeEventListener("close", this.#submit)
   }
 
   confirm(message, text) {
@@ -786,7 +849,15 @@ const MESSAGES = {
 
 // A drop area for a file input. Dropped and picked files are validated, previewed and kept
 // in the input, so they are submitted with the form like any other file field.
-define("dropzone", class extends Controller {
+define("dropzone", class extends controller({
+  values: {
+    typeMessage: MESSAGES.type,
+    sizeMessage: MESSAGES.size,
+    countMessage: MESSAGES.count,
+    maxFileSize: Infinity,
+    maxFiles: Infinity,
+  },
+}) {
   #files = []
   #rejected = []
   #urls = new Map()
@@ -794,19 +865,14 @@ define("dropzone", class extends Controller {
 
   connect() {
     for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.addEventListener(type, this.#drag)
+      this.on(this.element, type, this.#drag)
     }
-    this.#input.addEventListener("change", this.#picked)
-    this.#input.form?.addEventListener("reset", this.#reset)
+    this.on(this.#input, "change", this.#picked)
+    if (this.#input.form) this.on(this.#input.form, "reset", this.#reset)
     this.#render()
   }
 
   disconnect() {
-    for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.removeEventListener(type, this.#drag)
-    }
-    this.#input.removeEventListener("change", this.#picked)
-    this.#input.form?.removeEventListener("reset", this.#reset)
     this.#urls.forEach(url => URL.revokeObjectURL(url))
     this.#urls.clear()
   }
@@ -869,9 +935,9 @@ define("dropzone", class extends Controller {
   }
 
   #validate(file) {
-    if (!this.#accepts(file)) return this.data("type-message") ?? MESSAGES.type
-    if (this.hasData("max-file-size") && file.size > Number(this.data("max-file-size")) * 1024 * 1024) return this.data("size-message") ?? MESSAGES.size
-    if (this.hasData("max-files") && this.#files.length >= Number(this.data("max-files"))) return this.data("count-message") ?? MESSAGES.count
+    if (!this.#accepts(file)) return this.typeMessage
+    if (file.size > this.maxFileSize * 1024 * 1024) return this.sizeMessage
+    if (this.#files.length >= this.maxFiles) return this.countMessage
     return null
   }
 
@@ -982,7 +1048,7 @@ define("dropzone", class extends Controller {
 // Two range inputs that select a minimum and a maximum on one track. Each input is resized
 // to cover its half of the range, split at the midpoint between the two values.
 // Technique from @stanko/dual-range-input (MIT, https://muffinman.io/dual-range-input).
-define("dual-range", class extends Controller {
+define("dual-range", class extends controller({ values: { precision: 3 } }) {
   #min
   #max
 
@@ -991,20 +1057,13 @@ define("dual-range", class extends Controller {
     this.#max = this.target("max")
 
     for (const type of [ "input", "focus", "mousedown", "touchstart" ]) {
-      this.#min.addEventListener(type, this.#updateCeil, { passive: true })
-      this.#max.addEventListener(type, this.#updateFloor, { passive: true })
+      this.on(this.#min, type, this.#updateCeil, { passive: true })
+      this.on(this.#max, type, this.#updateFloor, { passive: true })
     }
 
     this.#update("ceil")
     this.#min.setAttribute("data-ready", "")
     this.#max.setAttribute("data-ready", "")
-  }
-
-  disconnect() {
-    for (const type of [ "input", "focus", "mousedown", "touchstart" ]) {
-      this.#min.removeEventListener(type, this.#updateCeil)
-      this.#max.removeEventListener(type, this.#updateFloor)
-    }
   }
 
   // Moving the minimum rounds the midpoint up, moving the maximum rounds it down, so the
@@ -1035,11 +1094,7 @@ define("dual-range", class extends Controller {
   }
 
   #fixed(number) {
-    return number.toFixed(this.#precision)
-  }
-
-  get #precision() {
-    return this.hasData("precision") ? Number(this.data("precision")) : 3
+    return number.toFixed(this.precision)
   }
 })
 }
@@ -1061,10 +1116,13 @@ define("flash", class extends Controller {
 // components/form/form.js
 {
 
-define("form", class extends Controller {
+define("form", class extends controller({
+  targets: { submit: HTMLElement, cancel: HTMLElement },
+  values: { debounce: 300 },
+}) {
   constructor(element, name) {
     super(element, name)
-    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.#debounceTimeout)
+    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.debounce)
   }
 
   submit(event) {
@@ -1082,7 +1140,7 @@ define("form", class extends Controller {
   }
 
   disableSubmitWhenInvalid() {
-    const submit = this.target("submit")
+    const submit = this.$.submit
 
     if (this.element.checkValidity()) {
       submit.removeAttribute("disabled")
@@ -1100,7 +1158,7 @@ define("form", class extends Controller {
   }
 
   cancel() {
-    this.target("cancel")?.click()
+    this.$.cancel?.click()
   }
 
   #find(id) {
@@ -1109,10 +1167,6 @@ define("form", class extends Controller {
 
   #notFound(id) {
     throw new Error(`Submitter with ID "${id}" not found`)
-  }
-
-  get #debounceTimeout() {
-    return this.hasData("debounce") ? Number(this.data("debounce")) : 300
   }
 })
 }
@@ -1227,35 +1281,25 @@ const PATTERNS = {
 
 // A one-time-code field: one real <input> laid over a row of slots. The input does the
 // typing, pasting and autofill; this script shows each character in its slot.
-define("input-otp", class extends Controller {
+define("input-otp", class extends controller({ values: { pattern: "digits" } }) {
   #focused = false
 
   connect() {
     const input = this.#input
     if (!input.hasAttribute("maxlength")) input.maxLength = this.#slots.length
     if (!input.hasAttribute("autocomplete")) input.autocomplete = "one-time-code"
-    if (!input.hasAttribute("inputmode")) input.inputMode = this.#pattern === "digits" ? "numeric" : "text"
+    if (!input.hasAttribute("inputmode")) input.inputMode = this.pattern === "digits" ? "numeric" : "text"
     if (!input.hasAttribute("spellcheck")) input.spellcheck = false
 
-    input.addEventListener("input", this.#changed)
-    input.addEventListener("focus", this.#focus)
-    input.addEventListener("blur", this.#blur)
-    input.addEventListener("select", this.#moveCaretToEnd)
-    input.addEventListener("click", this.#moveCaretToEnd)
-    input.addEventListener("keyup", this.#moveCaretToEnd)
+    this.on(input, "input", this.#changed)
+    this.on(input, "focus", this.#focus)
+    this.on(input, "blur", this.#blur)
+    this.on(input, "select", this.#moveCaretToEnd)
+    this.on(input, "click", this.#moveCaretToEnd)
+    this.on(input, "keyup", this.#moveCaretToEnd)
 
     input.value = this.#sanitize(input.value)
     this.#render()
-  }
-
-  disconnect() {
-    const input = this.#input
-    input.removeEventListener("input", this.#changed)
-    input.removeEventListener("focus", this.#focus)
-    input.removeEventListener("blur", this.#blur)
-    input.removeEventListener("select", this.#moveCaretToEnd)
-    input.removeEventListener("click", this.#moveCaretToEnd)
-    input.removeEventListener("keyup", this.#moveCaretToEnd)
   }
 
   #changed = () => {
@@ -1300,7 +1344,7 @@ define("input-otp", class extends Controller {
   }
 
   #sanitize(value) {
-    const allowed = PATTERNS[this.#pattern] ?? PATTERNS.digits
+    const allowed = PATTERNS[this.pattern] ?? PATTERNS.digits
     return [ ...value ].filter(character => allowed.test(character)).join("").slice(0, this.#slots.length)
   }
 
@@ -1310,10 +1354,6 @@ define("input-otp", class extends Controller {
 
   get #slots() {
     return this.targets("slot")
-  }
-
-  get #pattern() {
-    return this.data("pattern") ?? "digits"
   }
 })
 }
@@ -1336,13 +1376,8 @@ define("input-revealable", class extends Controller {
 // Shows the popover named by data-interest-for while the pointer hovers the element.
 define("interest", class extends Controller {
   connect() {
-    this.element.addEventListener("mouseenter", this.#show)
-    this.element.addEventListener("mouseleave", this.#hide)
-  }
-
-  disconnect() {
-    this.element.removeEventListener("mouseenter", this.#show)
-    this.element.removeEventListener("mouseleave", this.#hide)
+    this.on(this.element, "mouseenter", this.#show)
+    this.on(this.element, "mouseleave", this.#hide)
   }
 
   #show = () => {
@@ -1473,20 +1508,18 @@ observe("[data-local-time]", {
 
 // Roving tabindex for menus: arrow keys move focus between data-menu-target="item"
 // elements, and the first item is focused every time the menu becomes visible.
-define("menu", class extends Controller {
+define("menu", class extends controller({ targets: { item: HTMLElement } }) {
   #observer
   #index = 0
 
   connect() {
-    this.element.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("focusin", this.#focusin)
+    this.on(this.element, "keydown", this.#keydown)
+    this.on(this.element, "focusin", this.#focusin)
     this.#observer = new IntersectionObserver(this.#reset.bind(this))
     this.#observer.observe(this.element)
   }
 
   disconnect() {
-    this.element.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("focusin", this.#focusin)
     this.#observer.disconnect()
   }
 
@@ -1553,7 +1586,7 @@ define("menu", class extends Controller {
   }
 
   get #items() {
-    return this.targets("item")
+    return this.$$.item
   }
 })
 }
@@ -1569,13 +1602,11 @@ define("resizable", class extends Controller {
 
   connect() {
     this.#applyInitialSizes()
-    this.element.addEventListener("pointerdown", this.#pointerdown)
-    this.element.addEventListener("keydown", this.#keydown)
+    this.on(this.element, "pointerdown", this.#pointerdown)
+    this.on(this.element, "keydown", this.#keydown)
   }
 
   disconnect() {
-    this.element.removeEventListener("pointerdown", this.#pointerdown)
-    this.element.removeEventListener("keydown", this.#keydown)
     this.#stopDragging()
   }
 
@@ -1738,42 +1769,44 @@ define("resizable", class extends Controller {
 
 // components/tabs/tabs.js
 {
+// @ts-check
 
-define("tabs", class extends Controller {
+define("tabs", class extends controller({
+  targets: { button: HTMLElement, tab: HTMLElement },
+  values: { index: 0 },
+}) {
   connect() {
-    this.#showCurrentTab()
+    this.indexChanged()
   }
 
+  /** @param {Event & { target: Element }} event */
   select({ target }) {
-    this.#index = this.targets("button").indexOf(target.closest(`[data-tabs-target~="button"]`))
-    this.#showCurrentTab()
+    this.index = this.$$.button.indexOf(/** @type {HTMLElement} */ (target.closest(`[data-tabs-target~="button"]`)))
   }
 
   prev() {
-    if (this.#index > 0) {
-      this.#index--
-      this.#showCurrentTab()
+    if (this.index > 0) {
+      this.index--
       this.#focusCurrentButton()
     }
   }
 
   next() {
-    if (this.#index < this.#lastIndex) {
-      this.#index++
-      this.#showCurrentTab()
+    if (this.index < this.#lastIndex) {
+      this.index++
       this.#focusCurrentButton()
     }
   }
 
-  #showCurrentTab() {
-    const index = this.#index
+  indexChanged() {
+    const index = this.index
 
-    this.targets("button").forEach((it, i) => {
-      it.ariaSelected = i === index
+    this.$$.button.forEach((it, i) => {
+      it.ariaSelected = String(i === index)
       it.tabIndex = i === index ? 0 : -1
     })
 
-    this.targets("tab").forEach((it, i) => {
+    this.$$.tab.forEach((it, i) => {
       it.hidden = i !== index
     })
 
@@ -1781,19 +1814,11 @@ define("tabs", class extends Controller {
   }
 
   #focusCurrentButton() {
-    this.targets("button")[this.#index].focus()
-  }
-
-  get #index() {
-    return Number(this.data("index")) || 0
-  }
-
-  set #index(value) {
-    this.element.setAttribute("data-tabs-index", value)
+    this.$$.button[this.index].focus()
   }
 
   get #lastIndex() {
-    return this.targets("tab").length - 1
+    return this.$$.tab.length - 1
   }
 })
 }
@@ -1862,7 +1887,7 @@ define("upload-preview", class extends Controller {
 // Prefix for the names of shared files, e.g. "my_application_x1y2z3.jpg".
 const APPLICATION_NAME = "my_application"
 
-define("web-share", class extends Controller {
+define("web-share", class extends controller({ values: { title: "", text: "", url: "", file: "" } }) {
   connect() {
     this.element.hidden = !navigator.canShare
   }
@@ -1874,13 +1899,13 @@ define("web-share", class extends Controller {
   }
 
   async #getShareData() {
-    const data = { title: this.data("title") ?? "", text: this.data("text") ?? "" }
+    const data = { title: this.title, text: this.text }
 
-    if (this.data("url")) {
-      data.url = this.data("url")
+    if (this.url) {
+      data.url = this.url
     }
 
-    if (this.data("file")) {
+    if (this.file) {
       data.files = [await this.#getFileObject()]
     }
 
@@ -1888,7 +1913,7 @@ define("web-share", class extends Controller {
   }
 
   async #getFileObject() {
-    const response = await fetch(this.data("file"))
+    const response = await fetch(this.file)
     const blob = await response.blob()
     const randomPrefix = `${APPLICATION_NAME}_${Math.random().toString(36).slice(2)}`
     const fileName = `${randomPrefix}.${blob.type.split('/').pop()}`
