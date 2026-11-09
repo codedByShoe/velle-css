@@ -1129,10 +1129,13 @@ define("flash", class extends Controller {
 // components/form/form.js
 {
 
-define("form", class extends Controller {
+define("form", class extends controller({
+  targets: { submit: HTMLElement, cancel: HTMLElement },
+  values: { debounce: 300 },
+}) {
   constructor(element, name) {
     super(element, name)
-    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.#debounceTimeout)
+    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.debounce)
   }
 
   submit(event) {
@@ -1150,7 +1153,7 @@ define("form", class extends Controller {
   }
 
   disableSubmitWhenInvalid() {
-    const submit = this.target("submit")
+    const submit = this.$.submit
 
     if (this.element.checkValidity()) {
       submit.removeAttribute("disabled")
@@ -1168,7 +1171,7 @@ define("form", class extends Controller {
   }
 
   cancel() {
-    this.target("cancel")?.click()
+    this.$.cancel?.click()
   }
 
   #find(id) {
@@ -1177,10 +1180,6 @@ define("form", class extends Controller {
 
   #notFound(id) {
     throw new Error(`Submitter with ID "${id}" not found`)
-  }
-
-  get #debounceTimeout() {
-    return this.hasData("debounce") ? Number(this.data("debounce")) : 300
   }
 })
 }
@@ -1541,20 +1540,18 @@ observe("[data-local-time]", {
 
 // Roving tabindex for menus: arrow keys move focus between data-menu-target="item"
 // elements, and the first item is focused every time the menu becomes visible.
-define("menu", class extends Controller {
+define("menu", class extends controller({ targets: { item: HTMLElement } }) {
   #observer
   #index = 0
 
   connect() {
-    this.element.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("focusin", this.#focusin)
+    this.on(this.element, "keydown", this.#keydown)
+    this.on(this.element, "focusin", this.#focusin)
     this.#observer = new IntersectionObserver(this.#reset.bind(this))
     this.#observer.observe(this.element)
   }
 
   disconnect() {
-    this.element.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("focusin", this.#focusin)
     this.#observer.disconnect()
   }
 
@@ -1621,7 +1618,7 @@ define("menu", class extends Controller {
   }
 
   get #items() {
-    return this.targets("item")
+    return this.$$.item
   }
 })
 }
@@ -1806,42 +1803,44 @@ define("resizable", class extends Controller {
 
 // components/tabs/tabs.js
 {
+// @ts-check
 
-define("tabs", class extends Controller {
+define("tabs", class extends controller({
+  targets: { button: HTMLElement, tab: HTMLElement },
+  values: { index: 0 },
+}) {
   connect() {
-    this.#showCurrentTab()
+    this.indexChanged()
   }
 
+  /** @param {Event & { target: Element }} event */
   select({ target }) {
-    this.#index = this.targets("button").indexOf(target.closest(`[data-tabs-target~="button"]`))
-    this.#showCurrentTab()
+    this.index = this.$$.button.indexOf(/** @type {HTMLElement} */ (target.closest(`[data-tabs-target~="button"]`)))
   }
 
   prev() {
-    if (this.#index > 0) {
-      this.#index--
-      this.#showCurrentTab()
+    if (this.index > 0) {
+      this.index--
       this.#focusCurrentButton()
     }
   }
 
   next() {
-    if (this.#index < this.#lastIndex) {
-      this.#index++
-      this.#showCurrentTab()
+    if (this.index < this.#lastIndex) {
+      this.index++
       this.#focusCurrentButton()
     }
   }
 
-  #showCurrentTab() {
-    const index = this.#index
+  indexChanged() {
+    const index = this.index
 
-    this.targets("button").forEach((it, i) => {
-      it.ariaSelected = i === index
+    this.$$.button.forEach((it, i) => {
+      it.ariaSelected = String(i === index)
       it.tabIndex = i === index ? 0 : -1
     })
 
-    this.targets("tab").forEach((it, i) => {
+    this.$$.tab.forEach((it, i) => {
       it.hidden = i !== index
     })
 
@@ -1849,19 +1848,11 @@ define("tabs", class extends Controller {
   }
 
   #focusCurrentButton() {
-    this.targets("button")[this.#index].focus()
-  }
-
-  get #index() {
-    return Number(this.data("index")) || 0
-  }
-
-  set #index(value) {
-    this.element.setAttribute("data-tabs-index", value)
+    this.$$.button[this.index].focus()
   }
 
   get #lastIndex() {
-    return this.targets("tab").length - 1
+    return this.$$.tab.length - 1
   }
 })
 }

@@ -1,9 +1,12 @@
-import { define, Controller, debounce } from "./velle.js"
+import { define, controller, debounce } from "./velle.js"
 
-define("form", class extends Controller {
+define("form", class extends controller({
+  targets: { submit: HTMLElement, cancel: HTMLElement },
+  values: { debounce: 300 },
+}) {
   constructor(element, name) {
     super(element, name)
-    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.#debounceTimeout)
+    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.debounce)
   }
 
   submit(event) {
@@ -21,7 +24,7 @@ define("form", class extends Controller {
   }
 
   disableSubmitWhenInvalid() {
-    const submit = this.target("submit")
+    const submit = this.$.submit
 
     if (this.element.checkValidity()) {
       submit.removeAttribute("disabled")
@@ -39,7 +42,7 @@ define("form", class extends Controller {
   }
 
   cancel() {
-    this.target("cancel")?.click()
+    this.$.cancel?.click()
   }
 
   #find(id) {
@@ -48,9 +51,5 @@ define("form", class extends Controller {
 
   #notFound(id) {
     throw new Error(`Submitter with ID "${id}" not found`)
-  }
-
-  get #debounceTimeout() {
-    return this.hasData("debounce") ? Number(this.data("debounce")) : 300
   }
 })
