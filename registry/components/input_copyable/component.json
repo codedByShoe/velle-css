@@ -18,6 +18,7 @@
     { "name": "copy", "description": "Writes the value to the clipboard and adds input--copied to the wrapper." }
   ],
   "events": [],
+  "headless": "input--copied is added to the root after copying. Style it to show that the copy worked.",
   "notes": [
     "The Clipboard API needs a secure context (https or localhost)."
   ],

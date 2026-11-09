@@ -20,6 +20,8 @@ velle new controller cart # creates a controller of your own and imports it
 velle list                # what is available
 ```
 
+To use only the JavaScript, run `velle init --js`. `velle add` then copies each behavior without its styles and prints what it expects from your CSS. Without the CLI, `dist/js/velle.js` is the runtime alone and `dist/velle.js` is the runtime with every behavior.
+
 `velle init` uses `assets/css/velle`, `assets/js/velle` and `assets/images/velle`. Change them with `--css-dir`, `--js-dir` and `--images-dir`, or edit `velle.json`. `velle add` never replaces a file you changed unless you pass `--overwrite`.
 
 Your layout only needs two tags:
@@ -60,6 +62,10 @@ Interactive components use data attributes (`data-tabs`, `data-tabs-target="butt
 
 `chart`, `datepicker`, `editor`, `inputmask` and `sortable` wrap Chart.js, flatpickr, Tiptap, maska and SortableJS. velle ships the adapter (controller and theme) but not the library: install it with npm or map it in an import map; `velle add` and each docs page show how. Adapters are left out of `dist/velle.js`/`dist/velle.css`; with the bundles, load them from `dist/adapters/`.
 
+## Extensions
+
+Extensions connect the runtime to other tools and are installed only by name. `velle add htmx` keeps behaviors correct when htmx saves and restores pages in its history. They are left out of the bundles; load them from `dist/extensions/` with `dist/velle.js`, or from `dist/js/` next to `dist/js/velle.js`, so the page only loads one runtime.
+
 ## Development
 
 ```text
@@ -68,6 +74,7 @@ registry/                  source of truth, embedded into the CLI
   js/velle.js              shared JavaScript runtime
   js/velle.d.ts            its type declarations
   components/<name>/       CSS/JS, component.json (metadata) and examples/*.html
+  extensions/<name>/       optional integrations, laid out the same way
 cmd/velle                  the CLI
 cmd/docsgen                builds dist/ and docs/
 internal/                  registry loader, CLI, bundler, docs generator

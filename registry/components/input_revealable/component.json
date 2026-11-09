@@ -19,6 +19,7 @@
     { "name": "reveal", "description": "Switches the input type between password and text, and toggles input--revealed." }
   ],
   "events": [],
+  "headless": "input--revealed is toggled on the root. Style it to change the button's icon.",
   "notes": [],
   "examples": [
     { "file": "basic.html", "title": "Basic" }

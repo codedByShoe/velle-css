@@ -1,7 +1,7 @@
 // Gives the runtime a browser to run in. Import this before anything from dist/.
 import { JSDOM } from "jsdom"
 
-const { window } = new JSDOM("<!doctype html><html><body></body></html>", { pretendToBeVisual: true })
+const { window } = new JSDOM("<!doctype html><html><body></body></html>", { pretendToBeVisual: true, url: "http://localhost/" })
 
 globalThis.window = window
 // AbortController must be jsdom's: its addEventListener rejects a signal from Node's.

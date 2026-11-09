@@ -566,3 +566,107 @@ func TestNewControllerRestoresAMissingBlock(t *testing.T) {
 		t.Errorf("unexpected entry:\n%s", got)
 	}
 }
+
+func TestInitHeadlessInstallsNoStyles(t *testing.T) {
+	dir := t.TempDir()
+	code, out, errOut := run(t, dir, "init", "--js")
+	if code != 0 {
+		t.Fatalf("init exited %d: %s", code, errOut)
+	}
+	if exists(t, filepath.Join(dir, "assets/css")) {
+		t.Error("a headless init must not create a CSS directory")
+	}
+	if !exists(t, filepath.Join(dir, "assets/js/velle/main.js")) {
+		t.Error("a headless init should create main.js")
+	}
+	if strings.Contains(out, "stylesheet") {
+		t.Errorf("a headless init should not mention stylesheets:\n%s", out)
+	}
+}
+
+func TestInitHeadlessRejectsStyleFlags(t *testing.T) {
+	for _, flag := range []string{"--css-dir=x", "--css-entry=x.css", "--images-dir=x"} {
+		if code, _, errOut := run(t, t.TempDir(), "init", "--js", flag); code == 0 || !strings.Contains(errOut, "headless") {
+			t.Errorf("%s: exited %d, stderr %q", flag, code, errOut)
+		}
+	}
+}
+
+func TestInitCannotMakeAnExistingProjectHeadless(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	if code, _, _ := run(t, dir, "init", "--js"); code == 0 {
+		t.Error("init --js should fail once velle.json exists")
+	}
+}
+
+func TestAddHeadlessCopiesOnlyJavaScript(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init", "--js")
+	code, out, errOut := run(t, dir, "add", "tabs", "button", "resizable", "avatar")
+	if code != 0 {
+		t.Fatalf("add exited %d: %s", code, errOut)
+	}
+	for _, file := range []string{"tabs.js", "resizable.js", "velle.js", "velle.d.ts"} {
+		if !exists(t, filepath.Join(dir, "assets/js/velle", file)) {
+			t.Errorf("%s was not installed", file)
+		}
+	}
+	if exists(t, filepath.Join(dir, "assets/css")) || exists(t, filepath.Join(dir, "assets/images")) {
+		t.Error("a headless add must not install styles or images")
+	}
+	if !strings.Contains(out, "button (styles only") {
+		t.Errorf("add should say that button has nothing to install:\n%s", out)
+	}
+	if !strings.Contains(out, "resizable: ") {
+		t.Errorf("add should say what resizable expects from the project's CSS:\n%s", out)
+	}
+	entry, err := os.ReadFile(filepath.Join(dir, "assets/js/velle/main.js"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(entry), "tabs.js") {
+		t.Errorf("main.js should import tabs.js:\n%s", entry)
+	}
+}
+
+func TestAddHeadlessAdapterDoesNotMentionItsStylesheet(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init", "--js")
+	_, out, _ := run(t, dir, "add", "datepicker")
+	if strings.Contains(out, "datepicker.css") {
+		t.Errorf("a headless project has no datepicker.css:\n%s", out)
+	}
+	if !strings.Contains(out, "flatpickr.min.css") {
+		t.Errorf("the library's own stylesheet is still needed:\n%s", out)
+	}
+}
+
+func TestNewControllerInAHeadlessProject(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init", "--js")
+	if code, _, errOut := run(t, dir, "new", "controller", "cart"); code != 0 {
+		t.Fatalf("new controller exited %d: %s", code, errOut)
+	}
+	if !exists(t, filepath.Join(dir, "assets/js/velle/velle.js")) || exists(t, filepath.Join(dir, "assets/css")) {
+		t.Error("expected the runtime and no styles")
+	}
+}
+
+func TestExtensionsAreOnlyInstalledByName(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "add", "--all")
+	if exists(t, filepath.Join(dir, "assets/js/velle/htmx.js")) {
+		t.Error("add --all must not install extensions")
+	}
+	if code, _, errOut := run(t, dir, "add", "htmx"); code != 0 {
+		t.Fatalf("add htmx exited %d: %s", code, errOut)
+	}
+	if !exists(t, filepath.Join(dir, "assets/js/velle/htmx.js")) {
+		t.Error("add htmx did not install the extension")
+	}
+	if _, out, _ := run(t, dir, "list"); !strings.Contains(out, "Extensions") || !strings.Contains(out, "htmx") {
+		t.Errorf("list should show extensions:\n%s", out)
+	}
+}

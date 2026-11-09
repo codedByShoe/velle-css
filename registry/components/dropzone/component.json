@@ -32,6 +32,7 @@
   "events": [
     { "name": "velle:dropzone:change", "description": "Dispatched when the files change. event.detail.files lists the accepted files, event.detail.rejected the rejected ones." }
   ],
+  "headless": "The file list is built with dropzone__file, dropzone__thumbnail, dropzone__details, dropzone__name and dropzone__meta, and each remove button has btn btn--plain. Style those classes.",
   "notes": [
     "The form must use method=\"post\" and enctype=\"multipart/form-data\" for the files to be sent.",
     "Rejected files are shown with the reason and never added to the input. They are cleared on the next drop or pick.",

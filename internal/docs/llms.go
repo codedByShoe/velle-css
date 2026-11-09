@@ -146,6 +146,9 @@ func componentMarkdown(fsys fs.FS, reg *registry.Registry, c *registry.Component
 			fmt.Fprintf(&b, "- `%s`: %s\n", o.Name, o.Description)
 		}
 	}
+	if c.Headless != "" {
+		fmt.Fprintf(&b, "\n## Without velle's styles\n\n%s\n", c.Headless)
+	}
 	if len(c.Notes) > 0 {
 		b.WriteString("\n## Notes\n\n")
 		for _, n := range c.Notes {

@@ -31,24 +31,29 @@ var tokenFiles = []string{
 	"core/tokens/typography.css",
 }
 
-// ComponentFiles returns the files of the given kind from every component that is not an
-// adapter, sorted by file name. Component stylesheets must load in alphabetical order, as
-// they did in css-zero. Adapters are left out because the bundles must not depend on
-// third-party libraries.
+// ComponentFiles returns the files of the given kind from every component that is neither an
+// adapter nor an extension, sorted by file name. Component stylesheets must load in
+// alphabetical order, as they did in css-zero. Adapters and extensions are left out because
+// the bundles must not depend on third-party libraries.
 func ComponentFiles(reg *registry.Registry, kind registry.FileKind) []string {
-	return files(reg, kind, false)
+	return files(reg, kind, func(c *registry.Component) bool { return c.Library == nil && !c.Extension })
 }
 
 // AdapterFiles returns the files of the given kind from every adapter, sorted by file name.
 func AdapterFiles(reg *registry.Registry, kind registry.FileKind) []string {
-	return files(reg, kind, true)
+	return files(reg, kind, func(c *registry.Component) bool { return c.Library != nil })
 }
 
-func files(reg *registry.Registry, kind registry.FileKind, adapters bool) []string {
+// ExtensionFiles returns the files of the given kind from every extension, sorted by file name.
+func ExtensionFiles(reg *registry.Registry, kind registry.FileKind) []string {
+	return files(reg, kind, func(c *registry.Component) bool { return c.Extension })
+}
+
+func files(reg *registry.Registry, kind registry.FileKind, include func(*registry.Component) bool) []string {
 	var files []string
 	for _, name := range reg.Names() {
 		c := reg.Components[name]
-		if (c.Library != nil) != adapters {
+		if !include(c) {
 			continue
 		}
 		for _, f := range c.Files {
@@ -109,8 +114,8 @@ func JS(fsys fs.FS, reg *registry.Registry, version string) (string, error) {
 	return b.String(), nil
 }
 
-// Adapter returns an adapter script rewritten to import the runtime from the bundle one
-// directory up (dist/velle.js), so adapters share the bundle's runtime.
+// Adapter returns an adapter or extension script rewritten to import the runtime from the
+// bundle one directory up (dist/velle.js), so it shares the bundle's runtime.
 func Adapter(fsys fs.FS, file string) ([]byte, error) {
 	data, err := fs.ReadFile(fsys, file)
 	if err != nil {
@@ -159,17 +164,19 @@ func Dist(fsys fs.FS, reg *registry.Registry, out, version string) error {
 		}
 	}
 
-	for _, kind := range []registry.FileKind{registry.KindCSS, registry.KindJS} {
-		for _, f := range AdapterFiles(reg, kind) {
-			data, err := fs.ReadFile(fsys, f)
-			if kind == registry.KindJS {
-				data, err = Adapter(fsys, f)
-			}
-			if err != nil {
-				return err
-			}
-			if err := write(filepath.Join(out, "adapters", path.Base(f)), data); err != nil {
-				return err
+	for dir, optional := range map[string]func(*registry.Registry, registry.FileKind) []string{"adapters": AdapterFiles, "extensions": ExtensionFiles} {
+		for _, kind := range []registry.FileKind{registry.KindCSS, registry.KindJS} {
+			for _, f := range optional(reg, kind) {
+				data, err := fs.ReadFile(fsys, f)
+				if kind == registry.KindJS {
+					data, err = Adapter(fsys, f)
+				}
+				if err != nil {
+					return err
+				}
+				if err := write(filepath.Join(out, dir, path.Base(f)), data); err != nil {
+					return err
+				}
 			}
 		}
 	}
