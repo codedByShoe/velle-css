@@ -1,0 +1,14 @@
+{
+  "name": "velle-css-dev",
+  "private": true,
+  "type": "module",
+  "description": "Dev-only tooling for velle-css. Nothing here ships to users.",
+  "scripts": {
+    "test": "node --test test/js/*.test.js",
+    "typecheck": "tsc --noEmit --allowJs --checkJs --strict --target es2022 --module esnext --moduleResolution bundler --lib es2022,dom,dom.iterable dist/js/tabs.js test/types/check.js"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.0",
+    "typescript": "^6.0.3"
+  }
+}

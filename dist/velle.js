@@ -15,10 +15,18 @@
 // separated by whitespace. When the event is omitted the element's default event is used
 // (click for buttons and links, input for inputs and textareas, change for selects,
 // submit for forms, toggle for details).
+//
+// controller({ targets, values }) builds a base class. Each value is a property stored in
+// data-<name>-<key> and parsed by its default's type. <key>Changed(value, oldValue) runs
+// after the attribute changes, never during connect(), so call it from connect() to render
+// the initial state. this.$.x and this.$$.x are target("x") and targets("x"). Listeners
+// added with on(), and anything given this.signal, end when the controller disconnects.
+// controllerFor(element, name) returns a connected instance to code outside controllers.
 
 const registrations = []
 const instances = new WeakMap()
 const bindings = new WeakMap()
+const abort = Symbol("abort")
 let observer = null
 
 // observe(selector, { connect, disconnect }) runs connect(element) once for every element
@@ -44,17 +52,18 @@ export function define(name, Controller) {
   observe(rootSelector, {
     connect(element) {
       const controller = new Controller(element, name)
-      instances.set(element, controller)
+      if (!instances.has(element)) instances.set(element, new Map())
+      instances.get(element).set(name, controller)
       controller.connect()
     },
     disconnect(element) {
-      const controller = instances.get(element)
-      instances.delete(element)
-      controller?.disconnect()
+      const controller = instances.get(element)?.get(name)
+      instances.get(element)?.delete(name)
+      try { controller?.disconnect() } finally { controller?.[abort].abort() }
     }
   })
 
-  observe(`[${actionAttribute}]`, {
+  const actions = observe(`[${actionAttribute}]`, {
     connect(element) {
       const listeners = parseActions(element.getAttribute(actionAttribute), element).map(action => {
         const listener = event => invoke(name, rootSelector, action, element, event)
@@ -69,17 +78,33 @@ export function define(name, Controller) {
       bindings.delete(element)
     }
   })
+  actions.attribute = actionAttribute
+}
+
+// The connected instance of a controller on an element, or null.
+export function controllerFor(element, name) {
+  return instances.get(element)?.get(name) ?? null
 }
 
 export class Controller {
   constructor(element, name) {
     this.element = element
     this.name = name
+    this[abort] = new AbortController()
+    this.$ = new Proxy({}, { get: (_, key) => this.target(key) })
+    this.$$ = new Proxy({}, { get: (_, key) => this.targets(key) })
   }
 
   connect() {}
 
   disconnect() {}
+
+  get signal() { return this[abort].signal }
+
+  // addEventListener that is removed automatically when the controller disconnects.
+  on(target, type, listener, options) {
+    target.addEventListener(type, listener, { ...options, signal: this.signal })
+  }
 
   // All elements with data-<name>-target="<target>" that belong to this root.
   targets(target) {
@@ -110,6 +135,47 @@ export class Controller {
   }
 }
 
+// A Controller subclass with a property for each value. `targets` only feeds the types.
+export function controller({ values = {} } = {}) {
+  const Base = class extends Controller {}
+  Base.values = values
+  for (const [ key, fallback ] of Object.entries(values)) {
+    if (key in Base.prototype || [ "element", "name", "action", "$", "$$" ].includes(key)) throw new Error(`[velle] "${key}" is reserved`)
+    Object.defineProperty(Base.prototype, key, {
+      get() { return read(this.data(dasherize(key)), fallback) },
+      set(value) {
+        this.element.setAttribute(`data-${this.name}-${dasherize(key)}`, typeof value === "string" ? value : JSON.stringify(value))
+      }
+    })
+  }
+  return Base
+}
+
+function read(raw, fallback) {
+  if (raw === null) return structuredClone(fallback)
+  if (typeof fallback === "number") return Number(raw)
+  if (typeof fallback === "boolean") return raw !== "false"
+  if (typeof fallback === "string") return raw
+  return JSON.parse(raw)
+}
+
+function dasherize(value) {
+  return value.replace(/[A-Z]/g, character => `-${character.toLowerCase()}`)
+}
+
+function valueChanged(element, attribute, oldRaw) {
+  if (!element.isConnected) return
+
+  instances.get(element)?.forEach((controller, name) => {
+    const prefix = `data-${name}-`
+    if (!attribute.startsWith(prefix)) return
+    const key = camelize(attribute.slice(prefix.length))
+    const fallback = controller.constructor.values?.[key]
+    if (fallback === undefined || typeof controller[`${key}Changed`] !== "function") return
+    run(() => controller[`${key}Changed`](controller[key], read(oldRaw, fallback)), element)
+  })
+}
+
 // Trailing-edge debounce.
 export function debounce(fn, wait) {
   let timeout
@@ -136,9 +202,7 @@ const defaultEvents = {
 const keyMappings = {
   enter: "Enter", tab: "Tab", esc: "Escape", space: " ",
   up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
-  home: "Home", end: "End", page_up: "PageUp", page_down: "PageDown",
-  ...Object.fromEntries("abcdefghijklmnopqrstuvwxyz".split("").map(key => [ key, key ])),
-  ...Object.fromEntries("0123456789".split("").map(key => [ key, key ]))
+  home: "Home", end: "End", page_up: "PageUp", page_down: "PageDown"
 }
 
 const modifierKeys = [ "meta", "ctrl", "alt", "shift" ]
@@ -169,7 +233,7 @@ function invoke(name, rootSelector, action, element, event) {
   if (action.options.includes("self") && event.target !== element) return
 
   const root = element.closest(rootSelector)
-  const controller = root && instances.get(root)
+  const controller = root && instances.get(root)?.get(name)
 
   if (!controller) {
     console.error(`[velle] No ${rootSelector} root found for action "${action.method}"`, element)
@@ -201,7 +265,7 @@ function keyFilterMatches(event, keyFilter) {
   const standardFilter = filters.find(key => !modifierKeys.includes(key))
   if (!standardFilter) return true
 
-  const key = keyMappings[standardFilter]
+  const key = standardFilter.length === 1 ? standardFilter : keyMappings[standardFilter]
   if (!key) {
     console.error(`[velle] Unknown key filter "${standardFilter}"`)
     return false
@@ -259,14 +323,18 @@ function start() {
         }
         if (mutation.removedNodes.length) removed = true
       } else if (mutation.type === "attributes") {
-        registrations.forEach(registration => refresh(registration, mutation.target))
+        registrations.forEach(registration => {
+          if (registration.attribute === mutation.attributeName) remove(registration, mutation.target)
+          refresh(registration, mutation.target)
+        })
+        valueChanged(mutation.target, mutation.attributeName, mutation.oldValue)
       }
     }
 
     if (removed) registrations.forEach(prune)
   })
 
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true })
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeOldValue: true })
 }
 
 function scan(registration, root) {
