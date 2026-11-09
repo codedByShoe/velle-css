@@ -111,7 +111,7 @@ func TestAddCopiesComponentsAndDependencies(t *testing.T) {
 		"assets/css/velle/menu.css", "assets/js/velle/menu.js", // dropdown -> menu
 		"assets/css/velle/button.css", "assets/css/velle/icons.css", // menu -> button -> icons
 		"assets/css/velle/tabs.css", "assets/js/velle/tabs.js",
-		"assets/js/velle/velle.js", // runtime
+		"assets/js/velle/velle.js", "assets/js/velle/velle.d.ts", // runtime and its types
 		"assets/js/velle/upload_preview.js", "assets/images/velle/avatar.svg",
 	} {
 		if !exists(t, filepath.Join(dir, f)) {
@@ -173,6 +173,34 @@ func TestAddKeepsExistingFiles(t *testing.T) {
 	}
 	if got, _ := os.ReadFile(target); string(got) == "/* customized */" {
 		t.Error("--overwrite did not replace the file")
+	}
+}
+
+func TestAddWarnsAboutAnOlderRuntime(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "add", "tabs")
+	runtime := filepath.Join(dir, "assets/js/velle/velle.js")
+
+	if _, _, errOut := run(t, dir, "add", "tabs"); strings.Contains(errOut, "warning") {
+		t.Errorf("a current runtime should not warn, got %q", errOut)
+	}
+
+	older := "export function define() {}\nexport class Controller {}\n"
+	if err := os.WriteFile(runtime, []byte(older), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, errOut := run(t, dir, "add", "tabs")
+	if !strings.Contains(errOut, "does not export") || !strings.Contains(errOut, "controllerFor") {
+		t.Errorf("expected a warning naming the missing exports, got %q", errOut)
+	}
+	if got, _ := os.ReadFile(runtime); string(got) != older {
+		t.Error("the warning must not replace the runtime")
+	}
+
+	if _, _, errOut := run(t, dir, "add", "--overwrite", "tabs"); strings.Contains(errOut, "warning") {
+		t.Errorf("--overwrite should replace the runtime without warning, got %q", errOut)
 	}
 }
 

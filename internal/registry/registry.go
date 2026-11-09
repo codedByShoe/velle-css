@@ -133,8 +133,12 @@ var CoreFiles = []string{
 	"core/utilities.css",
 }
 
-// RuntimeFile is the shared JavaScript runtime every behavior imports.
-const RuntimeFile = "js/velle.js"
+// RuntimeFile is the shared JavaScript runtime every behavior imports, and RuntimeTypesFile
+// holds its type declarations, which always sit next to it.
+const (
+	RuntimeFile      = "js/velle.js"
+	RuntimeTypesFile = "js/velle.d.ts"
+)
 
 // Registry is the set of all components.
 type Registry struct {

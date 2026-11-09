@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -285,7 +286,7 @@ func (a *App) add(args []string) error {
 		hasJS = hasJS || c.HasJS()
 	}
 	if hasJS {
-		if err := a.copy(registry.RuntimeFile, path.Join(config.JSDir, path.Base(registry.RuntimeFile)), *overwrite); err != nil {
+		if err := a.copyRuntime(config, *overwrite); err != nil {
 			return err
 		}
 	}
@@ -408,13 +409,51 @@ func (a *App) list(args []string) error {
 	return nil
 }
 
+var runtimeExport = regexp.MustCompile(`(?m)^export (?:function|class) (\w+)`)
+
+// copyRuntime installs the runtime and its types. A runtime kept from an older version can
+// lack exports the components need, and one missing export stops every module that main.js
+// imports from loading, so say so.
+func (a *App) copyRuntime(config Config, overwrite bool) error {
+	for _, file := range []string{registry.RuntimeFile, registry.RuntimeTypesFile} {
+		if err := a.copy(file, path.Join(config.JSDir, path.Base(file)), overwrite); err != nil {
+			return err
+		}
+	}
+
+	target := path.Join(config.JSDir, path.Base(registry.RuntimeFile))
+	installed, err := os.ReadFile(filepath.Join(a.Dir, filepath.FromSlash(target)))
+	if err != nil {
+		return err
+	}
+	current, err := fs.ReadFile(a.FS, registry.RuntimeFile)
+	if err != nil {
+		return err
+	}
+	var missing []string
+	for _, m := range runtimeExport.FindAllSubmatch(current, -1) {
+		if !bytes.Contains(installed, []byte("export function "+string(m[1]))) && !bytes.Contains(installed, []byte("export class "+string(m[1]))) {
+			missing = append(missing, string(m[1]))
+		}
+	}
+	if len(missing) > 0 {
+		fmt.Fprintf(a.Stderr, "velle: warning: %s is older than this version and does not export %s, so new components will fail to load; replace it with `velle add --overwrite` on a component that uses JavaScript\n", target, strings.Join(missing, ", "))
+	}
+	return nil
+}
+
 // copy writes a registry file to a project-relative target path.
 func (a *App) copy(source, target string, overwrite bool) error {
 	data, err := fs.ReadFile(a.FS, source)
 	if err != nil {
 		return err
 	}
+	return a.writeFile(target, data, overwrite)
+}
 
+// writeFile writes data to a project-relative target path, keeping an existing file that
+// differs unless overwrite is set.
+func (a *App) writeFile(target string, data []byte, overwrite bool) error {
 	destination := filepath.Join(a.Dir, filepath.FromSlash(target))
 	existing, err := os.ReadFile(destination)
 	switch {

@@ -107,7 +107,7 @@ func TestFilesExist(t *testing.T) {
 			}
 		}
 	}
-	for _, f := range append(registry.CoreFiles, registry.RuntimeFile) {
+	for _, f := range append(registry.CoreFiles, registry.RuntimeFile, registry.RuntimeTypesFile) {
 		if _, err := fs.Stat(r.FS, f); err != nil {
 			t.Errorf("core file %s: %v", f, err)
 		}
@@ -151,6 +151,7 @@ func TestFileNamesAreUnique(t *testing.T) {
 		seen[path.Base(f)] = "core"
 	}
 	seen[path.Base(registry.RuntimeFile)] = "runtime"
+	seen[path.Base(registry.RuntimeTypesFile)] = "runtime"
 	seen["main.css"] = "the default CSS entry"
 	seen["main.js"] = "the default JS entry"
 
@@ -447,6 +448,38 @@ func TestNoFrameworkLeftovers(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+var (
+	runtimeExport = regexp.MustCompile(`(?m)^export (?:function|class) (\w+)`)
+	typesExport   = regexp.MustCompile(`(?m)^export declare (?:function|class) (\w+)`)
+)
+
+func TestRuntimeTypesMatchExports(t *testing.T) {
+	fsys := load(t).FS
+	names := func(pattern *regexp.Regexp, file string) map[string]bool {
+		found := map[string]bool{}
+		for _, m := range pattern.FindAllStringSubmatch(read(t, fsys, file), -1) {
+			found[m[1]] = true
+		}
+		if len(found) == 0 {
+			t.Fatalf("%s: found no exports", file)
+		}
+		return found
+	}
+
+	runtime := names(runtimeExport, registry.RuntimeFile)
+	types := names(typesExport, registry.RuntimeTypesFile)
+	for name := range runtime {
+		if !types[name] {
+			t.Errorf("%s exports %s but %s does not declare it", registry.RuntimeFile, name, registry.RuntimeTypesFile)
+		}
+	}
+	for name := range types {
+		if !runtime[name] {
+			t.Errorf("%s declares %s but %s does not export it", registry.RuntimeTypesFile, name, registry.RuntimeFile)
+		}
 	}
 }
 

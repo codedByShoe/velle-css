@@ -143,8 +143,11 @@ func Dist(fsys fs.FS, reg *registry.Registry, out, version string) error {
 	if err := write(filepath.Join(out, "velle.js"), []byte(js)); err != nil {
 		return err
 	}
+	if err := write(filepath.Join(out, "velle.d.ts"), []byte("export * from \"./js/velle.js\"\n")); err != nil {
+		return err
+	}
 
-	copies := map[string]string{registry.RuntimeFile: "js/velle.js"}
+	copies := map[string]string{registry.RuntimeFile: "js/velle.js", registry.RuntimeTypesFile: "js/velle.d.ts"}
 	for _, f := range registry.CoreFiles {
 		copies[f] = path.Join("css", strings.TrimPrefix(f, "core/"))
 	}
