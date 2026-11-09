@@ -30,6 +30,18 @@ Or use the release bundles from a CDN (they contain every component except the a
 
 When loading stylesheets yourself, use this order: `reset.css`, `variables.css`, `base.css`, the component stylesheets in alphabetical order, then `utilities.css`.
 
+## Using the JavaScript without the CSS
+
+The behaviors work on any markup and don't need velle's stylesheets:
+
+```sh
+velle init --js           # writes velle.json and main.js, and no styles
+velle add tabs menu       # copies only their JavaScript
+velle new controller cart # or start from the bare runtime
+```
+
+Without the CLI, `dist/js/velle.js` is the runtime alone and `dist/velle.js` is the runtime with every behavior. Neither loads any CSS. Behaviors expose state through ARIA and standard attributes such as `aria-selected`, `hidden` and `open`. A few also use class names or need a particular layout; each of those component pages says what it expects, and `velle add` prints the same note.
+
 ## Writing markup
 
 - Components use BEM-style classes: a block (`.btn`), modifiers (`.btn--primary`), and elements (`.card__header`).
@@ -97,7 +109,7 @@ define("counter", class extends Controller {
 })
 ```
 
-`Controller` provides `this.element`, `connect()`, `disconnect()`, `target(name)`, `targets(name)`, `hasTarget(name)`, `data(key)`, `hasData(key)`, `dispatch(type, detail)`, `$`, `$$`, `on(target, type, listener, options)` and `signal`. The runtime also exports `controller({ targets, values })`, `controllerFor(element, name)`, `observe(selector, { connect, disconnect })` and `debounce(fn, wait)`.
+`Controller` provides `this.element`, `connect()`, `disconnect()`, `target(name)`, `targets(name)`, `hasTarget(name)`, `data(key)`, `hasData(key)`, `dispatch(type, detail)`, `$`$`, `$$`, `on(target, type, listener, options)` and `signal`. Define `beforeSnapshot()` to take part in `prepareSnapshot()`. The runtime also exports `controller({ targets, values })`, `controllerFor(element, name)`, `prepareSnapshot()`, `observe(selector, { connect, disconnect })` and `debounce(fn, wait)`.
 
 ## Writing your own controllers
 
@@ -217,6 +229,12 @@ if (cart) cart.count = 0
   }
 }
 ```
+**Saved copies of the page.** Libraries that keep a copy of the page, such as htmx for its history, save whatever your controllers have added to it. If `connect()` builds markup that it would build again on the restored copy, define `beforeSnapshot()` to remove it and return a function that puts it back. `prepareSnapshot()` runs these hooks and returns a function that undoes them.
+
+## Extensions
+
+Extensions connect the runtime to other tools. They are optional, are installed only by name (`velle add htmx`), and stay out of the bundles. Without the CLI, use the copy that matches your runtime so the page only ever loads one: `dist/extensions/` with the `dist/velle.js` bundle, or `dist/js/` next to `dist/js/velle.js`.
+
 ## Adapters
 
 Some components wrap a third-party library (Chart.js, flatpickr, Tiptap, maska, SortableJS). velle ships the controller and theme but not the library: install it with npm or map it in an import map, as each adapter's page shows. Adapters are not part of `dist/velle.js` or `dist/velle.css`; with the bundles, load them from `dist/adapters/`.

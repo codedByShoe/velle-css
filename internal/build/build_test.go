@@ -104,3 +104,34 @@ func TestCommittedDistIsCurrent(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDistShipsExtensionsOutsideTheBundle(t *testing.T) {
+	fsys := velle.Registry()
+	reg, err := registry.Load(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := t.TempDir()
+	if err := build.Dist(fsys, reg, out, "test"); err != nil {
+		t.Fatal(err)
+	}
+
+	bundle, err := os.ReadFile(filepath.Join(out, "velle.js"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(bundle), "extensions/htmx/htmx.js") || strings.Contains(string(bundle), "htmx:beforeHistorySave") {
+		t.Error("the JS bundle must leave extensions out")
+	}
+
+	// One copy for each runtime, so an extension never loads a second one.
+	for file, want := range map[string]string{"extensions/htmx.js": `from "../velle.js"`, "js/htmx.js": `from "./velle.js"`} {
+		data, err := os.ReadFile(filepath.Join(out, filepath.FromSlash(file)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(data), want) {
+			t.Errorf("%s should import the runtime with %s", file, want)
+		}
+	}
+}

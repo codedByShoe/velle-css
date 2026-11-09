@@ -24,6 +24,7 @@
   "events": [
     { "name": "velle:resizable:resize", "description": "Dispatched after the panels change size. event.detail.sizes lists every panel's size in percent." }
   ],
+  "headless": "Panels are sized with flex-grow, so the root must be a flex container. Add resizable--vertical to the root for vertical panels; the behavior reads it to pick the axis.",
   "notes": [
     "Handles are focusable separators (role=\"separator\" with aria-valuenow). Arrow keys move them by 1%, Shift + arrow keys by 10%, and Home/End move them all the way.",
     "To nest groups, put another .resizable inside a panel and give it the full panel size, e.g. with the b-full utility.",

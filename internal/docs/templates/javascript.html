@@ -15,6 +15,16 @@
   <p>Elements are set up when the page loads and whenever matching markup is added later. A <code>MutationObserver</code> watches the document, so nothing needs to be re-initialized after content changes.</p>
 </section>
 
+<section class="docs-section" aria-labelledby="headless">
+  <h2 id="headless">Using the JavaScript without the CSS</h2>
+  <p>The behaviors work on any markup and don't need velle's stylesheets. To keep styles out of a project entirely:</p>
+  <pre class="docs-pre"><code>velle init --js           # writes velle.json and main.js, and no styles
+velle add tabs menu       # copies only their JavaScript
+velle new controller cart # or start from the bare runtime</code></pre>
+  <p>Without the CLI, <code>dist/js/velle.js</code> is the runtime alone and <code>dist/velle.js</code> is the runtime with every behavior. Neither loads any CSS.</p>
+  <p>Styling is then yours. Behaviors expose their state through ARIA and standard attributes such as <code>aria-selected</code>, <code>hidden</code> and <code>open</code>. A few also use class names or need a particular layout: each of those component pages says what it expects under Notes, and <code>velle add</code> prints the same note. Treat the data attributes on each component page as the behavior's public API.</p>
+</section>
+
 <section class="docs-section" aria-labelledby="attributes">
   <h2 id="attributes">Attributes</h2>
   <p>Each behavior has a name, such as <code>tabs</code> or <code>check-all</code>, and reads these attributes:</p>
@@ -139,6 +149,12 @@ define("cart", class extends controller({
 /** @type {any} */
 const cart = controllerFor(document.querySelector("[data-cart]"), "cart")
 if (cart) cart.count = 0</code></pre>
+  <p><strong>Saved copies of the page.</strong> Libraries that keep a copy of the page, such as htmx for its history, save whatever your controllers have added to it. If <code>connect()</code> builds markup that it would build again on the restored copy, define <code>beforeSnapshot()</code> to remove it and return a function that puts it back:</p>
+  <pre class="docs-pre"><code>beforeSnapshot() {
+  const widget = this.$.widget
+  widget?.remove()
+  return () =&gt; { if (widget) this.element.append(widget) }
+}</code></pre>
   <p><strong>Several controllers on one element.</strong> Each name gets its own instance, and an action goes to the controller its attribute names:</p>
   <pre class="docs-pre"><code>&lt;form data-form data-autosave data-form-action="keydown.ctrl+enter-&gt;submit"&gt;</code></pre>
   <p><strong>Editor setup.</strong> <code>velle.d.ts</code> sits next to <code>velle.js</code>, and <code>velle new controller</code> writes this <code>jsconfig.json</code> at the project root unless you already have one. Start a file with <code>// @ts-check</code> to see errors for that file in any editor that uses TypeScript.</p>
@@ -151,6 +167,14 @@ if (cart) cart.count = 0</code></pre>
     "moduleResolution": "bundler"
   }
 }</code></pre>
+</section>
+
+<section class="docs-section" aria-labelledby="extensions">
+  <h2 id="extensions">Extensions</h2>
+  <p>Extensions connect the runtime to other tools. They are optional, are installed only by name, and stay out of the bundles.</p>
+  <pre class="docs-pre"><code>velle add htmx</code></pre>
+  <p>Without the CLI, use the copy that matches your runtime so the page only ever loads one: <code>dist/extensions/</code> with the <code>dist/velle.js</code> bundle, or <code>dist/js/</code> next to <code>dist/js/velle.js</code>.</p>
+  <p>Each extension has a page under Extensions in the navigation.</p>
 </section>
 
 <section class="docs-section" aria-labelledby="custom">
@@ -185,9 +209,10 @@ define("counter", class extends Controller {
       <thead><tr><th>Export</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td><code>define(name, Class)</code></td><td>Registers a controller class for <code>data-NAME</code> roots.</td></tr>
-        <tr><td><code>Controller</code></td><td>Base class. Provides <code>this.element</code>, <code>connect()</code>, <code>disconnect()</code>, <code>target(name)</code>, <code>targets(name)</code>, <code>hasTarget(name)</code>, <code>data(key)</code>, <code>hasData(key)</code>, <code>dispatch(type, detail)</code>, <code>$</code>, <code>$$</code>, <code>on(target, type, listener, options)</code> and <code>signal</code>. Actions are called with the event and the element that declared the action.</td></tr>
+        <tr><td><code>Controller</code></td><td>Base class. Provides <code>this.element</code>, <code>connect()</code>, <code>disconnect()</code>, <code>target(name)</code>, <code>targets(name)</code>, <code>hasTarget(name)</code>, <code>data(key)</code>, <code>hasData(key)</code>, <code>dispatch(type, detail)</code>, <code>$</code>, <code>$$</code>, <code>on(target, type, listener, options)</code> and <code>signal</code>. Define <code>beforeSnapshot()</code> to take part in <code>prepareSnapshot()</code>. Actions are called with the event and the element that declared the action.</td></tr>
         <tr><td><code>controller({ targets, values })</code></td><td>Builds a <code>Controller</code> subclass with typed targets and values stored in data attributes.</td></tr>
         <tr><td><code>controllerFor(element, name)</code></td><td>Returns the connected controller instance on an element, or <code>null</code>.</td></tr>
+        <tr><td><code>prepareSnapshot()</code></td><td>Calls <code>beforeSnapshot()</code> on every connected controller and returns a function that undoes what they did. Call it just before saving a copy of the page.</td></tr>
         <tr><td><code>observe(selector, { connect, disconnect })</code></td><td>Runs callbacks when elements start or stop matching a selector. Use it for behaviors that need no root.</td></tr>
         <tr><td><code>debounce(fn, wait)</code></td><td>A trailing-edge debounce.</td></tr>
       </tbody>

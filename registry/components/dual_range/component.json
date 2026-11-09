@@ -25,6 +25,7 @@
   ],
   "actions": [],
   "events": [],
+  "headless": "The two inputs are sized with flex-basis, so lay them out in a flex row. --dual-range-position is set on each input for drawing the fill.",
   "notes": [
     "Both inputs are submitted as normal form fields. Listen for input or change events on them to react to changes.",
     "The script narrows each input's own min or max to the midpoint, so read the overall range from the first input's min and the second input's max.",

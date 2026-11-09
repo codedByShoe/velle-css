@@ -42,6 +42,14 @@ define("editor", class extends controller({ values: { placeholder: "", editable:
     this.editor = null
   }
 
+  beforeSnapshot() {
+    const dom = this.editor?.view.dom
+    if (!dom) return
+    const { parentNode, nextSibling } = dom
+    dom.remove()
+    return () => parentNode.insertBefore(dom, nextSibling)
+  }
+
   bold() { this.#run("bold") }
   italic() { this.#run("italic") }
   underline() { this.#run("underline") }

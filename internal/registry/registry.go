@@ -1,5 +1,5 @@
-// Package registry loads the component metadata stored in registry/components/*/component.json
-// and resolves which files a set of components needs.
+// Package registry loads the metadata stored in registry/components/*/component.json and
+// registry/extensions/*/component.json and resolves which files a set of components needs.
 package registry
 
 import (
@@ -30,6 +30,12 @@ type Component struct {
 	// Library is set for adapters: components that wrap a third-party library. The library
 	// is not shipped or bundled; the consumer installs it.
 	Library *Library `json:"library"`
+	// Headless tells people using the JavaScript without velle's styles what it expects from
+	// their CSS. Required when a behavior sets or reads class names.
+	Headless string `json:"headless"`
+	// Extension is set for entries under extensions/: optional integrations that are only
+	// installed by name and stay out of the bundles.
+	Extension bool `json:"-"`
 }
 
 // Library describes the third-party package an adapter imports.
@@ -146,15 +152,19 @@ type Registry struct {
 	Components map[string]*Component
 }
 
-// Load reads every components/*/component.json from fsys.
+// Load reads every components/*/component.json and extensions/*/component.json from fsys.
 func Load(fsys fs.FS) (*Registry, error) {
-	paths, err := fs.Glob(fsys, "components/*/component.json")
+	components, err := fs.Glob(fsys, "components/*/component.json")
+	if err != nil {
+		return nil, err
+	}
+	extensions, err := fs.Glob(fsys, "extensions/*/component.json")
 	if err != nil {
 		return nil, err
 	}
 
 	r := &Registry{FS: fsys, Components: map[string]*Component{}}
-	for _, p := range paths {
+	for _, p := range append(components, extensions...) {
 		data, err := fs.ReadFile(fsys, p)
 		if err != nil {
 			return nil, err
@@ -170,6 +180,10 @@ func Load(fsys fs.FS) (*Registry, error) {
 		if dir := path.Base(path.Dir(p)); c.Name != dir {
 			return nil, fmt.Errorf("%s: name %q does not match directory %q", p, c.Name, dir)
 		}
+		if _, taken := r.Components[c.Name]; taken {
+			return nil, fmt.Errorf("%s: the name %q is already used", p, c.Name)
+		}
+		c.Extension = strings.HasPrefix(p, "extensions/")
 		r.Components[c.Name] = &c
 	}
 
@@ -229,14 +243,22 @@ func (r *Registry) Resolve(names []string) ([]*Component, error) {
 	return ordered, nil
 }
 
+// Dir returns the registry directory of a component.
+func (c *Component) Dir() string {
+	if c.Extension {
+		return path.Join("extensions", c.Name)
+	}
+	return path.Join("components", c.Name)
+}
+
 // FilePath returns the registry path of one of a component's files.
 func (c *Component) FilePath(file string) string {
-	return path.Join("components", c.Name, file)
+	return path.Join(c.Dir(), file)
 }
 
 // ExamplePath returns the registry path of one of a component's examples.
 func (c *Component) ExamplePath(file string) string {
-	return path.Join("components", c.Name, "examples", file)
+	return path.Join(c.Dir(), "examples", file)
 }
 
 // HasJS reports whether the component ships JavaScript.

@@ -21,6 +21,8 @@ export declare class Controller<E extends Element = HTMLElement, T extends Targe
   readonly $$: { readonly [K in keyof T]: InstanceType<T[K]>[] }
   connect(): void
   disconnect(): void
+  /** Called by prepareSnapshot(). May return a function that undoes what it did. */
+  beforeSnapshot?(): void | (() => void)
   /** addEventListener that is removed automatically when the controller disconnects. */
   on<K extends keyof HTMLElementEventMap>(
     target: EventTarget,
@@ -58,6 +60,9 @@ export declare function observe(selector: string, callbacks?: {
 
 /** The connected instance of a controller on an element, or null. */
 export declare function controllerFor<C extends Controller<any, any> = Controller>(element: Element, name: string): C | null
+
+/** Calls every connected controller's beforeSnapshot(). The result undoes those changes. */
+export declare function prepareSnapshot(): () => void
 
 /** Trailing-edge debounce. */
 export declare function debounce<F extends (...args: any[]) => void>(fn: F, wait: number): F

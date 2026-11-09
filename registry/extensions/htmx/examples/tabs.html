@@ -1,0 +1,8 @@
+<div class="tabs" data-tabs>
+  <div class="tabs__list" role="tablist" data-tabs-action="keydown.left->prev keydown.right->next">
+    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-tabs-action="select">Summary</button>
+    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-tabs-action="select">Activity</button>
+  </div>
+  <div role="tabpanel" hidden data-tabs-target="tab">Rendered with the page.</div>
+  <div role="tabpanel" hidden data-tabs-target="tab" hx-get="/activity" hx-trigger="velle:tabs:change[detail.index==1] from:closest [data-tabs] once">Loading…</div>
+</div>

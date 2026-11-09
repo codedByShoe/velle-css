@@ -26,6 +26,11 @@ define("datepicker", class extends controller({
     this.flatpickr.destroy()
   }
 
+  beforeSnapshot() {
+    this.disconnect()
+    return () => this.connect()
+  }
+
   get #timeOptions() {
     return { dateFormat: "H:i", enableTime: true, noCalendar: true }
   }

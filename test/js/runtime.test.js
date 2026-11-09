@@ -1,7 +1,7 @@
 import { tick, mount } from "./setup.js"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { define, controller, controllerFor, Controller } from "../../dist/js/velle.js"
+import { define, controller, controllerFor, prepareSnapshot, Controller } from "../../dist/js/velle.js"
 
 // Defines a controller and returns its instance on freshly mounted markup.
 async function connected(name, Class, html = `<div data-${name}></div>`) {
@@ -232,4 +232,63 @@ test("controllerFor returns the instance by name, or null", async () => {
   assert.equal(controllerFor(element, "find-b").name, "find-b")
   assert.equal(controllerFor(element, "nope"), null)
   assert.equal(controllerFor(document.body, "find-a"), null)
+})
+
+test("prepareSnapshot runs each controller's hook and returns its undo", async () => {
+  const calls = []
+  define("snap-a", class extends Controller {
+    beforeSnapshot() {
+      calls.push("a")
+      return () => calls.push("undo a")
+    }
+  })
+  define("snap-b", class extends Controller {
+    beforeSnapshot() { calls.push("b") }
+  })
+  define("snap-none", class extends Controller {})
+  const element = await mount(`<div data-snap-a data-snap-b data-snap-none data-snap-a-action="click->beforeSnapshot"></div>`)
+
+  const undo = prepareSnapshot()
+  assert.deepEqual([ ...calls ].sort(), [ "a", "b" ])
+
+  undo()
+  assert.equal(calls.filter(call => call === "undo a").length, 1)
+  element.remove()
+  await tick()
+})
+
+test("prepareSnapshot skips removed controllers", async () => {
+  let calls = 0
+  define("snap-gone", class extends Controller {
+    beforeSnapshot() { calls++ }
+  })
+  const element = await mount(`<div data-snap-gone></div>`)
+  element.remove()
+  await tick()
+
+  prepareSnapshot()
+
+  assert.equal(calls, 0)
+})
+
+test("a failing beforeSnapshot does not stop the others", async () => {
+  let reached = false
+  const logged = console.error
+  console.error = () => {}
+  define("snap-bad", class extends Controller {
+    beforeSnapshot() { throw new Error("nope") }
+  })
+  define("snap-good", class extends Controller {
+    beforeSnapshot() { reached = true }
+  })
+  const first = await mount(`<div data-snap-bad></div>`)
+  const second = await mount(`<div data-snap-good></div>`)
+
+  prepareSnapshot()()
+  console.error = logged
+
+  assert.equal(reached, true)
+  first.remove()
+  second.remove()
+  await tick()
 })

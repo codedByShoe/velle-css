@@ -1,7 +1,7 @@
 // @ts-check
 // Compile-time checks for velle.d.ts, run by `npm run typecheck`. An expected error that
 // does not occur is itself an error, so each one proves the line below it is rejected.
-import { define, controller, controllerFor, Controller } from "../../dist/js/velle.js"
+import { define, controller, controllerFor, Controller, prepareSnapshot } from "../../dist/js/velle.js"
 
 define("typed", class extends controller({
   targets: { button: HTMLButtonElement },
@@ -53,3 +53,12 @@ define("plain", class extends Controller {
 
 /** @type {Controller | null} */
 export const found = controllerFor(document.body, "plain")
+
+define("snapshots", class extends controller({}) {
+  beforeSnapshot() {
+    return () => {}
+  }
+})
+
+/** @type {() => void} */
+export const undo = prepareSnapshot()

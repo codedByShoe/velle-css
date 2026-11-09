@@ -33,6 +33,8 @@ type Config struct {
 	// velle then prints the tags to add instead.
 	CSSEntry string `json:"cssEntry"`
 	JSEntry  string `json:"jsEntry"`
+	// Headless projects get only JavaScript: no core styles, stylesheets or images.
+	Headless bool `json:"headless,omitempty"`
 }
 
 // Default entry file names, created inside cssDir and jsDir.
@@ -61,6 +63,7 @@ const usage = `velle installs velle-css styles and components into your project.
 
 Usage:
   velle init [--css-dir DIR] [--js-dir DIR] [--images-dir DIR] [--css-entry FILE] [--js-entry FILE]
+  velle init --js [--js-dir DIR] [--js-entry FILE]
   velle add [--overwrite] COMPONENT...
   velle add --all [--overwrite]
   velle new controller [--overwrite] NAME
@@ -70,6 +73,7 @@ Usage:
 Commands:
   init      Write velle.json, copy the core styles (reset, tokens, base, utilities) and
             create main.css and main.js, which import everything velle installs.
+            With --js, set up JavaScript only: no styles or images, now or later.
   add       Copy components and their dependencies and import them in main.css and main.js.
             Existing files are kept unless --overwrite is given.
   new       Create a controller of your own, import it in main.js and set up editor types.
@@ -132,6 +136,7 @@ func (a *App) init(args []string) error {
 	imagesDir := set.String("images-dir", DefaultConfig.ImagesDir, "directory for images")
 	cssEntryFlag := set.String("css-entry", "", "stylesheet that imports everything (default <css-dir>/"+defaultCSSEntry+"; \"none\" to turn off)")
 	jsEntryFlag := set.String("js-entry", "", "module that imports everything (default <js-dir>/"+defaultJSEntry+"; \"none\" to turn off)")
+	headless := set.Bool("js", false, "install only JavaScript, with no styles or images")
 	overwrite := set.Bool("overwrite", false, "replace core files that already exist")
 	if err := set.Parse(args); err != nil {
 		return err
@@ -139,13 +144,20 @@ func (a *App) init(args []string) error {
 	if set.NArg() > 0 {
 		return fmt.Errorf("init takes no arguments, got %q", set.Args())
 	}
+	if *headless {
+		for _, name := range []string{"css-dir", "css-entry", "images-dir"} {
+			if set.Lookup(name).Value.String() != set.Lookup(name).DefValue {
+				return fmt.Errorf("--%s does not apply to a headless project", name)
+			}
+		}
+	}
 
 	config, err := a.readConfig()
 	switch {
 	case err == nil:
 		explicit := false
 		set.Visit(func(f *flag.Flag) {
-			explicit = explicit || strings.HasSuffix(f.Name, "-dir") || strings.HasSuffix(f.Name, "-entry")
+			explicit = explicit || strings.HasSuffix(f.Name, "-dir") || strings.HasSuffix(f.Name, "-entry") || f.Name == "js"
 		})
 		if explicit {
 			return fmt.Errorf("%s already exists; edit it to change directories or entries", ConfigFile)
@@ -158,6 +170,7 @@ func (a *App) init(args []string) error {
 			ImagesDir: *imagesDir,
 			CSSEntry:  entryFlag(*cssEntryFlag, path.Join(*cssDir, defaultCSSEntry)),
 			JSEntry:   entryFlag(*jsEntryFlag, path.Join(*jsDir, defaultJSEntry)),
+			Headless:  *headless,
 		}
 		if err := config.normalize(); err != nil {
 			return err
@@ -169,6 +182,14 @@ func (a *App) init(args []string) error {
 		return err
 	}
 
+	reg, err := registry.Load(a.FS)
+	if err != nil {
+		return err
+	}
+	if config.Headless {
+		return a.initHeadless(config, reg)
+	}
+
 	for _, file := range registry.CoreFiles {
 		target := path.Join(config.CSSDir, strings.TrimPrefix(file, "core/"))
 		if err := a.copy(file, target, *overwrite); err != nil {
@@ -176,10 +197,6 @@ func (a *App) init(args []string) error {
 		}
 	}
 
-	reg, err := registry.Load(a.FS)
-	if err != nil {
-		return err
-	}
 	var core []string
 	for _, name := range []string{"reset.css", "variables.css", "base.css", "utilities.css"} {
 		core = append(core, path.Join(config.CSSDir, name))
@@ -209,6 +226,19 @@ func (a *App) init(args []string) error {
 	return nil
 }
 
+// initHeadless finishes `velle init` for a project that only uses the JavaScript.
+func (a *App) initHeadless(config Config, reg *registry.Registry) error {
+	if err := a.updateEntries(config, reg, nil, nil); err != nil {
+		return err
+	}
+	if config.JSEntry != "" {
+		fmt.Fprintf(a.Stdout, "\nAdd this to your <head> once; velle add keeps it up to date:\n\n")
+		fmt.Fprintf(a.Stdout, "  <script type=\"module\" src=\"/%s\"></script>\n", config.JSEntry)
+	}
+	fmt.Fprintf(a.Stdout, "\nThen add behaviors with: velle add tabs menu …\n")
+	return nil
+}
+
 // entryFlag turns an init flag value into a config entry: unset uses the default, "none"
 // turns the entry off.
 func entryFlag(value, fallback string) string {
@@ -226,7 +256,7 @@ func entryFlag(value, fallback string) string {
 func (a *App) updateEntries(config Config, reg *registry.Registry, stylesheets, scripts []string) error {
 	isKnown := knownFiles(reg)
 
-	if config.CSSEntry != "" {
+	if config.CSSEntry != "" && !config.Headless {
 		if err := a.updateEntry(cssEntry(config.CSSEntry), stylesheets, isKnown); err != nil {
 			return err
 		}
@@ -279,7 +309,11 @@ func (a *App) add(args []string) error {
 		if len(names) > 0 {
 			return errors.New("use either --all or component names, not both")
 		}
-		names = reg.Names()
+		for _, name := range reg.Names() {
+			if !reg.Components[name].Extension {
+				names = append(names, name)
+			}
+		}
 	}
 	if len(names) == 0 {
 		return errors.New("name at least one component; run `velle list` to see them")
@@ -303,6 +337,9 @@ func (a *App) add(args []string) error {
 	var stylesheets, scripts []string
 	for _, c := range components {
 		for _, file := range c.Files {
+			if config.Headless && registry.Kind(file) != registry.KindJS {
+				continue
+			}
 			var dir string
 			switch registry.Kind(file) {
 			case registry.KindCSS:
@@ -342,19 +379,47 @@ func (a *App) add(args []string) error {
 
 	for _, c := range components {
 		if c.Library != nil {
-			a.printLibrary(c)
+			a.printLibrary(c, config.Headless)
 		}
+	}
+	if config.Headless {
+		a.printHeadlessNotes(reg, set.Args(), components)
 	}
 	return nil
 }
 
+// printHeadlessNotes says which requested components had nothing to install and what the
+// installed behaviors expect from the project's own CSS.
+func (a *App) printHeadlessNotes(reg *registry.Registry, requested []string, components []*registry.Component) {
+	for _, name := range requested {
+		if !reg.Components[name].HasJS() {
+			a.status("skip", name+" (styles only; this project is headless)")
+		}
+	}
+	printed := false
+	for _, c := range components {
+		if c.Headless == "" {
+			continue
+		}
+		if !printed {
+			fmt.Fprintf(a.Stdout, "\nThese behaviors expect something from your CSS:\n\n")
+			printed = true
+		}
+		fmt.Fprintf(a.Stdout, "  %s: %s\n", c.Name, c.Headless)
+	}
+}
+
 // printLibrary explains how to install the third-party library an adapter needs.
-func (a *App) printLibrary(c *registry.Component) {
+func (a *App) printLibrary(c *registry.Component, headless bool) {
 	lib := c.Library
+	before := " before " + c.Name + ".css"
+	if headless {
+		before = ""
+	}
 	fmt.Fprintf(a.Stdout, "\n%s needs %s %s, which velle does not install. Either:\n\n", c.Name, lib.Package, lib.Version)
 	fmt.Fprintf(a.Stdout, "  • with a bundler:   npm install %s\n", strings.Join(lib.Packages(), " "))
 	if lib.Stylesheet != "" {
-		fmt.Fprintf(a.Stdout, "                      and import \"%s/%s\" before %s.css\n", lib.Package, lib.Stylesheet, c.Name)
+		fmt.Fprintf(a.Stdout, "                      and import \"%s/%s\"%s\n", lib.Package, lib.Stylesheet, before)
 	}
 	fmt.Fprintf(a.Stdout, "  • without a build:  add it to your import map (before any module script):\n\n")
 	if len(lib.Modules) == 0 {
@@ -377,7 +442,11 @@ func (a *App) printLibrary(c *registry.Component) {
 		fmt.Fprintf(a.Stdout, "      } }</script>\n")
 	}
 	if url := lib.StylesheetURL(); url != "" {
-		fmt.Fprintf(a.Stdout, "      <link rel=\"stylesheet\" href=\"%s\">  <!-- before %s.css -->\n", url, c.Name)
+		comment := ""
+		if !headless {
+			comment = "  <!--" + before + " -->"
+		}
+		fmt.Fprintf(a.Stdout, "      <link rel=\"stylesheet\" href=\"%s\">%s\n", url, comment)
 	}
 }
 
@@ -403,7 +472,7 @@ func (a *App) list(args []string) error {
 		width = max(width, len(name))
 	}
 
-	for _, category := range []string{"Elements", "Forms", "Overlays", "Layout", "Behaviors"} {
+	for _, category := range []string{"Elements", "Forms", "Overlays", "Layout", "Behaviors", "Extensions"} {
 		fmt.Fprintf(a.Stdout, "%s\n", category)
 		for _, c := range byCategory[category] {
 			description := c.Description

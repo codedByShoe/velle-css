@@ -17,6 +17,8 @@
 // the initial state. this.$.x and this.$$.x are target("x") and targets("x"). Listeners
 // added with on(), and anything given this.signal, end when the controller disconnects.
 // controllerFor(element, name) returns a connected instance to code outside controllers.
+// prepareSnapshot() calls each controller's beforeSnapshot(), for libraries that save a copy
+// of the page; beforeSnapshot() can return a function that undoes what it did.
 
 const registrations = []
 const instances = new WeakMap()
@@ -79,6 +81,16 @@ export function define(name, Controller) {
 // The connected instance of a controller on an element, or null.
 export function controllerFor(element, name) {
   return instances.get(element)?.get(name) ?? null
+}
+
+// Asks every connected controller to leave the DOM as a saved copy of the page should have
+// it. Returns a function that puts it back, for a page that stays live after the copy.
+export function prepareSnapshot() {
+  const undo = []
+  for (const element of new Set(registrations.flatMap(({ elements }) => [ ...elements ]))) {
+    instances.get(element)?.forEach(controller => run(() => undo.push(controller.beforeSnapshot?.()), element))
+  }
+  return () => undo.forEach(callback => run(callback))
 }
 
 export class Controller {

@@ -76,13 +76,16 @@ func TestComponentsLoad(t *testing.T) {
 }
 
 func TestRequiredFields(t *testing.T) {
-	categories := map[string]bool{"Elements": true, "Forms": true, "Overlays": true, "Layout": true, "Behaviors": true}
+	categories := map[string]bool{"Elements": true, "Forms": true, "Overlays": true, "Layout": true, "Behaviors": true, "Extensions": true}
 	for _, c := range load(t).Components {
 		if c.Title == "" || c.Description == "" {
 			t.Errorf("%s: title and description are required", c.Name)
 		}
 		if !categories[c.Category] {
 			t.Errorf("%s: unknown category %q", c.Name, c.Category)
+		}
+		if c.Extension != (c.Category == "Extensions") {
+			t.Errorf("%s: only entries under extensions/ belong in the Extensions category", c.Name)
 		}
 		if len(c.Examples) == 0 {
 			t.Errorf("%s: at least one example is required", c.Name)
@@ -121,7 +124,7 @@ func TestEveryFileIsListed(t *testing.T) {
 		for _, f := range c.Files {
 			listed[f] = true
 		}
-		entries, err := fs.ReadDir(r.FS, path.Join("components", c.Name))
+		entries, err := fs.ReadDir(r.FS, c.Dir())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -135,7 +138,7 @@ func TestEveryFileIsListed(t *testing.T) {
 		for _, e := range c.Examples {
 			examples[e.File] = true
 		}
-		files, _ := fs.ReadDir(r.FS, path.Join("components", c.Name, "examples"))
+		files, _ := fs.ReadDir(r.FS, path.Join(c.Dir(), "examples"))
 		for _, e := range files {
 			if !examples[e.Name()] {
 				t.Errorf("%s: example %s is not listed in component.json", c.Name, e.Name())
@@ -250,6 +253,48 @@ func TestAdapters(t *testing.T) {
 		for _, dep := range resolved {
 			if dep.Library != nil {
 				t.Errorf("%s depends on the adapter %s", c.Name, dep.Name)
+			}
+		}
+	}
+}
+
+func TestExtensions(t *testing.T) {
+	r := load(t)
+	extensions := 0
+	for _, c := range r.Components {
+		if c.Extension {
+			extensions++
+			for _, f := range c.Files {
+				if registry.Kind(f) != registry.KindJS {
+					t.Errorf("%s: extensions ship only JavaScript, got %s", c.Name, f)
+				}
+			}
+			continue
+		}
+		resolved, err := r.Resolve([]string{c.Name})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, dep := range resolved {
+			if dep.Extension {
+				t.Errorf("%s depends on the extension %s", c.Name, dep.Name)
+			}
+		}
+	}
+	if extensions == 0 {
+		t.Error("expected at least one extension")
+	}
+}
+
+// A behavior that sets or reads a class name depends on CSS that a headless project has to
+// write itself, so the component must say what it expects.
+func TestBehaviorsThatUseClassesExplainThem(t *testing.T) {
+	usesClass := regexp.MustCompile(`classList\.\w+\("|className = "`)
+	r := load(t)
+	for _, c := range r.Components {
+		for _, f := range c.Files {
+			if registry.Kind(f) == registry.KindJS && usesClass.MatchString(read(t, r.FS, c.FilePath(f))) && c.Headless == "" {
+				t.Errorf("%s: %s uses class names, so component.json needs a headless note", c.Name, f)
 			}
 		}
 	}

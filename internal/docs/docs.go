@@ -26,7 +26,7 @@ var embedded embed.FS
 const Repository = "https://github.com/codedbyshoe/velle-css"
 
 // Categories in navigation order.
-var Categories = []string{"Elements", "Forms", "Overlays", "Layout", "Behaviors"}
+var Categories = []string{"Elements", "Forms", "Overlays", "Layout", "Behaviors", "Extensions"}
 
 // Site holds what every page needs.
 type Site struct {
