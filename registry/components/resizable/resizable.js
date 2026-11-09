@@ -8,13 +8,11 @@ define("resizable", class extends Controller {
 
   connect() {
     this.#applyInitialSizes()
-    this.element.addEventListener("pointerdown", this.#pointerdown)
-    this.element.addEventListener("keydown", this.#keydown)
+    this.on(this.element, "pointerdown", this.#pointerdown)
+    this.on(this.element, "keydown", this.#keydown)
   }
 
   disconnect() {
-    this.element.removeEventListener("pointerdown", this.#pointerdown)
-    this.element.removeEventListener("keydown", this.#keydown)
     this.#stopDragging()
   }
 

@@ -5,6 +5,8 @@ import { controllerFor } from "../../dist/js/velle.js"
 import "../../dist/js/tabs.js"
 import "../../dist/js/menu.js"
 import "../../dist/js/form.js"
+import "../../dist/js/input_otp.js"
+import "../../dist/js/dual_range.js"
 
 const tabsMarkup = index => `
   <div data-tabs ${index === undefined ? "" : `data-tabs-index="${index}"`}>
@@ -207,4 +209,67 @@ test("form disableSubmitWhenInvalid and cancel use their targets", async () => {
   cancel.addEventListener("click", () => cancelled = true)
   instance.cancel()
   assert.equal(cancelled, true)
+})
+
+const otpMarkup = pattern => `
+  <div data-input-otp ${pattern ? `data-input-otp-pattern="${pattern}"` : ""}>
+    <input data-input-otp-target="input">
+    <span data-input-otp-target="slot"></span>
+    <span data-input-otp-target="slot"></span>
+    <span data-input-otp-target="slot"></span>
+  </div>`
+
+function typeOtp(root, value) {
+  const input = root.querySelector("input")
+  input.value = value
+  input.dispatchEvent(new Event("input"))
+  return [ ...root.querySelectorAll("span") ].map(slot => slot.textContent)
+}
+
+test("input_otp filters by pattern, defaulting to digits", async () => {
+  assert.deepEqual(typeOtp(await mount(otpMarkup()), "a1b2"), [ "1", "2", "" ])
+  assert.deepEqual(typeOtp(await mount(otpMarkup("chars")), "a1b2"), [ "a", "b", "" ])
+})
+
+test("input_otp announces completion and stops listening once removed", async () => {
+  const root = await mount(otpMarkup())
+  const completed = []
+  root.addEventListener("velle:input-otp:complete", event => completed.push(event.detail.value))
+
+  typeOtp(root, "123")
+  assert.deepEqual(completed, [ "123" ])
+
+  root.remove()
+  await tick()
+  assert.deepEqual(typeOtp(root, "456"), [ "1", "2", "3" ])
+  assert.deepEqual(completed, [ "123" ])
+})
+
+const rangeMarkup = precision => `
+  <div data-dual-range ${precision === undefined ? "" : `data-dual-range-precision="${precision}"`}>
+    <input type="range" min="0" max="100" value="20" data-dual-range-target="min">
+    <input type="range" min="0" max="100" value="80" data-dual-range-target="max">
+  </div>`
+
+test("dual_range reads its precision, defaulting to 3", async () => {
+  const fallback = await mount(rangeMarkup())
+  assert.equal(fallback.querySelector("input").max, "50.000")
+
+  const custom = await mount(rangeMarkup(1))
+  assert.equal(custom.querySelector("input").max, "50.0")
+})
+
+test("dual_range keeps updating while connected and stops once removed", async () => {
+  const root = await mount(rangeMarkup())
+  const [ min ] = root.querySelectorAll("input")
+
+  min.value = "40"
+  min.dispatchEvent(new Event("input"))
+  assert.equal(min.max, "60.000")
+
+  root.remove()
+  await tick()
+  min.value = "10"
+  min.dispatchEvent(new Event("input"))
+  assert.equal(min.max, "60.000")
 })

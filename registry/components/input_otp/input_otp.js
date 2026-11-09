@@ -1,4 +1,4 @@
-import { define, Controller } from "./velle.js"
+import { define, controller } from "./velle.js"
 
 const PATTERNS = {
   "digits": /\d/,
@@ -8,35 +8,25 @@ const PATTERNS = {
 
 // A one-time-code field: one real <input> laid over a row of slots. The input does the
 // typing, pasting and autofill; this script shows each character in its slot.
-define("input-otp", class extends Controller {
+define("input-otp", class extends controller({ values: { pattern: "digits" } }) {
   #focused = false
 
   connect() {
     const input = this.#input
     if (!input.hasAttribute("maxlength")) input.maxLength = this.#slots.length
     if (!input.hasAttribute("autocomplete")) input.autocomplete = "one-time-code"
-    if (!input.hasAttribute("inputmode")) input.inputMode = this.#pattern === "digits" ? "numeric" : "text"
+    if (!input.hasAttribute("inputmode")) input.inputMode = this.pattern === "digits" ? "numeric" : "text"
     if (!input.hasAttribute("spellcheck")) input.spellcheck = false
 
-    input.addEventListener("input", this.#changed)
-    input.addEventListener("focus", this.#focus)
-    input.addEventListener("blur", this.#blur)
-    input.addEventListener("select", this.#moveCaretToEnd)
-    input.addEventListener("click", this.#moveCaretToEnd)
-    input.addEventListener("keyup", this.#moveCaretToEnd)
+    this.on(input, "input", this.#changed)
+    this.on(input, "focus", this.#focus)
+    this.on(input, "blur", this.#blur)
+    this.on(input, "select", this.#moveCaretToEnd)
+    this.on(input, "click", this.#moveCaretToEnd)
+    this.on(input, "keyup", this.#moveCaretToEnd)
 
     input.value = this.#sanitize(input.value)
     this.#render()
-  }
-
-  disconnect() {
-    const input = this.#input
-    input.removeEventListener("input", this.#changed)
-    input.removeEventListener("focus", this.#focus)
-    input.removeEventListener("blur", this.#blur)
-    input.removeEventListener("select", this.#moveCaretToEnd)
-    input.removeEventListener("click", this.#moveCaretToEnd)
-    input.removeEventListener("keyup", this.#moveCaretToEnd)
   }
 
   #changed = () => {
@@ -81,7 +71,7 @@ define("input-otp", class extends Controller {
   }
 
   #sanitize(value) {
-    const allowed = PATTERNS[this.#pattern] ?? PATTERNS.digits
+    const allowed = PATTERNS[this.pattern] ?? PATTERNS.digits
     return [ ...value ].filter(character => allowed.test(character)).join("").slice(0, this.#slots.length)
   }
 
@@ -91,9 +81,5 @@ define("input-otp", class extends Controller {
 
   get #slots() {
     return this.targets("slot")
-  }
-
-  get #pattern() {
-    return this.data("pattern") ?? "digits"
   }
 })

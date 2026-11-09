@@ -598,10 +598,10 @@ define("command", class extends Controller {
     this.#input.setAttribute("role", "combobox")
     this.#input.setAttribute("aria-expanded", "true")
     this.#input.setAttribute("aria-autocomplete", "list")
-    this.#input.addEventListener("input", this.#filter)
-    this.#input.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("pointermove", this.#pointermove)
-    this.element.addEventListener("click", this.#click)
+    this.on(this.#input, "input", this.#filter)
+    this.on(this.#input, "keydown", this.#keydown)
+    this.on(this.element, "pointermove", this.#pointermove)
+    this.on(this.element, "click", this.#click)
 
     // Start fresh every time the palette becomes visible, e.g. when its dialog opens.
     this.#observer = new IntersectionObserver(([ entry ]) => entry.isIntersecting && this.reset())
@@ -610,10 +610,6 @@ define("command", class extends Controller {
   }
 
   disconnect() {
-    this.#input.removeEventListener("input", this.#filter)
-    this.#input.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("pointermove", this.#pointermove)
-    this.element.removeEventListener("click", this.#click)
     this.#observer.disconnect()
   }
 
@@ -732,12 +728,11 @@ define("confirm-dialog", class extends Controller {
 
   connect() {
     confirmDialog = this
-    this.element.addEventListener("close", this.#submit)
+    this.on(this.element, "close", this.#submit)
   }
 
   disconnect() {
     if (confirmDialog === this) confirmDialog = null
-    this.element.removeEventListener("close", this.#submit)
   }
 
   confirm(message, text) {
@@ -854,7 +849,15 @@ const MESSAGES = {
 
 // A drop area for a file input. Dropped and picked files are validated, previewed and kept
 // in the input, so they are submitted with the form like any other file field.
-define("dropzone", class extends Controller {
+define("dropzone", class extends controller({
+  values: {
+    typeMessage: MESSAGES.type,
+    sizeMessage: MESSAGES.size,
+    countMessage: MESSAGES.count,
+    maxFileSize: Infinity,
+    maxFiles: Infinity,
+  },
+}) {
   #files = []
   #rejected = []
   #urls = new Map()
@@ -862,19 +865,14 @@ define("dropzone", class extends Controller {
 
   connect() {
     for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.addEventListener(type, this.#drag)
+      this.on(this.element, type, this.#drag)
     }
-    this.#input.addEventListener("change", this.#picked)
-    this.#input.form?.addEventListener("reset", this.#reset)
+    this.on(this.#input, "change", this.#picked)
+    if (this.#input.form) this.on(this.#input.form, "reset", this.#reset)
     this.#render()
   }
 
   disconnect() {
-    for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.removeEventListener(type, this.#drag)
-    }
-    this.#input.removeEventListener("change", this.#picked)
-    this.#input.form?.removeEventListener("reset", this.#reset)
     this.#urls.forEach(url => URL.revokeObjectURL(url))
     this.#urls.clear()
   }
@@ -937,9 +935,9 @@ define("dropzone", class extends Controller {
   }
 
   #validate(file) {
-    if (!this.#accepts(file)) return this.data("type-message") ?? MESSAGES.type
-    if (this.hasData("max-file-size") && file.size > Number(this.data("max-file-size")) * 1024 * 1024) return this.data("size-message") ?? MESSAGES.size
-    if (this.hasData("max-files") && this.#files.length >= Number(this.data("max-files"))) return this.data("count-message") ?? MESSAGES.count
+    if (!this.#accepts(file)) return this.typeMessage
+    if (file.size > this.maxFileSize * 1024 * 1024) return this.sizeMessage
+    if (this.#files.length >= this.maxFiles) return this.countMessage
     return null
   }
 
@@ -1050,7 +1048,7 @@ define("dropzone", class extends Controller {
 // Two range inputs that select a minimum and a maximum on one track. Each input is resized
 // to cover its half of the range, split at the midpoint between the two values.
 // Technique from @stanko/dual-range-input (MIT, https://muffinman.io/dual-range-input).
-define("dual-range", class extends Controller {
+define("dual-range", class extends controller({ values: { precision: 3 } }) {
   #min
   #max
 
@@ -1059,20 +1057,13 @@ define("dual-range", class extends Controller {
     this.#max = this.target("max")
 
     for (const type of [ "input", "focus", "mousedown", "touchstart" ]) {
-      this.#min.addEventListener(type, this.#updateCeil, { passive: true })
-      this.#max.addEventListener(type, this.#updateFloor, { passive: true })
+      this.on(this.#min, type, this.#updateCeil, { passive: true })
+      this.on(this.#max, type, this.#updateFloor, { passive: true })
     }
 
     this.#update("ceil")
     this.#min.setAttribute("data-ready", "")
     this.#max.setAttribute("data-ready", "")
-  }
-
-  disconnect() {
-    for (const type of [ "input", "focus", "mousedown", "touchstart" ]) {
-      this.#min.removeEventListener(type, this.#updateCeil)
-      this.#max.removeEventListener(type, this.#updateFloor)
-    }
   }
 
   // Moving the minimum rounds the midpoint up, moving the maximum rounds it down, so the
@@ -1103,11 +1094,7 @@ define("dual-range", class extends Controller {
   }
 
   #fixed(number) {
-    return number.toFixed(this.#precision)
-  }
-
-  get #precision() {
-    return this.hasData("precision") ? Number(this.data("precision")) : 3
+    return number.toFixed(this.precision)
   }
 })
 }
@@ -1294,35 +1281,25 @@ const PATTERNS = {
 
 // A one-time-code field: one real <input> laid over a row of slots. The input does the
 // typing, pasting and autofill; this script shows each character in its slot.
-define("input-otp", class extends Controller {
+define("input-otp", class extends controller({ values: { pattern: "digits" } }) {
   #focused = false
 
   connect() {
     const input = this.#input
     if (!input.hasAttribute("maxlength")) input.maxLength = this.#slots.length
     if (!input.hasAttribute("autocomplete")) input.autocomplete = "one-time-code"
-    if (!input.hasAttribute("inputmode")) input.inputMode = this.#pattern === "digits" ? "numeric" : "text"
+    if (!input.hasAttribute("inputmode")) input.inputMode = this.pattern === "digits" ? "numeric" : "text"
     if (!input.hasAttribute("spellcheck")) input.spellcheck = false
 
-    input.addEventListener("input", this.#changed)
-    input.addEventListener("focus", this.#focus)
-    input.addEventListener("blur", this.#blur)
-    input.addEventListener("select", this.#moveCaretToEnd)
-    input.addEventListener("click", this.#moveCaretToEnd)
-    input.addEventListener("keyup", this.#moveCaretToEnd)
+    this.on(input, "input", this.#changed)
+    this.on(input, "focus", this.#focus)
+    this.on(input, "blur", this.#blur)
+    this.on(input, "select", this.#moveCaretToEnd)
+    this.on(input, "click", this.#moveCaretToEnd)
+    this.on(input, "keyup", this.#moveCaretToEnd)
 
     input.value = this.#sanitize(input.value)
     this.#render()
-  }
-
-  disconnect() {
-    const input = this.#input
-    input.removeEventListener("input", this.#changed)
-    input.removeEventListener("focus", this.#focus)
-    input.removeEventListener("blur", this.#blur)
-    input.removeEventListener("select", this.#moveCaretToEnd)
-    input.removeEventListener("click", this.#moveCaretToEnd)
-    input.removeEventListener("keyup", this.#moveCaretToEnd)
   }
 
   #changed = () => {
@@ -1367,7 +1344,7 @@ define("input-otp", class extends Controller {
   }
 
   #sanitize(value) {
-    const allowed = PATTERNS[this.#pattern] ?? PATTERNS.digits
+    const allowed = PATTERNS[this.pattern] ?? PATTERNS.digits
     return [ ...value ].filter(character => allowed.test(character)).join("").slice(0, this.#slots.length)
   }
 
@@ -1377,10 +1354,6 @@ define("input-otp", class extends Controller {
 
   get #slots() {
     return this.targets("slot")
-  }
-
-  get #pattern() {
-    return this.data("pattern") ?? "digits"
   }
 })
 }
@@ -1403,13 +1376,8 @@ define("input-revealable", class extends Controller {
 // Shows the popover named by data-interest-for while the pointer hovers the element.
 define("interest", class extends Controller {
   connect() {
-    this.element.addEventListener("mouseenter", this.#show)
-    this.element.addEventListener("mouseleave", this.#hide)
-  }
-
-  disconnect() {
-    this.element.removeEventListener("mouseenter", this.#show)
-    this.element.removeEventListener("mouseleave", this.#hide)
+    this.on(this.element, "mouseenter", this.#show)
+    this.on(this.element, "mouseleave", this.#hide)
   }
 
   #show = () => {
@@ -1634,13 +1602,11 @@ define("resizable", class extends Controller {
 
   connect() {
     this.#applyInitialSizes()
-    this.element.addEventListener("pointerdown", this.#pointerdown)
-    this.element.addEventListener("keydown", this.#keydown)
+    this.on(this.element, "pointerdown", this.#pointerdown)
+    this.on(this.element, "keydown", this.#keydown)
   }
 
   disconnect() {
-    this.element.removeEventListener("pointerdown", this.#pointerdown)
-    this.element.removeEventListener("keydown", this.#keydown)
     this.#stopDragging()
   }
 
@@ -1921,7 +1887,7 @@ define("upload-preview", class extends Controller {
 // Prefix for the names of shared files, e.g. "my_application_x1y2z3.jpg".
 const APPLICATION_NAME = "my_application"
 
-define("web-share", class extends Controller {
+define("web-share", class extends controller({ values: { title: "", text: "", url: "", file: "" } }) {
   connect() {
     this.element.hidden = !navigator.canShare
   }
@@ -1933,13 +1899,13 @@ define("web-share", class extends Controller {
   }
 
   async #getShareData() {
-    const data = { title: this.data("title") ?? "", text: this.data("text") ?? "" }
+    const data = { title: this.title, text: this.text }
 
-    if (this.data("url")) {
-      data.url = this.data("url")
+    if (this.url) {
+      data.url = this.url
     }
 
-    if (this.data("file")) {
+    if (this.file) {
       data.files = [await this.#getFileObject()]
     }
 
@@ -1947,7 +1913,7 @@ define("web-share", class extends Controller {
   }
 
   async #getFileObject() {
-    const response = await fetch(this.data("file"))
+    const response = await fetch(this.file)
     const blob = await response.blob()
     const randomPrefix = `${APPLICATION_NAME}_${Math.random().toString(36).slice(2)}`
     const fileName = `${randomPrefix}.${blob.type.split('/').pop()}`
