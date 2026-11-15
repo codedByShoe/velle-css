@@ -1,8 +1,8 @@
-<div class="tabs" data-tabs>
-  <div class="tabs__list" role="tablist" data-tabs-action="keydown.left->prev keydown.right->next">
-    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-tabs-action="select">Summary</button>
-    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-tabs-action="select">Activity</button>
+<div class="tabs" data-controller="tabs">
+  <div class="tabs__list" role="tablist" data-action="keydown.left->tabs#prev keydown.right->tabs#next">
+    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-action="tabs#select">Summary</button>
+    <button type="button" class="btn tabs__button" role="tab" data-tabs-target="button" data-action="tabs#select">Activity</button>
   </div>
   <div role="tabpanel" hidden data-tabs-target="tab">Rendered with the page.</div>
-  <div role="tabpanel" hidden data-tabs-target="tab" hx-get="/activity" hx-trigger="velle:tabs:change[detail.index==1] from:closest [data-tabs] once">Loading…</div>
+  <div role="tabpanel" hidden data-tabs-target="tab" hx-get="/activity" hx-trigger="tabs:change[detail.index==1] from:closest .tabs once">Loading…</div>
 </div>

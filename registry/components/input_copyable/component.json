@@ -3,16 +3,16 @@
   "title": "Input Copyable",
   "category": "Forms",
   "description": "A read-only field with a button that copies its value to the clipboard.",
-  "files": ["input_copyable.css", "input_copyable.js"],
+  "files": ["input_copyable.css", "input_copyable_controller.js"],
   "dependencies": ["input", "button", "icons"],
   "classes": [
     { "name": "input--copied", "description": "Added by the script after a successful copy; it animates the button icon." }
   ],
   "variables": [],
   "attributes": [
-    { "name": "data-input-copyable", "element": "wrapper", "description": "Enables the behavior." },
+    { "name": "data-controller=\"input-copyable\"", "element": "wrapper", "description": "Enables the behavior." },
     { "name": "data-input-copyable-target=\"input\"", "element": "<input> or <textarea>", "description": "The field whose value is copied." },
-    { "name": "data-input-copyable-action=\"copy\"", "element": "<button>", "description": "Copies the value." }
+    { "name": "data-action=\"input-copyable#copy\"", "element": "<button>", "description": "Copies the value." }
   ],
   "actions": [
     { "name": "copy", "description": "Writes the value to the clipboard and adds input--copied to the wrapper." }

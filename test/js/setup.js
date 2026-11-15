@@ -5,7 +5,7 @@ const { window } = new JSDOM("<!doctype html><html><body></body></html>", { pret
 
 globalThis.window = window
 // AbortController must be jsdom's: its addEventListener rejects a signal from Node's.
-for (const name of [ "document", "Node", "Element", "HTMLElement", "HTMLButtonElement", "MutationObserver", "Event", "CustomEvent", "KeyboardEvent", "AbortController", "AbortSignal" ]) {
+for (const name of [ "document", "Node", "Element", "HTMLElement", "HTMLButtonElement", "MutationObserver", "Event", "CustomEvent", "KeyboardEvent", "MouseEvent", "AbortController", "AbortSignal" ]) {
   globalThis[name] = window[name]
 }
 globalThis.getComputedStyle = window.getComputedStyle.bind(window)

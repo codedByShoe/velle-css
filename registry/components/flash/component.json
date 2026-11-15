@@ -5,7 +5,7 @@
   "description": "A toast notification that slides in at the top of the page, then hides itself after 5 seconds. Hovering or focusing pauses it.",
   "files": [
     "flash.css",
-    "flash.js"
+    "flash_controller.js"
   ],
   "dependencies": [],
   "classes": [
@@ -36,12 +36,12 @@
   ],
   "attributes": [
     {
-      "name": "data-flash",
+      "name": "data-controller=\"flash\"",
       "element": ".flash",
       "description": "Shows the popover as soon as the element is on the page, including elements inserted later."
     },
     {
-      "name": "data-flash-action=\"animationend->hide\"",
+      "name": "data-action=\"animationend->flash#hide\"",
       "element": ".flash",
       "description": "Hides the popover when the CSS animation finishes."
     }

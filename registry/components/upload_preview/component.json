@@ -4,7 +4,7 @@
   "category": "Forms",
   "description": "Shows a picked image before the form is submitted, and lets the user remove it.",
   "files": [
-    "upload_preview.js"
+    "upload_preview_controller.js"
   ],
   "dependencies": [
     "avatar",
@@ -15,12 +15,12 @@
   "variables": [],
   "attributes": [
     {
-      "name": "data-upload-preview",
+      "name": "data-controller=\"upload-preview\"",
       "element": "root",
       "description": "Wraps the file input, the image and the remove button."
     },
     {
-      "name": "data-upload-preview-default-image",
+      "name": "data-upload-preview-default-image-value",
       "element": "root",
       "description": "Image shown after the user removes the picture, e.g. the avatar.svg placeholder that velle add avatar installs."
     },
@@ -30,9 +30,9 @@
       "description": "input (the <input type=\"file\">), image (the <img>) and removeInput (a hidden input set to true when the picture is removed)."
     },
     {
-      "name": "data-upload-preview-action",
+      "name": "data-action",
       "element": "file input, remove button",
-      "description": "\"previewImage\" on the file input (it runs on input); \"click->clear\" on the remove button."
+      "description": "\"upload-preview#previewImage\" on the file input (it runs on input); \"click->upload-preview#clear\" on the remove button."
     }
   ],
   "actions": [

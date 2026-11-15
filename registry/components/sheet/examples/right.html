@@ -1,6 +1,6 @@
 <button type="button" class="btn" commandfor="sheet_right" command="show-modal">Open</button>
 
-<dialog id="sheet_right" class="sheet sheet--right" data-dialog data-dialog-action="click->closeOnClickOutside" aria-labelledby="sheet_right_title" aria-describedby="sheet_right_text">
+<dialog id="sheet_right" class="sheet sheet--right" data-controller="dialog" data-action="click->dialog#closeOnClickOutside" aria-labelledby="sheet_right_title" aria-describedby="sheet_right_text">
   <button type="button" class="btn btn--plain sheet__close" commandfor="sheet_right" command="close">
     <span class="icon icon--x" aria-hidden="true"></span>
     <span class="sr-only">Close</span>

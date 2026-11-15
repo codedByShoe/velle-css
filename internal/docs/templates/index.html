@@ -3,8 +3,8 @@
   <h1>velle-css</h1>
   <p class="docs-lead">
     CSS components that work with any stack. Plain CSS with design tokens and
-    utilities, a small dependency-free JavaScript runtime for interactive
-    pieces, and a Go CLI that copies only what you use into your project.
+    utilities, Stimulus controllers for interactive pieces, and a Go CLI that
+    copies only what you use into your project.
   </p>
 </header>
 
@@ -39,7 +39,8 @@ velle list                  # shows every component</code></pre>
   <p>
     The CLI keeps two entry files up to date: <code>main.css</code>, which
     <code>@import</code>s every installed stylesheet, and <code>main.js</code>,
-    which imports every installed behavior. Add them to your layout once:
+    which imports every installed controller and registers it with Stimulus.
+    Add them to your layout once:
   </p>
   <pre
     class="docs-pre"
@@ -61,18 +62,19 @@ velle list                  # shows every component</code></pre>
     to <code>velle init</code>) to use other files, for example your own
     <code>app.css</code>. Set them to <code>""</code> (or pass
     <code>none</code>) to manage tags yourself; <code>velle add</code> then
-    prints the tags to add.
+    prints the tags and the controller registrations to add.
   </p>
 
   <h3 id="install-cdn">From GitHub, without the CLI</h3>
   <p>
     Every release includes a <code>dist/</code> folder. Load everything from the
     jsDelivr CDN, replacing <code>v{{.Site.Version}}</code> with the release you
-    want:
+    want. The import map provides Stimulus, which velle does not ship:
   </p>
   <pre
     class="docs-pre"
   ><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Site.Version}}/dist/velle.css"&gt;
+&lt;script type="importmap"&gt;{ "imports": { "{{.Site.Stimulus.Package}}": "{{.Site.Stimulus.ESM}}" } }&lt;/script&gt;
 &lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Site.Version}}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
   <p>
     You can also download the repository and copy files from
@@ -101,10 +103,12 @@ velle list                  # shows every component</code></pre>
     </li>
     <li>
       Adapters are not in <code>dist/velle.js</code> or
-      <code>dist/velle.css</code>, so the bundles stay dependency-free. Load
-      them from <code>dist/adapters/</code>, where they share the bundle's
-      runtime, or install them with <code>velle add</code>, which also prints
-      the install instructions.
+      <code>dist/velle.css</code>, so the bundles only need Stimulus. With the
+      bundles, load the controller from <code>dist/js/</code> and register it
+      with the application the bundle exports (see
+      <a class="text-link" href="javascript.html#loading">JavaScript</a>), or
+      install it with <code>velle add</code>, which also prints the install
+      instructions.
     </li>
     <li><code>velle list</code> marks adapters with the library they need.</li>
   </ul>
@@ -130,8 +134,9 @@ velle list                  # shows every component</code></pre>
 
   &lt;link rel="stylesheet" href="/assets/css/velle/utilities.css"&gt;
 
-  &lt;!-- behaviors you use; each one loads velle.js itself --&gt;
-  &lt;script type="module" src="/assets/js/velle/dialog.js"&gt;&lt;/script&gt;
+  &lt;!-- Stimulus, then a module that registers the controllers you use --&gt;
+  &lt;script type="importmap"&gt;{ "imports": { "{{.Site.Stimulus.Package}}": "{{.Site.Stimulus.ESM}}" } }&lt;/script&gt;
+  &lt;script type="module" src="/assets/js/app.js"&gt;&lt;/script&gt;
 &lt;/head&gt;</code></pre>
   <p>
     Keep component stylesheets in alphabetical order, as css-zero did. A few
@@ -145,7 +150,7 @@ velle list                  # shows every component</code></pre>
     class="docs-pre"
   ><code>&lt;button type="button" class="btn btn--primary" commandfor="welcome" command="show-modal"&gt;Open&lt;/button&gt;
 
-&lt;dialog id="welcome" class="dialog" data-dialog data-dialog-action="click-&gt;closeOnClickOutside"&gt;
+&lt;dialog id="welcome" class="dialog" data-controller="dialog" data-action="click-&gt;dialog#closeOnClickOutside"&gt;
   &lt;div class="dialog__content"&gt;Hello!&lt;/div&gt;
 &lt;/dialog&gt;</code></pre>
 </section>
@@ -191,8 +196,8 @@ velle list                  # shows every component</code></pre>
     <div>
       <dt><a class="text-link" href="javascript.html">JavaScript</a></dt>
       <dd>
-        Interactive components use data attributes and a tiny runtime with no
-        dependencies. Native HTML does the rest: <code>&lt;dialog&gt;</code>,
+        Interactive components are Stimulus controllers driven by data
+        attributes. Native HTML does the rest: <code>&lt;dialog&gt;</code>,
         <code>popover</code>, invoker commands and <code>&lt;details&gt;</code>.
       </dd>
     </div>
@@ -219,16 +224,15 @@ velle list                  # shows every component</code></pre>
   <h2 id="differences">Differences from css-zero</h2>
   <ul class="docs-list">
     <li>
-      No Rails, Hotwire or Stimulus. The Stimulus controllers were rewritten as
-      vanilla JavaScript on a small runtime with the same lifecycle; see
+      No Rails or Turbo. The controllers are still Stimulus controllers, but
+      they load without importmap-rails: the CLI registers them in
+      <code>main.js</code>; see
       <a class="text-link" href="javascript.html">JavaScript</a>.
     </li>
     <li>
-      Markup changes from <code>data-controller="tabs"</code> to
-      <code>data-tabs</code>, from <code>data-action="tabs#select"</code> to
-      <code>data-tabs-action="select"</code>, and from
-      <code>data-x-name-value</code> to <code>data-x-name</code>. Targets keep
-      the <code>data-x-target</code> form.
+      <a class="text-link" href="local_time.html">local_time</a> goes on each
+      <code>&lt;time&gt;</code> (<code>data-controller="local-time"</code>)
+      instead of a root around them.
     </li>
     <li>
       <code>back_navigation</code> was removed: it depended on Turbo's history

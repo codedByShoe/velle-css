@@ -3,7 +3,7 @@
   "title": "Dual Range",
   "category": "Forms",
   "description": "A slider with two thumbs for picking a minimum and a maximum, built from two native range inputs.",
-  "files": ["dual_range.css", "dual_range.js"],
+  "files": ["dual_range.css", "dual_range_controller.js"],
   "dependencies": [],
   "classes": [
     { "name": "dual-range", "description": "Wraps exactly two <input type=\"range\">: the minimum first, the maximum second." }
@@ -18,10 +18,10 @@
     { "name": "--dual-range-fill-color", "default": "var(--color-primary)", "description": "Color of the selected part of the track." }
   ],
   "attributes": [
-    { "name": "data-dual-range", "element": ".dual-range", "description": "Enables the behavior." },
+    { "name": "data-controller=\"dual-range\"", "element": ".dual-range", "description": "Enables the behavior." },
     { "name": "data-dual-range-target=\"min\"", "element": "first range input", "description": "The minimum. Give both inputs the same min, max and step." },
     { "name": "data-dual-range-target=\"max\"", "element": "second range input", "description": "The maximum." },
-    { "name": "data-dual-range-precision", "element": ".dual-range", "description": "Decimal places used for the internal midpoint. Defaults to 3." }
+    { "name": "data-dual-range-precision-value", "element": ".dual-range", "description": "Decimal places used for the internal midpoint. Defaults to 3." }
   ],
   "actions": [],
   "events": [],

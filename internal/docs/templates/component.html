@@ -12,9 +12,9 @@
 
 <section class="docs-section" aria-labelledby="installation">
   <h2 id="installation">Installation</h2>
-  <div class="input input--actor flex items-center gap docs-install" data-input-copyable>
+  <div class="input input--actor flex items-center gap docs-install" data-controller="input-copyable">
     <input type="text" value="velle add {{.Name}}" readonly aria-label="Install command" data-input-copyable-target="input">
-    <button type="button" class="btn btn--plain" data-input-copyable-action="copy">
+    <button type="button" class="btn btn--plain" data-action="input-copyable#copy">
       <span class="icon icon--copy" aria-hidden="true"></span>
       <span class="sr-only">Copy command</span>
     </button>
@@ -46,7 +46,7 @@
   <p>Map the package name to a CDN build in an import map, placed before any module script:</p>
   <pre class="docs-pre"><code>{{$.Component.ImportMapEntry}}{{if .Stylesheet}}
 &lt;link rel="stylesheet" href="{{.StylesheetURL}}"&gt; &lt;!-- before {{$.Component.Name}}.css --&gt;{{end}}</code></pre>
-  <p>When you use the <code>dist/velle.js</code> bundle, load the adapter from <code>dist/adapters/</code>: those copies share the bundle's runtime.</p>
+  <p>When you use the <code>dist/velle.js</code> bundle, load the adapter's controller from <code>dist/js/</code> and register it with the application the bundle exports; see <a class="text-link" href="javascript.html#loading">JavaScript</a>.</p>
 </section>
 {{end}}{{end}}
 
@@ -66,9 +66,9 @@
     </div>
     {{end}}
 
-    <div class="docs-code" data-input-copyable>
+    <div class="docs-code" data-controller="input-copyable">
       <textarea hidden data-input-copyable-target="input">{{.Code}}</textarea>
-      <button type="button" class="btn btn--icon-sm btn--borderless docs-code__copy" data-input-copyable-action="copy">
+      <button type="button" class="btn btn--icon-sm btn--borderless docs-code__copy" data-action="input-copyable#copy">
         <span class="icon icon--copy" aria-hidden="true"></span>
         <span class="sr-only">Copy code</span>
       </button>

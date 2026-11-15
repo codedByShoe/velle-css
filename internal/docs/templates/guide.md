@@ -1,6 +1,6 @@
 # velle-css guide
 
-velle-css is a set of plain CSS components with design tokens and utility classes, plus a small dependency-free JavaScript runtime (`velle.js`) for the interactive pieces. It works with any backend or framework: write HTML with the documented classes and data attributes.
+velle-css is a set of plain CSS components with design tokens and utility classes, plus [Stimulus](https://stimulus.hotwired.dev) controllers for the interactive pieces. It works with any backend or framework: write HTML with the documented classes and data attributes.
 
 ## Install
 
@@ -21,7 +21,13 @@ Then the layout needs two tags:
 <script type="module" src="/assets/js/velle/main.js"></script>
 ```
 
-Or use the release bundles from a CDN (they contain every component except the adapters):
+The controllers import `{{.Stimulus.Package}}`, which velle does not ship. With a bundler, `npm install {{.Stimulus.Package}}@{{.Stimulus.Version}}`. Without one, map it in an import map before any module script:
+
+```html
+<script type="importmap">{ "imports": { "{{.Stimulus.Package}}": "{{.Stimulus.ESM}}" } }</script>
+```
+
+Or use the release bundles from a CDN, with the same import map (they contain every component except the adapters):
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Version}}/dist/velle.css">
@@ -32,15 +38,15 @@ When loading stylesheets yourself, use this order: `reset.css`, `variables.css`,
 
 ## Using the JavaScript without the CSS
 
-The behaviors work on any markup and don't need velle's stylesheets:
+The controllers work on any markup and don't need velle's stylesheets:
 
 ```sh
 velle init --js           # writes velle.json and main.js, and no styles
 velle add tabs menu       # copies only their JavaScript
-velle new controller cart # or start from the bare runtime
+velle new controller cart # or start a controller of your own
 ```
 
-Without the CLI, `dist/js/velle.js` is the runtime alone and `dist/velle.js` is the runtime with every behavior. Neither loads any CSS. Behaviors expose state through ARIA and standard attributes such as `aria-selected`, `hidden` and `open`. A few also use class names or need a particular layout; each of those component pages says what it expects, and `velle add` prints the same note.
+Without the CLI, `dist/js/` holds `application.js` and every controller on its own, and `dist/velle.js` is all of them in one module. Neither loads any CSS. Controllers expose state through ARIA and standard attributes such as `aria-selected`, `hidden` and `open`. A few also use class names or need a particular layout; each of those component pages says what it expects, and `velle add` prints the same note.
 
 ## Writing markup
 
@@ -49,196 +55,134 @@ Without the CLI, `dist/js/velle.js` is the runtime alone and `dist/velle.js` is 
 - Prefer native elements: `<dialog>`, `<details>`, the `popover` attribute, and `commandfor`/`command` buttons.
 - Mark decorative icons `aria-hidden="true"` and give icon-only buttons an `aria-label`.
 
-## JavaScript runtime
+## JavaScript
 
-Every interactive component is an ES module that imports `./velle.js`. It connects plain data attributes to a controller and works on markup added at any time (server-rendered pages, htmx swaps, client frameworks). Nothing needs to be re-initialized.
+Every interactive component is a Stimulus controller in a file named after it, such as `tabs_controller.js`, which exports the controller class. `application.js` starts the Stimulus application, and `main.js` imports both and registers each controller under its identifier:
 
-Each behavior has a name, such as `tabs`, and reads these attributes:
+```js
+import { application } from "./application.js"
+import TabsController from "./tabs_controller.js"
+application.register("tabs", TabsController)
+```
 
-- `data-NAME`: marks the root element. Each root gets its own controller instance.
-- `data-NAME-target="x"`: names an element inside the root that the behavior uses. Separate several names with spaces.
-- `data-NAME-action="..."`: connects events to the behavior's actions. It can sit on the root or anything inside it.
-- `data-NAME-OPTION="value"`: an option read from the root.
+`velle add` writes those lines for you. If your project already starts a Stimulus application, export it from `application.js` instead, or register the controllers wherever you register your own; Stimulus loaders that look for `*_controller.js` files pick them up as they are.
+
+The markup is standard Stimulus (see the [Stimulus reference](https://stimulus.hotwired.dev/reference/controllers)):
+
+- `data-controller="NAME"`: connects a controller. Separate several names with spaces.
+- `data-NAME-target="x"`: names an element inside it that the controller uses.
+- `data-action="event->NAME#method"`: connects events to the controller's actions, for example `keydown.ctrl+enter->form#submit` or `click@document->context-menu#hide`.
+- `data-NAME-OPTION-value="value"`: an option read from the controller's element.
 - `data-NAME-PARAM-param="value"`: a value passed to an action as `event.params.PARAM`.
 
-A target or action always belongs to the closest root with the same name.
-
-Action syntax: `[event[.keyfilter][@document|@window]->]action[:prevent][:stop][:self]`. Separate several actions with spaces.
-
-- `event`: any DOM event name. When omitted, the element's default event is used: click for buttons and links, input for inputs and textareas, change for selects, submit for forms, toggle for `<details>`.
-- `.keyfilter`: for key events only. Accepts any single character, or enter, tab, esc, space, up, down, left, right, home, end, page_up and page_down, optionally prefixed with `ctrl+`, `meta+`, `alt+` or `shift+`.
-- `@document` / `@window`: listen there instead of on the element.
-- `:prevent`, `:stop`, `:self`: call `preventDefault()`, call `stopPropagation()`, or run only when the event target is the element itself.
-
-```html
-<textarea data-form-action="keydown.ctrl+enter->submit keydown.meta+enter->submit"></textarea>
-```
-
-Behaviors dispatch bubbling `CustomEvent`s named `velle:NAME:EVENT` from the root element:
+Controllers dispatch bubbling events named `NAME:EVENT` from their element:
 
 ```js
-document.addEventListener("velle:tabs:change", event => console.log(event.detail.index))
+document.addEventListener("tabs:change", event => console.log(event.detail.index))
 ```
-
-Write your own behavior with the same runtime:
-
-```js
-import { define, Controller } from "./velle.js"
-
-// <div data-counter data-counter-start="5">
-//   <output data-counter-target="count"></output>
-//   <button data-counter-action="increment">+1</button>
-// </div>
-define("counter", class extends Controller {
-  #count = 0
-
-  connect() {
-    this.#count = Number(this.data("start")) || 0
-    this.#render()
-  }
-
-  increment() {
-    this.#count++
-    this.#render()
-    this.dispatch("change", { count: this.#count })
-  }
-
-  #render() {
-    this.target("count").textContent = this.#count
-  }
-})
-```
-
-`Controller` provides `this.element`, `connect()`, `disconnect()`, `target(name)`, `targets(name)`, `hasTarget(name)`, `data(key)`, `hasData(key)`, `dispatch(type, detail)`, `$`$`, `$$`, `on(target, type, listener, options)` and `signal`. Define `beforeSnapshot()` to take part in `prepareSnapshot()`. The runtime also exports `controller({ targets, values })`, `controllerFor(element, name)`, `prepareSnapshot()`, `observe(selector, { connect, disconnect })` and `debounce(fn, wait)`.
 
 ## Writing your own controllers
 
-Use `controller({ targets, values })` as the base class for behavior specific to your app. `velle new controller cart` creates a file to start from and imports it in `main.js`.
+`velle new controller cart` creates `cart_controller.js` to start from and registers it in `main.js`.
 
 This example has a counter and a cart badge that follows it:
 
 ```html
-<div data-counter>
+<div data-controller="counter">
   <output data-counter-target="output"></output>
-  <button data-counter-action="increment">Add to cart</button>
+  <button data-action="counter#increment">Add to cart</button>
 </div>
 
-<nav data-cart data-cart-count="0" data-cart-action="velle:counter:change@window->refresh">
+<nav data-controller="cart" data-cart-count-value="0" data-action="counter:change@window->cart#refresh">
   <span class="badge" data-cart-target="badge"></span>
   <span data-cart-target="total"></span>
 </nav>
 ```
 
 ```js
-// @ts-check
-import { define, controller } from "./velle.js"
+// counter_controller.js
+import { Controller } from "@hotwired/stimulus"
 
-define("counter", class extends controller({
-  targets: { output: HTMLElement },
-  values: { count: 0 },
-}) {
-  connect() {
-    this.countChanged()
-  }
+export default class extends Controller {
+  static targets = [ "output" ]
+  static values = { count: Number }
 
   increment() {
-    this.count++
+    this.countValue++
   }
 
-  countChanged() {
-    const { output } = this.$
-    if (output) output.textContent = String(this.count)
-    this.dispatch("change", { count: this.count })
-  }
-})
-
-define("cart", class extends controller({
-  targets: { badge: HTMLElement, total: HTMLElement },
-  values: { count: 0, url: "/cart/total" },
-}) {
-  connect() {
-    this.on(document, "visibilitychange", () => this.#loadTotal())
-    this.countChanged()
-  }
-
-  /** @param {CustomEvent<{ count: number }>} event */
-  refresh(event) {
-    this.count = event.detail.count
-  }
-
-  countChanged() {
-    const { badge } = this.$
-    if (badge) badge.textContent = String(this.count)
-    this.#loadTotal()
-  }
-
-  async #loadTotal() {
-    try {
-      const response = await fetch(this.url, { signal: this.signal })
-      const { total } = this.$
-      if (total) total.textContent = await response.text()
-    } catch (error) {
-      if (!this.signal.aborted) throw error
-    }
-  }
-})
-```
-
-**Targets.** `targets` maps each name to the element class you expect. `this.$.total` is the first match or `null`, `this.$$.total` is an array, and an undeclared name is a type error.
-
-**Values.** `values` maps each name to its default, and the default's type decides how the attribute is parsed: numbers, strings, booleans (present means true, `"false"` means false), or JSON for arrays and objects. `this.count` reads `data-cart-count` and assigning to it writes the attribute; `showMonths` maps to `data-NAME-show-months`. Names the controller already uses, such as `data`, `element`, `target` and `action`, throw an error.
-
-**Callbacks.** `countChanged(value, oldValue)` runs after the attribute changes, whoever changed it. It runs asynchronously and never during `connect()`, so call it from `connect()` to render the initial state.
-
-**Styling.** State lives in attributes, so CSS can read it directly:
-
-```css
-[data-cart-count="0"] .badge { display: none }
-```
-
-**Cleanup.** `this.on(target, type, listener, options)` adds a listener that is removed when the controller disconnects. `this.signal` aborts at the same moment; pass it to `fetch(url, { signal: this.signal })` or anything else that accepts one.
-
-**Talking to other controllers.** Actions accept any event name, so one controller can listen for another's `dispatch()` with `data-cart-action="velle:counter:change@window->refresh"`.
-
-**Reaching a controller from outside.** `controllerFor(element, name)` returns the connected instance or `null`, for htmx hooks and inline scripts. Its result is a plain `Controller` to the type checker, so annotate it to use your own properties:
-
-```js
-import { controllerFor } from "./velle.js"
-
-/** @type {any} */
-const cart = controllerFor(document.querySelector("[data-cart]"), "cart")
-if (cart) cart.count = 0
-```
-
-**Several controllers on one element.** Each name gets its own instance, and an action goes to the controller its attribute names:
-
-```html
-<form data-form data-autosave data-form-action="keydown.ctrl+enter->submit">
-```
-
-**Editor setup.** `velle.d.ts` sits next to `velle.js`, and `velle new controller` writes this `jsconfig.json` at the project root unless you already have one. Start a file with `// @ts-check` to see errors for that file in any editor that uses TypeScript.
-
-```json
-{
-  "compilerOptions": {
-    "checkJs": true,
-    "strict": true,
-    "module": "esnext",
-    "target": "es2022",
-    "moduleResolution": "bundler"
+  countValueChanged() {
+    this.outputTarget.textContent = this.countValue
+    this.dispatch("change", { detail: { count: this.countValue } })
   }
 }
 ```
-**Saved copies of the page.** Libraries that keep a copy of the page, such as htmx for its history, save whatever your controllers have added to it. If `connect()` builds markup that it would build again on the restored copy, define `beforeSnapshot()` to remove it and return a function that puts it back. `prepareSnapshot()` runs these hooks and returns a function that undoes them.
+
+```js
+// cart_controller.js
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static targets = [ "badge", "total" ]
+  static values = { count: Number, url: { type: String, default: "/cart/total" } }
+
+  connect() {
+    this.requests = new AbortController()
+    this.loadTotal()
+  }
+
+  disconnect() {
+    this.requests.abort()
+  }
+
+  refresh({ detail: { count } }) {
+    this.countValue = count
+    this.loadTotal()
+  }
+
+  countValueChanged() {
+    this.badgeTarget.textContent = this.countValue
+  }
+
+  async loadTotal() {
+    try {
+      const response = await fetch(this.urlValue, { signal: this.requests.signal })
+      this.totalTarget.textContent = await response.text()
+    } catch (error) {
+      if (!this.requests.signal.aborted) throw error
+    }
+  }
+}
+```
+
+**Values.** `countValueChanged()` runs when the controller connects and whenever `data-cart-count-value` changes, whoever changed it, so it is the one place to render from. State lives in attributes, so CSS can read it directly:
+
+```css
+[data-cart-count-value="0"] .badge { display: none }
+```
+
+**Talking to other controllers.** An action can listen for any event, so the cart follows the counter's `dispatch()` with `data-action="counter:change@window->cart#refresh"`.
+
+**Reaching a controller from outside.** `application.getControllerForElementAndIdentifier(element, "cart")` returns the connected instance, or `null`, for htmx hooks and inline scripts.
+
+**Several controllers on one element.** List them in one attribute: `<form data-controller="form autosave">`.
+
+**Saved copies of the page.** Libraries that keep a copy of the page, such as htmx for its history, save whatever your controllers have added to it. If `connect()` builds markup that it would build again on the restored copy, define `beforeSnapshot()` to remove it and return a function that puts it back. The htmx extension calls it on every connected controller that has one.
 
 ## Extensions
 
-Extensions connect the runtime to other tools. They are optional, are installed only by name (`velle add htmx`), and stay out of the bundles. Without the CLI, use the copy that matches your runtime so the page only ever loads one: `dist/extensions/` with the `dist/velle.js` bundle, or `dist/js/` next to `dist/js/velle.js`.
+Extensions connect velle's controllers to other tools. They are optional, are installed only by name (`velle add htmx`), and stay out of the bundles. Without the CLI, use the copy that matches how you load velle so it uses the same application: `dist/extensions/` with the `dist/velle.js` bundle, or `dist/js/` next to `dist/js/application.js`.
 
 ## Adapters
 
-Some components wrap a third-party library (Chart.js, flatpickr, Tiptap, maska, SortableJS). velle ships the controller and theme but not the library: install it with npm or map it in an import map, as each adapter's page shows. Adapters are not part of `dist/velle.js` or `dist/velle.css`; with the bundles, load them from `dist/adapters/`.
+Some components wrap a third-party library (Chart.js, flatpickr, Tiptap, maska, SortableJS). velle ships the controller and theme but not the library: install it with npm or map it in an import map, as each adapter's page shows. Adapters are not part of `dist/velle.js` or `dist/velle.css`. With the bundle, load the controller from `dist/js/` and register it with the application the bundle exports:
+
+```js
+import { application } from "https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Version}}/dist/velle.js"
+import ChartController from "https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{.Version}}/dist/js/chart_controller.js"
+application.register("chart", ChartController)
+```
 
 ## Coming from css-zero
 
-velle-css is a port of css-zero without Rails or Hotwire. Use `data-tabs` instead of `data-controller="tabs"`, `data-tabs-action="click->select"` instead of `data-action="click->tabs#select"`, `data-tabs-index="1"` instead of `data-tabs-index-value="1"`, and `data-confirm` instead of `data-turbo-confirm`.
+velle-css is a port of css-zero without Rails or Turbo. The controllers are Stimulus controllers, as in css-zero, so most markup carries over. Use `data-confirm` instead of `data-turbo-confirm`, and put `data-controller="local-time"` with `data-local-time-format-value` on each `<time>` instead of a root around them. Each component page lists its targets, values and actions.

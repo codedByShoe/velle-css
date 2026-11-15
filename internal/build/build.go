@@ -85,47 +85,71 @@ func CSS(fsys fs.FS, reg *registry.Registry, version string) (string, error) {
 	return b.String(), nil
 }
 
-var runtimeImport = regexp.MustCompile(`(?m)^import \{[^}]*\} from "\./velle\.js"\n`)
+var (
+	stimulusImport = regexp.MustCompile(`(?m)^import \{([^}]*)\} from "@hotwired/stimulus"\n`)
+	defaultExport  = regexp.MustCompile(`(?m)^export default class `)
+)
 
-// JS returns a single ES module: the runtime followed by every behavior, each wrapped in its
-// own block so their top-level names cannot clash.
+// JS returns a single ES module: application.js followed by every controller, each wrapped in
+// its own block so their top-level names cannot clash and registered under its identifier.
+// The module exports the application, and imports Stimulus once for all of them.
 func JS(fsys fs.FS, reg *registry.Registry, version string) (string, error) {
-	runtime, err := fs.ReadFile(fsys, registry.RuntimeFile)
-	if err != nil {
-		return "", err
-	}
-
-	var b strings.Builder
-	fmt.Fprintf(&b, "/*!\n * %s\n */\n\n", strings.ReplaceAll(fmt.Sprintf(license, version), "\n", "\n * "))
-	b.Write(runtime)
-
-	for _, f := range ComponentFiles(reg, registry.KindJS) {
+	files := append([]string{registry.ApplicationFile}, ComponentFiles(reg, registry.KindJS)...)
+	names := map[string]bool{}
+	var body strings.Builder
+	for _, f := range files {
 		data, err := fs.ReadFile(fsys, f)
 		if err != nil {
 			return "", err
 		}
 		source := string(data)
-		if strings.Count(source, "import ") != len(runtimeImport.FindAllString(source, -1)) {
-			return "", fmt.Errorf("%s: only `import { … } from \"./velle.js\"` is supported", f)
+		for _, m := range stimulusImport.FindAllStringSubmatch(source, -1) {
+			for _, name := range strings.Split(m[1], ",") {
+				names[strings.TrimSpace(name)] = true
+			}
 		}
-		source = runtimeImport.ReplaceAllString(source, "")
-		fmt.Fprintf(&b, "\n// %s\n{\n%s}\n", f, source)
+		if strings.Count(source, "import ") != len(stimulusImport.FindAllString(source, -1)) {
+			return "", fmt.Errorf("%s: only `import { … } from \"@hotwired/stimulus\"` is supported", f)
+		}
+		source = stimulusImport.ReplaceAllString(source, "")
+
+		if f == registry.ApplicationFile {
+			body.WriteString("\n" + strings.TrimLeft(source, "\n"))
+			continue
+		}
+		identifier, ok := registry.Identifier(f)
+		if !ok || len(defaultExport.FindAllString(source, -1)) != 1 {
+			return "", fmt.Errorf("%s: a bundled file must be a controller with one `export default class`", f)
+		}
+		source = strings.TrimLeft(defaultExport.ReplaceAllString(source, "const controller = class "), "\n")
+		fmt.Fprintf(&body, "\n// %s\n{\n%sapplication.register(%q, controller)\n}\n", f, source, identifier)
 	}
+
+	imports := make([]string, 0, len(names))
+	for name := range names {
+		imports = append(imports, name)
+	}
+	sort.Strings(imports)
+
+	var b strings.Builder
+	fmt.Fprintf(&b, "/*!\n * %s\n */\n\n", strings.ReplaceAll(fmt.Sprintf(license, version), "\n", "\n * "))
+	fmt.Fprintf(&b, "import { %s } from %q\n", strings.Join(imports, ", "), registry.Stimulus.Package)
+	b.WriteString(body.String())
 	return b.String(), nil
 }
 
-// Adapter returns an adapter or extension script rewritten to import the runtime from the
-// bundle one directory up (dist/velle.js), so it shares the bundle's runtime.
-func Adapter(fsys fs.FS, file string) ([]byte, error) {
+// Extension returns an extension script rewritten to import the application from the bundle
+// one directory up (dist/velle.js), so it uses the bundle's application.
+func Extension(fsys fs.FS, file string) ([]byte, error) {
 	data, err := fs.ReadFile(fsys, file)
 	if err != nil {
 		return nil, err
 	}
 	source := string(data)
-	if !strings.Contains(source, `from "./velle.js"`) {
-		return nil, fmt.Errorf("%s: adapters must import the runtime from \"./velle.js\"", file)
+	if !strings.Contains(source, `from "./application.js"`) {
+		return nil, fmt.Errorf("%s: extensions must import the application from \"./application.js\"", file)
 	}
-	return []byte(strings.ReplaceAll(source, `from "./velle.js"`, `from "../velle.js"`)), nil
+	return []byte(strings.ReplaceAll(source, `from "./application.js"`, `from "../velle.js"`)), nil
 }
 
 // Dist writes the dist directory.
@@ -148,11 +172,7 @@ func Dist(fsys fs.FS, reg *registry.Registry, out, version string) error {
 	if err := write(filepath.Join(out, "velle.js"), []byte(js)); err != nil {
 		return err
 	}
-	if err := write(filepath.Join(out, "velle.d.ts"), []byte("export * from \"./js/velle.js\"\n")); err != nil {
-		return err
-	}
-
-	copies := map[string]string{registry.RuntimeFile: "js/velle.js", registry.RuntimeTypesFile: "js/velle.d.ts"}
+	copies := map[string]string{registry.ApplicationFile: "js/application.js"}
 	for _, f := range registry.CoreFiles {
 		copies[f] = path.Join("css", strings.TrimPrefix(f, "core/"))
 	}
@@ -164,20 +184,13 @@ func Dist(fsys fs.FS, reg *registry.Registry, out, version string) error {
 		}
 	}
 
-	for dir, optional := range map[string]func(*registry.Registry, registry.FileKind) []string{"adapters": AdapterFiles, "extensions": ExtensionFiles} {
-		for _, kind := range []registry.FileKind{registry.KindCSS, registry.KindJS} {
-			for _, f := range optional(reg, kind) {
-				data, err := fs.ReadFile(fsys, f)
-				if kind == registry.KindJS {
-					data, err = Adapter(fsys, f)
-				}
-				if err != nil {
-					return err
-				}
-				if err := write(filepath.Join(out, dir, path.Base(f)), data); err != nil {
-					return err
-				}
-			}
+	for _, f := range ExtensionFiles(reg, registry.KindJS) {
+		data, err := Extension(fsys, f)
+		if err != nil {
+			return err
+		}
+		if err := write(filepath.Join(out, "extensions", path.Base(f)), data); err != nil {
+			return err
 		}
 	}
 

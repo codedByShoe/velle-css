@@ -7,8 +7,8 @@
     const flash = document.createElement("div")
     flash.setAttribute("popover", "manual")
     flash.setAttribute("role", "status")
-    flash.setAttribute("data-flash", "")
-    flash.setAttribute("data-flash-action", "animationend->hide")
+    flash.setAttribute("data-controller", "flash")
+    flash.setAttribute("data-action", "animationend->flash#hide")
     flash.className = "flash"
     flash.addEventListener("toggle", event => event.newState === "closed" && flash.remove())
 

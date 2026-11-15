@@ -4,7 +4,7 @@
   "category": "Forms",
   "description": "Saves a form in the background 3 seconds after the user starts typing.",
   "files": [
-    "autosave.js"
+    "autosave_controller.js"
   ],
   "dependencies": [
     "button"
@@ -13,12 +13,12 @@
   "variables": [],
   "attributes": [
     {
-      "name": "data-autosave",
+      "name": "data-controller=\"autosave\"",
       "element": "<form>",
       "description": "Enables autosave. The form's method and action are used for the request."
     },
     {
-      "name": "data-autosave-action=\"input->change\"",
+      "name": "data-action=\"input->autosave#change\"",
       "element": "<form>",
       "description": "Schedules a save when any field changes."
     },
@@ -36,11 +36,11 @@
   ],
   "events": [
     {
-      "name": "velle:autosave:success",
+      "name": "autosave:success",
       "description": "The server answered with a 2xx status. event.detail.response is the fetch Response."
     },
     {
-      "name": "velle:autosave:error",
+      "name": "autosave:error",
       "description": "The request failed or the server answered with an error. event.detail has response or error."
     }
   ],

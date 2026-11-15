@@ -13,36 +13,19 @@ import (
 	"github.com/codedbyshoe/velle-css/internal/registry"
 )
 
-const newHelp = "Usage: velle new controller [--overwrite] NAME\n\nCreates a controller of your own and imports it in main.js.\n\nOptions:\n"
+const newHelp = "Usage: velle new controller [--overwrite] NAME\n\nCreates a Stimulus controller of your own and registers it in main.js.\n\nOptions:\n"
 
-const controllerTemplate = `// @ts-check
-import { define, controller } from "./velle.js"
+const controllerTemplate = `import { Controller } from "@hotwired/stimulus"
 
-define("%s", class extends controller({
-  targets: {},
-  values: {},
-}) {
+export default class extends Controller {
+  static targets = []
+  static values = {}
+
   connect() {}
-})
-`
-
-const jsconfigFile = "jsconfig.json"
-
-const jsconfig = `{
-  "compilerOptions": {
-    "checkJs": true,
-    "strict": true,
-    "module": "esnext",
-    "target": "es2022",
-    "moduleResolution": "bundler"
-  }
 }
 `
 
-var (
-	controllerName = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
-	definedName    = regexp.MustCompile(`define\("([a-z0-9-]+)"`)
-)
+var controllerName = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
 func (a *App) newCommand(args []string) error {
 	set := a.flagSet("new", newHelp)
@@ -62,9 +45,9 @@ func (a *App) newCommand(args []string) error {
 	if len(positional) != 2 || positional[0] != "controller" {
 		return errors.New("usage: velle new controller [--overwrite] NAME")
 	}
-	name := positional[1]
+	name := strings.TrimSuffix(strings.ReplaceAll(positional[1], "-", "_"), "_controller")
 	if !controllerName.MatchString(name) {
-		return fmt.Errorf("invalid controller name %q: use lowercase letters, digits, dashes and underscores, starting with a letter", name)
+		return fmt.Errorf("invalid controller name %q: use lowercase letters, digits, dashes and underscores, starting with a letter", positional[1])
 	}
 
 	config, err := a.readConfig()
@@ -79,81 +62,53 @@ func (a *App) newCommand(args []string) error {
 		return err
 	}
 
-	target := path.Join(config.JSDir, name+".js")
-	if target == config.JSEntry {
-		return fmt.Errorf("%q is the JavaScript entry file; choose another name", name)
-	}
-	attribute := strings.ReplaceAll(name, "_", "-")
-	taken, err := a.takenNames(reg)
-	if err != nil {
-		return err
-	}
-	if taken[attribute] {
-		return fmt.Errorf("%q is already used by velle; choose another name", name)
+	target := path.Join(config.JSDir, name+registry.ControllerSuffix)
+	identifier, _ := registry.Identifier(target)
+	if taken(reg)[identifier] {
+		return fmt.Errorf("%q is already used by velle; choose another name", identifier)
 	}
 
-	if err := a.copyRuntime(config, false); err != nil {
+	if _, err := a.copyApplication(config, false); err != nil {
 		return err
 	}
-	if err := a.writeFile(target, fmt.Appendf(nil, controllerTemplate, attribute), *overwrite); err != nil {
+	if err := a.writeFile(target, []byte(controllerTemplate), *overwrite); err != nil {
 		return err
 	}
 
 	if config.JSEntry == "" {
-		fmt.Fprintf(a.Stdout, "\nScripts:\n\n  <script type=\"module\" src=\"/%s\"></script>\n", target)
-	} else if err := a.importAfterBlock(jsEntry(config.JSEntry), target, knownFiles(reg)); err != nil {
+		a.printRegistrations([]string{path.Join(config.JSDir, path.Base(registry.ApplicationFile)), target})
+	} else if err := a.registerAfterBlock(jsEntry(config.JSEntry), config, target, knownFiles(reg)); err != nil {
 		return err
 	}
 
-	if _, err := os.Stat(filepath.Join(a.Dir, jsconfigFile)); err == nil {
-		a.status("exists", jsconfigFile)
-	} else if !errors.Is(err, fs.ErrNotExist) {
-		return err
-	} else if err := a.writeFile(jsconfigFile, []byte(jsconfig), false); err != nil {
-		return err
-	}
-
-	fmt.Fprintf(a.Stdout, "\nAdd data-%s to an element to connect it.\n", attribute)
+	fmt.Fprintf(a.Stdout, "\nAdd data-controller=\"%s\" to an element to connect it.\n", identifier)
 	return nil
 }
 
-// takenNames returns the runtime's name and every name a shipped behavior is installed or
-// defined under, in the dashed form attributes use.
-func (a *App) takenNames(reg *registry.Registry) (map[string]bool, error) {
-	taken := map[string]bool{strings.TrimSuffix(path.Base(registry.RuntimeFile), ".js"): true}
+// taken returns every identifier a shipped controller is registered under.
+func taken(reg *registry.Registry) map[string]bool {
+	identifiers := map[string]bool{}
 	for _, c := range reg.Components {
 		for _, f := range c.Files {
-			if registry.Kind(f) != registry.KindJS {
-				continue
-			}
-			taken[strings.ReplaceAll(strings.TrimSuffix(f, ".js"), "_", "-")] = true
-			source, err := fs.ReadFile(a.FS, c.FilePath(f))
-			if err != nil {
-				return nil, err
-			}
-			for _, m := range definedName.FindAllSubmatch(source, -1) {
-				taken[string(m[1])] = true
+			if identifier, ok := registry.Identifier(f); ok {
+				identifiers[identifier] = true
 			}
 		}
 	}
-	return taken, nil
+	return identifiers
 }
 
-// importAfterBlock adds an import of target to the part of the entry that belongs to the
-// user, after the managed block, unless the entry already imports it.
-func (a *App) importAfterBlock(e *entry, target string, known func(string) bool) error {
-	destination := filepath.Join(a.Dir, filepath.FromSlash(e.path))
-	existing, err := os.ReadFile(destination)
-	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+// registerAfterBlock imports the controller in target and registers it, in the part of the
+// entry that belongs to the user, after the managed block, unless the entry already imports
+// it. The block imports the application the controller is registered with.
+func (a *App) registerAfterBlock(e *entry, config Config, target string, known func(string) bool) error {
+	if err := a.updateEntry(e, []string{path.Join(config.JSDir, path.Base(registry.ApplicationFile))}, known); err != nil {
 		return err
 	}
-	if _, _, _, found := cutBlock(string(existing), e.begin, e.end); !found {
-		if err := a.updateEntry(e, nil, known); err != nil {
-			return err
-		}
-		if existing, err = os.ReadFile(destination); err != nil {
-			return err
-		}
+	destination := filepath.Join(a.Dir, filepath.FromSlash(e.path))
+	existing, err := os.ReadFile(destination)
+	if err != nil {
+		return err
 	}
 
 	specifier, err := e.specifier(target)
@@ -162,16 +117,21 @@ func (a *App) importAfterBlock(e *entry, target string, known func(string) bool)
 	}
 	content := string(existing)
 	for _, line := range strings.Split(content, "\n") {
-		if m := e.parse.FindStringSubmatch(line); m != nil && m[1] == specifier {
+		if m := jsImport.FindStringSubmatch(line); m != nil && m[1] == specifier {
 			a.status("identical", e.path)
 			return nil
 		}
 	}
 
+	identifier, _ := registry.Identifier(target)
 	if !strings.HasSuffix(content, "\n") {
 		content += "\n"
 	}
-	if err := os.WriteFile(destination, []byte(content+e.line(specifier)+"\n"), 0o644); err != nil {
+	if strings.HasSuffix(content, e.end+"\n") {
+		content += "\n" // updateEntry keeps a blank line between the block and what follows
+	}
+	content += controllerImport(identifier, specifier) + "\n" + controllerRegistration(identifier) + "\n"
+	if err := os.WriteFile(destination, []byte(content), 0o644); err != nil {
 		return err
 	}
 	a.status("update", e.path)

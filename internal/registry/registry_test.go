@@ -110,7 +110,7 @@ func TestFilesExist(t *testing.T) {
 			}
 		}
 	}
-	for _, f := range append(registry.CoreFiles, registry.RuntimeFile, registry.RuntimeTypesFile) {
+	for _, f := range append(registry.CoreFiles, registry.ApplicationFile) {
 		if _, err := fs.Stat(r.FS, f); err != nil {
 			t.Errorf("core file %s: %v", f, err)
 		}
@@ -153,8 +153,7 @@ func TestFileNamesAreUnique(t *testing.T) {
 	for _, f := range registry.CoreFiles {
 		seen[path.Base(f)] = "core"
 	}
-	seen[path.Base(registry.RuntimeFile)] = "runtime"
-	seen[path.Base(registry.RuntimeTypesFile)] = "runtime"
+	seen[path.Base(registry.ApplicationFile)] = "the application"
 	seen["main.css"] = "the default CSS entry"
 	seen["main.js"] = "the default JS entry"
 
@@ -404,39 +403,50 @@ func TestExampleIDsAreUniquePerPage(t *testing.T) {
 }
 
 var (
-	actionAttribute = regexp.MustCompile(`\sdata-([a-z-]+)-action="([^"]*)"`)
-	actionPattern   = regexp.MustCompile(`^(?:([^.@\s]+?)(?:\.([^@\s]+?))?(?:@(window|document))?->)?(\w+)((?::\w+)*)$`)
+	actionAttribute = regexp.MustCompile(`\sdata-action="([^"]*)"`)
+	actionPattern   = regexp.MustCompile(`^(?:([^.@\s]+?)(?:\.([^@\s]+?))?(?:@(window|document))?->)?([a-z0-9-]+)#(\w+)((?::\w+)*)$`)
 	keyNames        = regexp.MustCompile(`^(?:[a-z0-9]|enter|tab|esc|space|up|down|left|right|home|end|page_up|page_down)$`)
 )
 
-func TestExampleActionsAreValid(t *testing.T) {
-	r := load(t)
-	actions := map[string]map[string]bool{}
+// controllers maps every identifier to the component that ships its controller.
+func controllers(t *testing.T, r *registry.Registry) map[string]*registry.Component {
+	t.Helper()
+	found := map[string]*registry.Component{}
 	for _, c := range r.Components {
-		for _, a := range c.Actions {
-			controller := strings.ReplaceAll(c.Name, "_", "-")
-			if actions[controller] == nil {
-				actions[controller] = map[string]bool{}
+		for _, f := range c.Files {
+			if identifier, ok := registry.Identifier(f); ok {
+				found[identifier] = c
 			}
-			actions[controller][a.Name] = true
 		}
 	}
+	return found
+}
+
+func TestExampleActionsAreValid(t *testing.T) {
+	r := load(t)
+	owners := controllers(t, r)
 
 	for _, c := range r.Components {
 		for _, e := range c.Examples {
 			html := read(t, r.FS, c.ExamplePath(e.File))
 			for _, m := range actionAttribute.FindAllStringSubmatch(html, -1) {
-				controller, value := m[1], m[2]
-				for _, descriptor := range strings.Fields(value) {
+				for _, descriptor := range strings.Fields(m[1]) {
 					parts := actionPattern.FindStringSubmatch(descriptor)
 					if parts == nil {
 						t.Errorf("%s/%s: invalid action %q", c.Name, e.File, descriptor)
 						continue
 					}
-					if !actions[controller][parts[4]] {
-						t.Errorf("%s/%s: %q is not a documented action of %s", c.Name, e.File, parts[4], controller)
+					identifier, method := parts[4], parts[5]
+					documented := false
+					if owner := owners[identifier]; owner != nil {
+						for _, a := range owner.Actions {
+							documented = documented || a.Name == method
+						}
 					}
-					for _, option := range strings.Split(strings.TrimPrefix(parts[5], ":"), ":") {
+					if !documented {
+						t.Errorf("%s/%s: %q is not a documented action of %s", c.Name, e.File, method, identifier)
+					}
+					for _, option := range strings.Split(strings.TrimPrefix(parts[6], ":"), ":") {
 						if option != "" && option != "prevent" && option != "stop" && option != "self" {
 							t.Errorf("%s/%s: unknown action option %q", c.Name, e.File, option)
 						}
@@ -471,7 +481,7 @@ func usesESMSh(r *registry.Registry, p string) bool {
 }
 
 func TestNoFrameworkLeftovers(t *testing.T) {
-	forbidden := regexp.MustCompile(`(?i)turbo|stimulus|hotwired|data-controller|data-action=|lexxy|field_with_errors|esm\.sh|authenticity_token|data-turbo`)
+	forbidden := regexp.MustCompile(`(?i)turbo|lexxy|field_with_errors|esm\.sh|authenticity_token|data-turbo`)
 	r := load(t)
 	err := fs.WalkDir(r.FS, ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || path.Ext(p) == ".svg" {
@@ -496,38 +506,6 @@ func TestNoFrameworkLeftovers(t *testing.T) {
 	}
 }
 
-var (
-	runtimeExport = regexp.MustCompile(`(?m)^export (?:function|class) (\w+)`)
-	typesExport   = regexp.MustCompile(`(?m)^export declare (?:function|class) (\w+)`)
-)
-
-func TestRuntimeTypesMatchExports(t *testing.T) {
-	fsys := load(t).FS
-	names := func(pattern *regexp.Regexp, file string) map[string]bool {
-		found := map[string]bool{}
-		for _, m := range pattern.FindAllStringSubmatch(read(t, fsys, file), -1) {
-			found[m[1]] = true
-		}
-		if len(found) == 0 {
-			t.Fatalf("%s: found no exports", file)
-		}
-		return found
-	}
-
-	runtime := names(runtimeExport, registry.RuntimeFile)
-	types := names(typesExport, registry.RuntimeTypesFile)
-	for name := range runtime {
-		if !types[name] {
-			t.Errorf("%s exports %s but %s does not declare it", registry.RuntimeFile, name, registry.RuntimeTypesFile)
-		}
-	}
-	for name := range types {
-		if !runtime[name] {
-			t.Errorf("%s declares %s but %s does not export it", registry.RuntimeTypesFile, name, registry.RuntimeFile)
-		}
-	}
-}
-
 func TestNoRelativeAssetURLs(t *testing.T) {
 	relative := regexp.MustCompile(`url\(\s*["']?(?:[a-z0-9_-]+/)*[a-z0-9_-]+\.(?:svg|png|jpg|webp)`)
 	r := load(t)
@@ -545,7 +523,7 @@ func TestNoRelativeAssetURLs(t *testing.T) {
 	}
 }
 
-func TestJavaScriptImportsOnlyTheRuntime(t *testing.T) {
+func TestJavaScriptImportsOnlyStimulus(t *testing.T) {
 	importPattern := regexp.MustCompile(`(?m)^\s*import\b.*$`)
 	r := load(t)
 	for _, c := range r.Components {
@@ -555,13 +533,16 @@ func TestJavaScriptImportsOnlyTheRuntime(t *testing.T) {
 			}
 			for _, line := range importPattern.FindAllString(read(t, r.FS, c.FilePath(f)), -1) {
 				line = strings.TrimSpace(line)
-				if strings.HasSuffix(line, `from "./velle.js"`) {
+				if strings.HasSuffix(line, `from "@hotwired/stimulus"`) {
+					continue
+				}
+				if c.Extension && strings.HasSuffix(line, `from "./application.js"`) {
 					continue
 				}
 				if c.Library != nil && importsLibrary(line, c.Library) {
 					continue
 				}
-				t.Errorf("%s/%s: only ./velle.js (and an adapter's own library) may be imported, got %s", c.Name, f, line)
+				t.Errorf("%s/%s: only @hotwired/stimulus (and an adapter's own library, or an extension's ./application.js) may be imported, got %s", c.Name, f, line)
 			}
 		}
 	}
@@ -576,32 +557,144 @@ func importsLibrary(line string, lib *registry.Library) bool {
 	return false
 }
 
-func TestControllersMatchComponentNames(t *testing.T) {
-	definePattern := regexp.MustCompile(`define\("([a-z-]+)"`)
+// Every component script is a controller, so main.js and the bundle can register it under the
+// identifier its file name gives it.
+func TestComponentScriptsAreControllers(t *testing.T) {
+	defaultExport := regexp.MustCompile(`(?m)^export default class extends Controller \{`)
 	r := load(t)
-	var names []string
 	for _, c := range r.Components {
 		for _, f := range c.Files {
-			if registry.Kind(f) != registry.KindJS {
+			if registry.Kind(f) != registry.KindJS || c.Extension {
 				continue
 			}
-			for _, m := range definePattern.FindAllStringSubmatch(read(t, r.FS, c.FilePath(f)), -1) {
-				names = append(names, m[1])
+			if _, ok := registry.Identifier(f); !ok {
+				t.Errorf("%s/%s: controller files must end in %s", c.Name, f, registry.ControllerSuffix)
 			}
-		}
-	}
-	sort.Strings(names)
-	for i := 1; i < len(names); i++ {
-		if names[i] == names[i-1] {
-			t.Errorf("controller %q is defined twice", names[i])
+			if n := len(defaultExport.FindAllString(read(t, r.FS, c.FilePath(f)), -1)); n != 1 {
+				t.Errorf("%s/%s: needs exactly one `export default class extends Controller {`, found %d", c.Name, f, n)
+			}
 		}
 	}
 }
 
 var (
-	defineName   = regexp.MustCompile(`define\("([a-z-]+)"`)
-	rootSelector = regexp.MustCompile(`\[data-([a-z-]+)\]`)
-	dataAttr     = regexp.MustCompile(`\sdata-([a-z-]+)`)
+	tagPattern       = regexp.MustCompile(`<[a-zA-Z](?:[^<>"']|"[^"]*"|'[^']*')*>`)
+	attributePattern = regexp.MustCompile(`\s(data-[a-z0-9-]+)(?:="([^"]*)")?`)
+	staticList       = regexp.MustCompile(`static (targets|classes) = \[([^\]]*)\]`)
+	quoted           = regexp.MustCompile(`"([^"]+)"`)
+)
+
+// declared returns what a controller declares: its targets, values and classes, as the
+// dash-case names attributes use.
+func declared(source string) (targets, values, classes map[string]bool) {
+	targets, values, classes = map[string]bool{}, map[string]bool{}, map[string]bool{}
+	for _, m := range staticList.FindAllStringSubmatch(source, -1) {
+		for _, q := range quoted.FindAllStringSubmatch(m[2], -1) {
+			if m[1] == "targets" {
+				targets[q[1]] = true
+			} else {
+				classes[dasherize(q[1])] = true
+			}
+		}
+	}
+	if start := strings.Index(source, "static values = {"); start >= 0 {
+		depth, key := 0, ""
+		for _, r := range source[start+len("static values = "):] {
+			switch {
+			case r == '{':
+				depth, key = depth+1, ""
+			case r == '}':
+				depth, key = depth-1, ""
+			case depth == 1 && (r == '_' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9'):
+				key += string(r)
+			case depth == 1 && r == ':' && key != "":
+				values[dasherize(key)], key = true, ""
+			case r != ' ':
+				key = ""
+			}
+			if depth == 0 {
+				break
+			}
+		}
+	}
+	return targets, values, classes
+}
+
+func dasherize(name string) string {
+	return regexp.MustCompile(`[A-Z]`).ReplaceAllStringFunc(name, func(s string) string { return "-" + strings.ToLower(s) })
+}
+
+// TestExampleAttributesMatchControllers checks every data-NAME-* attribute in the examples
+// against the controller it names: targets, values and classes must be declared, and values
+// and classes must sit on an element that connects that controller.
+func TestExampleAttributesMatchControllers(t *testing.T) {
+	r := load(t)
+	type declarations struct{ targets, values, classes map[string]bool }
+	known := map[string]declarations{}
+	for identifier, c := range controllers(t, r) {
+		file := strings.ReplaceAll(identifier, "-", "_") + registry.ControllerSuffix
+		targets, values, classes := declared(read(t, r.FS, c.FilePath(file)))
+		known[identifier] = declarations{targets, values, classes}
+	}
+	identifiers := make([]string, 0, len(known))
+	for identifier := range known {
+		identifiers = append(identifiers, identifier)
+	}
+	sort.Slice(identifiers, func(i, j int) bool { return len(identifiers[i]) > len(identifiers[j]) })
+
+	for _, c := range r.Components {
+		for _, e := range c.Examples {
+			for _, tag := range tagPattern.FindAllString(read(t, r.FS, c.ExamplePath(e.File)), -1) {
+				connected := map[string]bool{}
+				attributes := attributePattern.FindAllStringSubmatch(tag, -1)
+				for _, a := range attributes {
+					if a[1] == "data-controller" {
+						for _, identifier := range strings.Fields(a[2]) {
+							connected[identifier] = true
+							if _, ok := known[identifier]; !ok {
+								t.Errorf("%s/%s: no component ships a %q controller", c.Name, e.File, identifier)
+							}
+						}
+					}
+				}
+				for _, a := range attributes {
+					for _, identifier := range identifiers {
+						rest, ok := strings.CutPrefix(a[1], "data-"+identifier+"-")
+						if !ok {
+							continue
+						}
+						d := known[identifier]
+						switch {
+						case rest == "target":
+							for _, target := range strings.Fields(a[2]) {
+								if !d.targets[target] {
+									t.Errorf("%s/%s: %q is not a target of %s", c.Name, e.File, target, identifier)
+								}
+							}
+						case strings.HasSuffix(rest, "-value"):
+							if !d.values[strings.TrimSuffix(rest, "-value")] {
+								t.Errorf("%s/%s: %s is not a value of %s", c.Name, e.File, a[1], identifier)
+							} else if !connected[identifier] {
+								t.Errorf("%s/%s: %s needs data-controller=\"%s\" on the same element", c.Name, e.File, a[1], identifier)
+							}
+						case strings.HasSuffix(rest, "-class"):
+							if !d.classes[strings.TrimSuffix(rest, "-class")] {
+								t.Errorf("%s/%s: %s is not a class of %s", c.Name, e.File, a[1], identifier)
+							} else if !connected[identifier] {
+								t.Errorf("%s/%s: %s needs data-controller=\"%s\" on the same element", c.Name, e.File, a[1], identifier)
+							}
+						}
+						break
+					}
+				}
+			}
+		}
+	}
+}
+
+var (
+	controllerAttribute = regexp.MustCompile(`\sdata-controller="([^"]*)"`)
+	ownedAttribute      = regexp.MustCompile(`\sdata-([a-z0-9-]+)-(?:target|[a-z0-9-]+-(?:value|class|param))=`)
 )
 
 // TestExamplesOnlyUseInstalledComponents checks that everything an example uses is
@@ -617,22 +710,7 @@ func TestExamplesOnlyUseInstalledComponents(t *testing.T) {
 	}
 	coreClasses := cssinfo.Classes(core.String())
 
-	// Map each behavior's root attribute (data-tabs, data-local-time, …) to its component.
-	roots := map[string]string{}
-	for _, c := range r.Components {
-		for _, f := range c.Files {
-			if registry.Kind(f) != registry.KindJS {
-				continue
-			}
-			js := read(t, r.FS, c.FilePath(f))
-			for _, m := range defineName.FindAllStringSubmatch(js, -1) {
-				roots[m[1]] = c.Name
-			}
-			for _, m := range rootSelector.FindAllStringSubmatch(js, -1) {
-				roots[m[1]] = c.Name
-			}
-		}
-	}
+	owners := controllers(t, r)
 
 	for _, c := range r.Components {
 		for _, e := range c.Examples {
@@ -665,9 +743,23 @@ func TestExamplesOnlyUseInstalledComponents(t *testing.T) {
 					t.Errorf("%s/%s: class %q is not installed by `velle add %s`; add the component that defines it to the dependencies or to the example's requires", c.Name, e.File, class, c.Name)
 				}
 			}
-			for _, m := range dataAttr.FindAllStringSubmatch(html, -1) {
-				if owner, ok := roots[m[1]]; ok && !installed[owner] {
-					t.Errorf("%s/%s: data-%s needs the %s component; add it to the dependencies or to the example's requires", c.Name, e.File, m[1], owner)
+			var used []string
+			for _, m := range controllerAttribute.FindAllStringSubmatch(html, -1) {
+				used = append(used, strings.Fields(m[1])...)
+			}
+			for _, m := range actionAttribute.FindAllStringSubmatch(html, -1) {
+				for _, descriptor := range strings.Fields(m[1]) {
+					if parts := actionPattern.FindStringSubmatch(descriptor); parts != nil {
+						used = append(used, parts[4])
+					}
+				}
+			}
+			for _, m := range ownedAttribute.FindAllStringSubmatch(html, -1) {
+				used = append(used, m[1])
+			}
+			for _, identifier := range used {
+				if owner, ok := owners[identifier]; ok && !installed[owner.Name] {
+					t.Errorf("%s/%s: the %s controller needs the %s component; add it to the dependencies or to the example's requires", c.Name, e.File, identifier, owner.Name)
 				}
 			}
 		}

@@ -1,6 +1,6 @@
 <button type="button" class="btn" commandfor="dialog_scrollable" command="show-modal">Scrollable content</button>
 
-<dialog id="dialog_scrollable" class="dialog" style="--dialog-size: 24rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-labelledby="dialog_scrollable_title">
+<dialog id="dialog_scrollable" class="dialog" style="--dialog-size: 24rem;" data-controller="dialog" data-action="click->dialog#closeOnClickOutside" aria-labelledby="dialog_scrollable_title">
   <button type="button" class="btn btn--plain dialog__close" commandfor="dialog_scrollable" command="close">
     <span class="icon icon--x" aria-hidden="true"></span>
     <span class="sr-only">Close</span>

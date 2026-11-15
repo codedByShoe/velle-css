@@ -1,9 +1,9 @@
-<div class="tabs" style="max-inline-size: 28rem" data-tabs data-tabs-index="0">
-  <div class="tabs__list" role="tablist" data-tabs-action="keydown.left->prev keydown.right->next">
-    <button type="button" id="tabs_trigger_overview" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_overview">Overview</button>
-    <button type="button" id="tabs_trigger_analytics" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_analytics">Analytics</button>
-    <button type="button" id="tabs_trigger_reports" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_reports">Reports</button>
-    <button type="button" id="tabs_trigger_settings" class="btn tabs__button" data-tabs-target="button" data-tabs-action="select" role="tab" aria-controls="tabs_panel_settings">Settings</button>
+<div class="tabs" style="max-inline-size: 28rem" data-controller="tabs" data-tabs-index-value="0">
+  <div class="tabs__list" role="tablist" data-action="keydown.left->tabs#prev keydown.right->tabs#next">
+    <button type="button" id="tabs_trigger_overview" class="btn tabs__button" data-tabs-target="button" data-action="tabs#select" role="tab" aria-controls="tabs_panel_overview">Overview</button>
+    <button type="button" id="tabs_trigger_analytics" class="btn tabs__button" data-tabs-target="button" data-action="tabs#select" role="tab" aria-controls="tabs_panel_analytics">Analytics</button>
+    <button type="button" id="tabs_trigger_reports" class="btn tabs__button" data-tabs-target="button" data-action="tabs#select" role="tab" aria-controls="tabs_panel_reports">Reports</button>
+    <button type="button" id="tabs_trigger_settings" class="btn tabs__button" data-tabs-target="button" data-action="tabs#select" role="tab" aria-controls="tabs_panel_settings">Settings</button>
   </div>
 
   <div hidden id="tabs_panel_overview" data-tabs-target="tab" role="tabpanel" aria-labelledby="tabs_trigger_overview">

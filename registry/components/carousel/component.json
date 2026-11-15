@@ -5,7 +5,7 @@
   "description": "A horizontally scrolling row of slides with scroll snapping and previous/next buttons.",
   "files": [
     "carousel.css",
-    "carousel.js"
+    "carousel_controller.js"
   ],
   "dependencies": [
     "button",
@@ -39,7 +39,7 @@
   ],
   "attributes": [
     {
-      "name": "data-carousel",
+      "name": "data-controller=\"carousel\"",
       "element": "root",
       "description": "Marks the carousel root."
     },
@@ -49,9 +49,9 @@
       "description": "The element that scrolls."
     },
     {
-      "name": "data-carousel-action",
+      "name": "data-action",
       "element": "buttons, root",
-      "description": "Wires events to the prev and next actions, e.g. \"prev\" on a button or \"keydown.left->prev\" on the root."
+      "description": "Wires events to the prev and next actions, e.g. \"carousel#prev\" on a button or \"keydown.left->carousel#prev\" on the root."
     }
   ],
   "actions": [

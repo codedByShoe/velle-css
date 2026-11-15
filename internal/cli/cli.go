@@ -13,7 +13,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -76,7 +75,7 @@ Commands:
             With --js, set up JavaScript only: no styles or images, now or later.
   add       Copy components and their dependencies and import them in main.css and main.js.
             Existing files are kept unless --overwrite is given.
-  new       Create a controller of your own, import it in main.js and set up editor types.
+  new       Create a Stimulus controller of your own and register it in main.js.
   list      Show the available components.
   version   Print the version.
 
@@ -271,7 +270,7 @@ func (a *App) updateEntries(config Config, reg *registry.Registry, stylesheets, 
 
 // knownFiles reports whether a file name is one velle installs.
 func knownFiles(reg *registry.Registry) func(string) bool {
-	known := map[string]bool{}
+	known := map[string]bool{path.Base(registry.ApplicationFile): true}
 	for _, f := range registry.CoreFiles {
 		known[path.Base(f)] = true
 	}
@@ -328,13 +327,15 @@ func (a *App) add(args []string) error {
 	for _, c := range components {
 		hasJS = hasJS || c.HasJS()
 	}
+	var stylesheets, scripts []string
+	newApplication := false
 	if hasJS {
-		if err := a.copyRuntime(config, *overwrite); err != nil {
+		if newApplication, err = a.copyApplication(config, *overwrite); err != nil {
 			return err
 		}
+		scripts = append(scripts, path.Join(config.JSDir, path.Base(registry.ApplicationFile)))
 	}
 
-	var stylesheets, scripts []string
 	for _, c := range components {
 		for _, file := range c.Files {
 			if config.Headless && registry.Kind(file) != registry.KindJS {
@@ -371,15 +372,16 @@ func (a *App) add(args []string) error {
 		}
 	}
 	if len(scripts) > 0 && config.JSEntry == "" {
-		fmt.Fprintf(a.Stdout, "\nScripts:\n\n")
-		for _, s := range scripts {
-			fmt.Fprintf(a.Stdout, "  <script type=\"module\" src=\"/%s\"></script>\n", s)
-		}
+		a.printRegistrations(scripts)
+	}
+
+	if newApplication {
+		a.printLibrary("velle's JavaScript", &registry.Stimulus, "", true)
 	}
 
 	for _, c := range components {
 		if c.Library != nil {
-			a.printLibrary(c, config.Headless)
+			a.printLibrary(c.Name, c.Library, c.Name+".css", config.Headless)
 		}
 	}
 	if config.Headless {
@@ -409,14 +411,37 @@ func (a *App) printHeadlessNotes(reg *registry.Registry, requested []string, com
 	}
 }
 
-// printLibrary explains how to install the third-party library an adapter needs.
-func (a *App) printLibrary(c *registry.Component, headless bool) {
-	lib := c.Library
-	before := " before " + c.Name + ".css"
-	if headless {
+// printRegistrations shows a project without a JavaScript entry how to load the scripts it
+// was given: application.js and the controllers registered with it, the rest imported.
+func (a *App) printRegistrations(scripts []string) {
+	sort.Slice(scripts, func(i, j int) bool { return path.Base(scripts[i]) < path.Base(scripts[j]) })
+	var imports, registrations []string
+	for _, s := range scripts {
+		specifier := "/" + s
+		if identifier, ok := registry.Identifier(s); ok {
+			imports = append(imports, controllerImport(identifier, specifier))
+			registrations = append(registrations, controllerRegistration(identifier))
+		} else if path.Base(s) == path.Base(registry.ApplicationFile) {
+			imports = append([]string{fmt.Sprintf("import { application } from %q", specifier)}, imports...)
+		} else {
+			imports = append(imports, fmt.Sprintf("import %q", specifier))
+		}
+	}
+	fmt.Fprintf(a.Stdout, "\nRegister the controllers in one of your modules, or replace application.js with\nyour own Stimulus application:\n\n")
+	for _, line := range append(imports, registrations...) {
+		fmt.Fprintf(a.Stdout, "  %s\n", line)
+	}
+}
+
+// printLibrary explains how to install a library velle does not ship: Stimulus, or the
+// library an adapter wraps. stylesheet is the velle stylesheet the library's own must load
+// before, if any.
+func (a *App) printLibrary(name string, lib *registry.Library, stylesheet string, headless bool) {
+	before := " before " + stylesheet
+	if headless || stylesheet == "" {
 		before = ""
 	}
-	fmt.Fprintf(a.Stdout, "\n%s needs %s %s, which velle does not install. Either:\n\n", c.Name, lib.Package, lib.Version)
+	fmt.Fprintf(a.Stdout, "\n%s needs %s %s, which velle does not install. Either:\n\n", name, lib.Package, lib.Version)
 	fmt.Fprintf(a.Stdout, "  • with a bundler:   npm install %s\n", strings.Join(lib.Packages(), " "))
 	if lib.Stylesheet != "" {
 		fmt.Fprintf(a.Stdout, "                      and import \"%s/%s\"%s\n", lib.Package, lib.Stylesheet, before)
@@ -487,37 +512,15 @@ func (a *App) list(args []string) error {
 	return nil
 }
 
-var runtimeExport = regexp.MustCompile(`(?m)^export (?:function|class) (\w+)`)
-
-// copyRuntime installs the runtime and its types. A runtime kept from an older version can
-// lack exports the components need, and one missing export stops every module that main.js
-// imports from loading, so say so.
-func (a *App) copyRuntime(config Config, overwrite bool) error {
-	for _, file := range []string{registry.RuntimeFile, registry.RuntimeTypesFile} {
-		if err := a.copy(file, path.Join(config.JSDir, path.Base(file)), overwrite); err != nil {
-			return err
-		}
+// copyApplication installs application.js, which starts the Stimulus application the
+// controllers are registered with, and reports whether it was created just now.
+func (a *App) copyApplication(config Config, overwrite bool) (bool, error) {
+	target := path.Join(config.JSDir, path.Base(registry.ApplicationFile))
+	_, err := os.Stat(filepath.Join(a.Dir, filepath.FromSlash(target)))
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return false, err
 	}
-
-	target := path.Join(config.JSDir, path.Base(registry.RuntimeFile))
-	installed, err := os.ReadFile(filepath.Join(a.Dir, filepath.FromSlash(target)))
-	if err != nil {
-		return err
-	}
-	current, err := fs.ReadFile(a.FS, registry.RuntimeFile)
-	if err != nil {
-		return err
-	}
-	var missing []string
-	for _, m := range runtimeExport.FindAllSubmatch(current, -1) {
-		if !bytes.Contains(installed, []byte("export function "+string(m[1]))) && !bytes.Contains(installed, []byte("export class "+string(m[1]))) {
-			missing = append(missing, string(m[1]))
-		}
-	}
-	if len(missing) > 0 {
-		fmt.Fprintf(a.Stderr, "velle: warning: %s is older than this version and does not export %s, so new components will fail to load; replace it with `velle add --overwrite` on a component that uses JavaScript\n", target, strings.Join(missing, ", "))
-	}
-	return nil
+	return errors.Is(err, fs.ErrNotExist), a.copy(registry.ApplicationFile, target, overwrite)
 }
 
 // copy writes a registry file to a project-relative target path.
