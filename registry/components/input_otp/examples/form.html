@@ -1,4 +1,4 @@
-<form class="card flex flex-col gap" style="max-inline-size: 24rem" action="/verify" method="post" data-form data-form-action="velle:input-otp:complete->submit">
+<form class="card flex flex-col gap" style="max-inline-size: 24rem" action="/verify" method="post" data-controller="form" data-action="input-otp:complete->form#submit">
   <div class="flex flex-col">
     <h3 class="font-medium leading-none mbe-1">Verify your login</h3>
     <p class="text-sm text-subtle">Enter the code we sent to <span class="font-medium">m@example.com</span>.</p>
@@ -6,7 +6,7 @@
 
   <div class="flex flex-col gap-half">
     <label class="text-sm font-medium leading-none" for="otp_form_code">Verification code</label>
-    <div class="input-otp input-otp--lg" data-input-otp>
+    <div class="input-otp input-otp--lg" data-controller="input-otp">
       <div class="input-otp__group">
         <div class="input-otp__slot" data-input-otp-target="slot"></div>
         <div class="input-otp__slot" data-input-otp-target="slot"></div>

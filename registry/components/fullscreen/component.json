@@ -4,14 +4,14 @@
   "category": "Behaviors",
   "description": "A button that toggles fullscreen mode for the whole page. It hides itself in browsers without the Fullscreen API.",
   "files": [
-    "fullscreen.js"
+    "fullscreen_controller.js"
   ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
     {
-      "name": "data-fullscreen",
+      "name": "data-controller=\"fullscreen\"",
       "element": "root, often <body>",
       "description": "Enables the behavior for the buttons inside it."
     },
@@ -21,7 +21,7 @@
       "description": "Hidden when fullscreen is not supported. Start it hidden so it never flashes."
     },
     {
-      "name": "data-fullscreen-action=\"toggle\"",
+      "name": "data-action=\"fullscreen#toggle\"",
       "element": "<button>",
       "description": "Enters or leaves fullscreen."
     }

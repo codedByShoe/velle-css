@@ -1,19 +1,27 @@
 import { tick, mount, key } from "./setup.js"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { controllerFor } from "../../dist/js/velle.js"
-import "../../dist/js/tabs.js"
-import "../../dist/js/menu.js"
-import "../../dist/js/form.js"
-import "../../dist/js/input_otp.js"
-import "../../dist/js/dual_range.js"
+import { application } from "../../dist/js/application.js"
+import Tabs from "../../dist/js/tabs_controller.js"
+import Menu from "../../dist/js/menu_controller.js"
+import Form from "../../dist/js/form_controller.js"
+import InputOtp from "../../dist/js/input_otp_controller.js"
+import DualRange from "../../dist/js/dual_range_controller.js"
+
+application.register("tabs", Tabs)
+application.register("menu", Menu)
+application.register("form", Form)
+application.register("input-otp", InputOtp)
+application.register("dual-range", DualRange)
+
+const controllerFor = (element, identifier) => application.getControllerForElementAndIdentifier(element, identifier)
 
 const tabsMarkup = index => `
-  <div data-tabs ${index === undefined ? "" : `data-tabs-index="${index}"`}>
-    <div data-tabs-action="keydown.left->prev keydown.right->next">
-      <button type="button" data-tabs-target="button" data-tabs-action="select"><span>One</span></button>
-      <button type="button" data-tabs-target="button" data-tabs-action="select">Two</button>
-      <button type="button" data-tabs-target="button" data-tabs-action="select">Three</button>
+  <div data-controller="tabs" ${index === undefined ? "" : `data-tabs-index-value="${index}"`}>
+    <div data-action="keydown.left->tabs#prev keydown.right->tabs#next">
+      <button type="button" data-tabs-target="button" data-action="tabs#select"><span>One</span></button>
+      <button type="button" data-tabs-target="button" data-action="tabs#select">Two</button>
+      <button type="button" data-tabs-target="button" data-action="tabs#select">Three</button>
     </div>
     <div hidden data-tabs-target="tab"></div>
     <div hidden data-tabs-target="tab"></div>
@@ -36,17 +44,17 @@ const showing = (index, count = 3) => ({
 
 function changes(root) {
   const events = []
-  root.addEventListener("velle:tabs:change", event => events.push(event.detail.index))
+  root.addEventListener("tabs:change", event => events.push(event.detail.index))
   return events
 }
 
 test("tabs render the initial index on connect and announce it", async () => {
   let announced
   const listener = event => announced = event.detail.index
-  document.addEventListener("velle:tabs:change", listener)
+  document.addEventListener("tabs:change", listener)
 
   const root = await mount(tabsMarkup(1))
-  document.removeEventListener("velle:tabs:change", listener)
+  document.removeEventListener("tabs:change", listener)
 
   assert.deepEqual(state(root), showing(1))
   assert.equal(announced, 1)
@@ -64,18 +72,19 @@ test("clicking inside a tab button selects it", async () => {
   await tick()
 
   assert.deepEqual(state(root), showing(0))
-  assert.equal(root.getAttribute("data-tabs-index"), "0")
+  assert.equal(root.getAttribute("data-tabs-index-value"), "0")
   assert.deepEqual(events, [ 0 ])
 })
 
-test("clicking the selected tab announces it again", async () => {
+test("clicking the selected tab changes nothing", async () => {
   const root = await mount(tabsMarkup(0))
   const events = changes(root)
 
   root.querySelectorAll("button")[0].click()
   await tick()
 
-  assert.deepEqual(events, [ 0 ])
+  assert.deepEqual(events, [])
+  assert.deepEqual(state(root), showing(0))
 })
 
 test("arrow keys move between tabs, focus follows and the ends stop", async () => {
@@ -106,17 +115,17 @@ test("arrow keys move between tabs, focus follows and the ends stop", async () =
   assert.deepEqual(events, [ 1, 2, 1 ])
 })
 
-test("setting data-tabs-index from outside switches tab", async () => {
+test("setting data-tabs-index-value from outside switches tab", async () => {
   const root = await mount(tabsMarkup(0))
 
-  root.setAttribute("data-tabs-index", "2")
+  root.setAttribute("data-tabs-index-value", "2")
   await tick()
 
   assert.deepEqual(state(root), showing(2))
 })
 
 const menuMarkup = `
-  <div data-menu>
+  <div data-controller="menu">
     <button data-menu-target="item">A</button>
     <button data-menu-target="item">B</button>
     <button data-menu-target="item">C</button>
@@ -168,7 +177,7 @@ test("menu stops handling keys and observing once removed", async () => {
 })
 
 test("form debounce reads its wait from the attribute, once", async () => {
-  const root = await mount(`<form data-form data-form-debounce="1"><input name="q"></form>`)
+  const root = await mount(`<form data-controller="form" data-form-debounce-value="1"><input name="q"></form>`)
   const instance = controllerFor(root, "form")
   let submits = 0
   root.addEventListener("submit", event => {
@@ -176,7 +185,7 @@ test("form debounce reads its wait from the attribute, once", async () => {
     submits++
   })
 
-  assert.equal(instance.debounce, 1)
+  assert.equal(instance.debounceValue, 1)
   instance.debouncedSubmit()
   instance.debouncedSubmit()
   await new Promise(resolve => setTimeout(resolve, 20))
@@ -185,12 +194,12 @@ test("form debounce reads its wait from the attribute, once", async () => {
 })
 
 test("form debounce defaults to 300", async () => {
-  assert.equal(controllerFor(await mount(`<form data-form></form>`), "form").debounce, 300)
+  assert.equal(controllerFor(await mount(`<form data-controller="form"></form>`), "form").debounceValue, 300)
 })
 
 test("form disableSubmitWhenInvalid and cancel use their targets", async () => {
   const root = await mount(`
-    <form data-form>
+    <form data-controller="form">
       <input required>
       <button data-form-target="submit"></button>
       <button type="button" data-form-target="cancel"></button>
@@ -212,7 +221,7 @@ test("form disableSubmitWhenInvalid and cancel use their targets", async () => {
 })
 
 const otpMarkup = pattern => `
-  <div data-input-otp ${pattern ? `data-input-otp-pattern="${pattern}"` : ""}>
+  <div data-controller="input-otp" ${pattern ? `data-input-otp-pattern-value="${pattern}"` : ""}>
     <input data-input-otp-target="input">
     <span data-input-otp-target="slot"></span>
     <span data-input-otp-target="slot"></span>
@@ -234,7 +243,7 @@ test("input_otp filters by pattern, defaulting to digits", async () => {
 test("input_otp announces completion and stops listening once removed", async () => {
   const root = await mount(otpMarkup())
   const completed = []
-  root.addEventListener("velle:input-otp:complete", event => completed.push(event.detail.value))
+  root.addEventListener("input-otp:complete", event => completed.push(event.detail.value))
 
   typeOtp(root, "123")
   assert.deepEqual(completed, [ "123" ])
@@ -246,7 +255,7 @@ test("input_otp announces completion and stops listening once removed", async ()
 })
 
 const rangeMarkup = precision => `
-  <div data-dual-range ${precision === undefined ? "" : `data-dual-range-precision="${precision}"`}>
+  <div data-controller="dual-range" ${precision === undefined ? "" : `data-dual-range-precision-value="${precision}"`}>
     <input type="range" min="0" max="100" value="20" data-dual-range-target="min">
     <input type="range" min="0" max="100" value="80" data-dual-range-target="max">
   </div>`

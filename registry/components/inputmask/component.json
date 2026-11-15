@@ -3,7 +3,7 @@
   "title": "Input Mask",
   "category": "Forms",
   "description": "Formats what the user types into a pattern, such as phone numbers, dates or decimals.",
-  "files": ["inputmask.js"],
+  "files": ["inputmask_controller.js"],
   "dependencies": ["input"],
   "library": {
     "package": "maska",
@@ -16,7 +16,7 @@
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-inputmask", "element": "<input>", "description": "Applies the mask." },
+    { "name": "data-controller=\"inputmask\"", "element": "<input>", "description": "Applies the mask." },
     { "name": "data-maska", "element": "<input>", "description": "maska's mask pattern: # is a digit, @ a letter, * a letter or digit, e.g. \"##/##/####\". A JSON-like list of patterns picks the one that fits the input length." },
     { "name": "data-maska-number", "element": "<input>", "description": "maska's number mode: formats the value as a number with grouping." },
     { "name": "data-maska-number-fraction", "element": "<input>", "description": "Number of decimal places in number mode." },

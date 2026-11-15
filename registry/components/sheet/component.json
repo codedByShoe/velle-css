@@ -45,9 +45,9 @@
       "description": "Open with command=\"show-modal\" and close with command=\"close\", like a dialog."
     },
     {
-      "name": "data-dialog / data-dialog-action",
+      "name": "data-controller=\"dialog\" / data-action",
       "element": "<dialog>",
-      "description": "Optional: data-dialog-action=\"click->closeOnClickOutside\" closes the sheet when the backdrop is clicked."
+      "description": "Optional: data-action=\"click->dialog#closeOnClickOutside\" closes the sheet when the backdrop is clicked."
     }
   ],
   "actions": [],

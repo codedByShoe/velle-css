@@ -5,7 +5,7 @@
   "description": "Floating panels anchored to their trigger with the native popover attribute and CSS anchor positioning. Includes a hover behavior for tooltips and hover cards.",
   "files": [
     "popover.css",
-    "interest.js"
+    "interest_controller.js"
   ],
   "dependencies": [],
   "classes": [
@@ -76,12 +76,12 @@
       "description": "Native attribute: toggles the popover with this id and anchors it to the button."
     },
     {
-      "name": "data-interest",
+      "name": "data-controller=\"interest\"",
       "element": "trigger",
       "description": "Shows a popover while the pointer is over this element."
     },
     {
-      "name": "data-interest-for",
+      "name": "data-interest-for-value",
       "element": "trigger",
       "description": "Id of the popover to show."
     }

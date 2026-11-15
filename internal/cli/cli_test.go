@@ -107,20 +107,20 @@ func TestAddCopiesComponentsAndDependencies(t *testing.T) {
 	}
 
 	for _, f := range []string{
-		"assets/css/velle/popover.css", "assets/js/velle/interest.js", // dropdown -> popover
-		"assets/css/velle/menu.css", "assets/js/velle/menu.js", // dropdown -> menu
+		"assets/css/velle/popover.css", "assets/js/velle/interest_controller.js", // dropdown -> popover
+		"assets/css/velle/menu.css", "assets/js/velle/menu_controller.js", // dropdown -> menu
 		"assets/css/velle/button.css", "assets/css/velle/icons.css", // menu -> button -> icons
-		"assets/css/velle/tabs.css", "assets/js/velle/tabs.js",
-		"assets/js/velle/velle.js", "assets/js/velle/velle.d.ts", // runtime and its types
-		"assets/js/velle/upload_preview.js", "assets/images/velle/avatar.svg",
+		"assets/css/velle/tabs.css", "assets/js/velle/tabs_controller.js",
+		"assets/js/velle/application.js", // starts Stimulus
+		"assets/js/velle/upload_preview_controller.js", "assets/images/velle/avatar.svg",
 	} {
 		if !exists(t, filepath.Join(dir, f)) {
 			t.Errorf("%s was not created", f)
 		}
 	}
 
-	if strings.Contains(out, "<script") || strings.Contains(out, "<link") {
-		t.Errorf("with entries, add should not ask for tags, got:\n%s", out)
+	if strings.Contains(out, `<script type="module"`) || strings.Contains(out, "<link") || strings.Contains(out, "application.register") {
+		t.Errorf("with entries, add should not ask for tags or registrations, got:\n%s", out)
 	}
 
 	css, _ := os.ReadFile(filepath.Join(dir, "assets/css/velle/main.css"))
@@ -139,10 +139,41 @@ func TestAddCopiesComponentsAndDependencies(t *testing.T) {
 	}
 
 	js, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/main.js"))
-	for _, want := range []string{`import "./interest.js"`, `import "./menu.js"`, `import "./tabs.js"`, `import "./upload_preview.js"`} {
-		if !strings.Contains(string(js), want) {
-			t.Errorf("main.js is missing %s:\n%s", want, js)
-		}
+	wantJS := `import { application } from "./application.js"
+import InterestController from "./interest_controller.js"
+import MenuController from "./menu_controller.js"
+import TabsController from "./tabs_controller.js"
+import UploadPreviewController from "./upload_preview_controller.js"
+application.register("interest", InterestController)
+application.register("menu", MenuController)
+application.register("tabs", TabsController)
+application.register("upload-preview", UploadPreviewController)
+// velle:end`
+	if !strings.Contains(string(js), wantJS) {
+		t.Errorf("main.js should import the application and register every controller, got:\n%s", js)
+	}
+}
+
+func TestJSEntryRegistersEachControllerOnce(t *testing.T) {
+	dir := t.TempDir()
+	run(t, dir, "init")
+	run(t, dir, "add", "tabs")
+	entry := filepath.Join(dir, "assets/js/velle/main.js")
+
+	// A line of the user's own inside the block survives velle's rewrites.
+	first, _ := os.ReadFile(entry)
+	custom := strings.Replace(string(first), "// velle:end", "application.debug = true\n// velle:end", 1)
+	if err := os.WriteFile(entry, []byte(custom), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	run(t, dir, "add", "tabs", "dialog")
+	got, _ := os.ReadFile(entry)
+	if strings.Count(string(got), `application.register("tabs", TabsController)`) != 1 || strings.Count(string(got), `import TabsController`) != 1 {
+		t.Errorf("tabs should be imported and registered once:\n%s", got)
+	}
+	if !strings.Contains(string(got), `application.register("dialog", DialogController)`) || !strings.Contains(string(got), "application.debug = true\n// velle:end") {
+		t.Errorf("expected dialog registered and the user's line kept:\n%s", got)
 	}
 }
 
@@ -176,31 +207,29 @@ func TestAddKeepsExistingFiles(t *testing.T) {
 	}
 }
 
-func TestAddWarnsAboutAnOlderRuntime(t *testing.T) {
+func TestAddExplainsStimulusOnce(t *testing.T) {
 	dir := t.TempDir()
 	run(t, dir, "init")
-	run(t, dir, "add", "tabs")
-	runtime := filepath.Join(dir, "assets/js/velle/velle.js")
 
-	if _, _, errOut := run(t, dir, "add", "tabs"); strings.Contains(errOut, "warning") {
-		t.Errorf("a current runtime should not warn, got %q", errOut)
+	if _, out, _ := run(t, dir, "add", "button"); strings.Contains(out, "@hotwired/stimulus") {
+		t.Errorf("a component without JavaScript does not need Stimulus:\n%s", out)
+	}
+	_, out, _ := run(t, dir, "add", "tabs")
+	if !strings.Contains(out, "npm install @hotwired/stimulus@3.2.2") || !strings.Contains(out, `"@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"`) {
+		t.Errorf("the first JavaScript component should explain how to install Stimulus:\n%s", out)
 	}
 
-	older := "export function define() {}\nexport class Controller {}\n"
-	if err := os.WriteFile(runtime, []byte(older), 0o644); err != nil {
+	// application.js is the user's to point at their own application.
+	application := filepath.Join(dir, "assets/js/velle/application.js")
+	if err := os.WriteFile(application, []byte(`export { application } from "../../controllers/application.js"`), 0o644); err != nil {
 		t.Fatal(err)
 	}
-
-	_, _, errOut := run(t, dir, "add", "tabs")
-	if !strings.Contains(errOut, "does not export") || !strings.Contains(errOut, "controllerFor") {
-		t.Errorf("expected a warning naming the missing exports, got %q", errOut)
+	_, out, _ = run(t, dir, "add", "dialog")
+	if strings.Contains(out, "@hotwired/stimulus") {
+		t.Errorf("Stimulus should only be explained once:\n%s", out)
 	}
-	if got, _ := os.ReadFile(runtime); string(got) != older {
-		t.Error("the warning must not replace the runtime")
-	}
-
-	if _, _, errOut := run(t, dir, "add", "--overwrite", "tabs"); strings.Contains(errOut, "warning") {
-		t.Errorf("--overwrite should replace the runtime without warning, got %q", errOut)
+	if got, _ := os.ReadFile(application); !strings.Contains(string(got), "controllers/application.js") {
+		t.Error("a customized application.js was replaced")
 	}
 }
 
@@ -210,8 +239,8 @@ func TestAddAll(t *testing.T) {
 	if code, _, errOut := run(t, dir, "add", "--all"); code != 0 {
 		t.Fatalf("add --all exited %d: %s", code, errOut)
 	}
-	if !exists(t, filepath.Join(dir, "assets/js/velle/confirm.js")) {
-		t.Error("add --all did not copy confirm.js")
+	if !exists(t, filepath.Join(dir, "assets/js/velle/confirm_dialog_controller.js")) {
+		t.Error("add --all did not copy confirm_dialog_controller.js")
 	}
 	if code, _, _ := run(t, dir, "add", "--all", "button"); code == 0 {
 		t.Error("--all with names should fail")
@@ -228,7 +257,7 @@ func TestAddErrors(t *testing.T) {
 	if code, _, _ := run(t, dir, "add"); code == 0 {
 		t.Error("add without names should fail")
 	}
-	if exists(t, filepath.Join(dir, "assets/js/velle/velle.js")) {
+	if exists(t, filepath.Join(dir, "assets/js/velle/application.js")) {
 		t.Error("failed adds should not write files")
 	}
 }
@@ -322,7 +351,7 @@ func TestCustomEntryPaths(t *testing.T) {
 		t.Errorf("imports should be relative to the entry, got:\n%s", css)
 	}
 	js, _ := os.ReadFile(filepath.Join(dir, "app/app.js"))
-	if !strings.Contains(string(js), `import "../assets/js/velle/tabs.js"`) {
+	if !strings.Contains(string(js), `import { application } from "../assets/js/velle/application.js"`) || !strings.Contains(string(js), `import TabsController from "../assets/js/velle/tabs_controller.js"`) {
 		t.Errorf("imports should be relative to the entry, got:\n%s", js)
 	}
 
@@ -339,8 +368,11 @@ func TestEntriesTurnedOff(t *testing.T) {
 	if exists(t, filepath.Join(dir, "assets/css/velle/main.css")) || exists(t, filepath.Join(dir, "assets/js/velle/main.js")) {
 		t.Error("entries that are turned off should not be created")
 	}
-	if !strings.Contains(out, `<link rel="stylesheet" href="/assets/css/velle/tabs.css">`) || !strings.Contains(out, `<script type="module" src="/assets/js/velle/tabs.js"></script>`) {
-		t.Errorf("without entries, add should print the tags, got:\n%s", out)
+	registration := `  import { application } from "/assets/js/velle/application.js"
+  import TabsController from "/assets/js/velle/tabs_controller.js"
+  application.register("tabs", TabsController)`
+	if !strings.Contains(out, `<link rel="stylesheet" href="/assets/css/velle/tabs.css">`) || !strings.Contains(out, registration) {
+		t.Errorf("without entries, add should print the tags and registrations, got:\n%s", out)
 	}
 }
 
@@ -363,35 +395,40 @@ func TestNewControllerRequiresInit(t *testing.T) {
 	}
 }
 
-func TestNewControllerWritesFileAndRuntime(t *testing.T) {
+func TestNewControllerWritesFileAndApplication(t *testing.T) {
 	dir := t.TempDir()
 	run(t, dir, "init")
 
-	code, _, errOut := run(t, dir, "new", "controller", "cart")
+	code, out, errOut := run(t, dir, "new", "controller", "cart")
 	if code != 0 {
 		t.Fatalf("new exited %d: %s", code, errOut)
 	}
 
-	got, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/cart.js"))
-	want := `// @ts-check
-import { define, controller } from "./velle.js"
+	got, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/cart_controller.js"))
+	want := `import { Controller } from "@hotwired/stimulus"
 
-define("cart", class extends controller({
-  targets: {},
-  values: {},
-}) {
+export default class extends Controller {
+  static targets = []
+  static values = {}
+
   connect() {}
-})
+}
 `
 	if string(got) != want {
 		t.Errorf("unexpected controller file:\n%s", got)
 	}
+	if !strings.Contains(out, `data-controller="cart"`) {
+		t.Errorf("new should say how to connect the controller:\n%s", out)
+	}
 
-	// velle init does not install the runtime, and the controller imports it.
-	for _, f := range []string{"assets/js/velle/velle.js", "assets/js/velle/velle.d.ts"} {
-		if !exists(t, filepath.Join(dir, f)) {
-			t.Errorf("%s was not created", f)
-		}
+	// velle init does not install application.js, and the controller is registered with it.
+	if !exists(t, filepath.Join(dir, "assets/js/velle/application.js")) {
+		t.Error("application.js was not created")
+	}
+	entry, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/main.js"))
+	if !strings.Contains(string(entry), `import { application } from "./application.js"
+// velle:end`) {
+		t.Errorf("the block should import the application:\n%s", entry)
 	}
 }
 
@@ -404,9 +441,10 @@ func TestNewControllerImportsAfterTheManagedBlock(t *testing.T) {
 	run(t, dir, "new", "controller", "cart")
 	first, _ := os.ReadFile(entry)
 	end := strings.Index(string(first), "velle:end")
-	imported := strings.Index(string(first), `import "./cart.js"`)
+	imported := strings.Index(string(first), `import CartController from "./cart_controller.js"
+application.register("cart", CartController)`)
 	if end < 0 || imported < end {
-		t.Fatalf("the import belongs after velle:end:\n%s", first)
+		t.Fatalf("the import and registration belong after velle:end:\n%s", first)
 	}
 
 	run(t, dir, "new", "controller", "cart")
@@ -417,7 +455,7 @@ func TestNewControllerImportsAfterTheManagedBlock(t *testing.T) {
 
 	run(t, dir, "add", "dialog")
 	third, _ := os.ReadFile(entry)
-	if strings.Count(string(third), `import "./cart.js"`) != 1 || strings.Index(string(third), `import "./cart.js"`) < strings.Index(string(third), "velle:end") {
+	if strings.Count(string(third), `application.register("cart", CartController)`) != 1 || strings.Index(string(third), `import CartController`) < strings.Index(string(third), "velle:end") {
 		t.Errorf("velle add should leave the user's import alone:\n%s", third)
 	}
 }
@@ -427,7 +465,7 @@ func TestNewControllerKeepsExistingFiles(t *testing.T) {
 	run(t, dir, "init")
 	run(t, dir, "new", "controller", "cart")
 
-	target := filepath.Join(dir, "assets/js/velle/cart.js")
+	target := filepath.Join(dir, "assets/js/velle/cart_controller.js")
 	if err := os.WriteFile(target, []byte("// customized"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -453,43 +491,21 @@ func TestNewControllerKeepsExistingFiles(t *testing.T) {
 	}
 }
 
-func TestNewControllerOverwriteLeavesTheRuntimeAlone(t *testing.T) {
+func TestNewControllerOverwriteLeavesTheApplicationAlone(t *testing.T) {
 	dir := t.TempDir()
 	run(t, dir, "init")
 	run(t, dir, "new", "controller", "cart")
 
-	runtime := filepath.Join(dir, "assets/js/velle/velle.js")
-	original, _ := os.ReadFile(runtime)
+	application := filepath.Join(dir, "assets/js/velle/application.js")
+	original, _ := os.ReadFile(application)
 	customized := append([]byte("// customized\n"), original...)
-	if err := os.WriteFile(runtime, customized, 0o644); err != nil {
+	if err := os.WriteFile(application, customized, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	run(t, dir, "new", "controller", "--overwrite", "cart")
-	if got, _ := os.ReadFile(runtime); string(got) != string(customized) {
+	if got, _ := os.ReadFile(application); string(got) != string(customized) {
 		t.Error("--overwrite must only apply to the controller file")
-	}
-}
-
-func TestNewControllerWritesJSConfigOnce(t *testing.T) {
-	dir := t.TempDir()
-	run(t, dir, "init")
-	run(t, dir, "new", "controller", "cart")
-
-	target := filepath.Join(dir, "jsconfig.json")
-	got, _ := os.ReadFile(target)
-	for _, want := range []string{`"checkJs": true`, `"strict": true`, `"module": "esnext"`, `"target": "es2022"`, `"moduleResolution": "bundler"`} {
-		if !strings.Contains(string(got), want) {
-			t.Errorf("jsconfig.json is missing %s:\n%s", want, got)
-		}
-	}
-
-	if err := os.WriteFile(target, []byte("{}"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	run(t, dir, "new", "controller", "--overwrite", "other")
-	if got, _ := os.ReadFile(target); string(got) != "{}" {
-		t.Error("an existing jsconfig.json must never be replaced")
 	}
 }
 
@@ -504,26 +520,30 @@ func TestNewControllerNames(t *testing.T) {
 		{"new", "controller", "a", "b"},
 		{"new", "controller", "../evil"},
 		{"new", "controller", "Cart"},
-		{"new", "controller", "velle"},          // the runtime
-		{"new", "controller", "main"},           // the entry
-		{"new", "controller", "tabs"},           // a shipped component
-		{"new", "controller", "local-time"},     // shipped as local_time.js
-		{"new", "controller", "confirm-dialog"}, // defined by confirm.js
+		{"new", "controller", "tabs"},                      // a shipped component
+		{"new", "controller", "local-time"},                // shipped as local_time_controller.js
+		{"new", "controller", "confirm_dialog_controller"}, // shipped with confirm
 	} {
 		if code, _, _ := run(t, dir, args...); code == 0 {
 			t.Errorf("%v should fail", args)
 		}
 	}
-	if exists(t, filepath.Join(dir, "assets/js/velle/velle.js")) {
+	if exists(t, filepath.Join(dir, "assets/js/velle/application.js")) {
 		t.Error("rejected names should not write files")
 	}
 
-	if code, _, errOut := run(t, dir, "new", "controller", "shopping_cart"); code != 0 {
-		t.Fatalf("new exited %d: %s", code, errOut)
+	for _, name := range []string{"shopping_cart", "shopping-cart", "shopping_cart_controller"} {
+		if code, _, errOut := run(t, dir, "new", "controller", "--overwrite", name); code != 0 {
+			t.Fatalf("new %s exited %d: %s", name, code, errOut)
+		}
 	}
-	got, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/shopping_cart.js"))
-	if !strings.Contains(string(got), `define("shopping-cart"`) {
-		t.Errorf("attribute names use dashes, got:\n%s", got)
+	matches, _ := filepath.Glob(filepath.Join(dir, "assets/js/velle/shopping*"))
+	if len(matches) != 1 || filepath.Base(matches[0]) != "shopping_cart_controller.js" {
+		t.Errorf("every spelling should name shopping_cart_controller.js, got %v", matches)
+	}
+	entry, _ := os.ReadFile(filepath.Join(dir, "assets/js/velle/main.js"))
+	if strings.Count(string(entry), `application.register("shopping-cart", ShoppingCartController)`) != 1 {
+		t.Errorf("identifiers use dashes and are registered once, got:\n%s", entry)
 	}
 }
 
@@ -533,7 +553,7 @@ func TestNewControllerWithCustomEntry(t *testing.T) {
 	run(t, dir, "new", "controller", "cart")
 
 	js, _ := os.ReadFile(filepath.Join(dir, "app/app.js"))
-	if !strings.Contains(string(js), `import "../assets/js/velle/cart.js"`) {
+	if !strings.Contains(string(js), `import CartController from "../assets/js/velle/cart_controller.js"`) {
 		t.Errorf("imports should be relative to the entry, got:\n%s", js)
 	}
 }
@@ -546,8 +566,8 @@ func TestNewControllerWithEntriesTurnedOff(t *testing.T) {
 	if exists(t, filepath.Join(dir, "assets/js/velle/main.js")) {
 		t.Error("an entry that is turned off should not be created")
 	}
-	if !strings.Contains(out, `<script type="module" src="/assets/js/velle/cart.js"></script>`) {
-		t.Errorf("without an entry, new should print the tag, got:\n%s", out)
+	if !strings.Contains(out, `import CartController from "/assets/js/velle/cart_controller.js"`) || !strings.Contains(out, `application.register("cart", CartController)`) {
+		t.Errorf("without an entry, new should print the registration, got:\n%s", out)
 	}
 }
 
@@ -562,7 +582,7 @@ func TestNewControllerRestoresAMissingBlock(t *testing.T) {
 	run(t, dir, "new", "controller", "cart")
 
 	got, _ := os.ReadFile(entry)
-	if !strings.Contains(string(got), "console.log(1)") || strings.Index(string(got), `import "./cart.js"`) < strings.Index(string(got), "velle:end") {
+	if !strings.Contains(string(got), "console.log(1)") || !strings.Contains(string(got), `import { application }`) || strings.Index(string(got), `import CartController`) < strings.Index(string(got), "velle:end") {
 		t.Errorf("unexpected entry:\n%s", got)
 	}
 }
@@ -607,7 +627,7 @@ func TestAddHeadlessCopiesOnlyJavaScript(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("add exited %d: %s", code, errOut)
 	}
-	for _, file := range []string{"tabs.js", "resizable.js", "velle.js", "velle.d.ts"} {
+	for _, file := range []string{"tabs_controller.js", "resizable_controller.js", "application.js"} {
 		if !exists(t, filepath.Join(dir, "assets/js/velle", file)) {
 			t.Errorf("%s was not installed", file)
 		}
@@ -625,8 +645,8 @@ func TestAddHeadlessCopiesOnlyJavaScript(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(entry), "tabs.js") {
-		t.Errorf("main.js should import tabs.js:\n%s", entry)
+	if !strings.Contains(string(entry), `application.register("tabs", TabsController)`) {
+		t.Errorf("main.js should register tabs:\n%s", entry)
 	}
 }
 
@@ -648,8 +668,8 @@ func TestNewControllerInAHeadlessProject(t *testing.T) {
 	if code, _, errOut := run(t, dir, "new", "controller", "cart"); code != 0 {
 		t.Fatalf("new controller exited %d: %s", code, errOut)
 	}
-	if !exists(t, filepath.Join(dir, "assets/js/velle/velle.js")) || exists(t, filepath.Join(dir, "assets/css")) {
-		t.Error("expected the runtime and no styles")
+	if !exists(t, filepath.Join(dir, "assets/js/velle/application.js")) || exists(t, filepath.Join(dir, "assets/css")) {
+		t.Error("expected application.js and no styles")
 	}
 }
 
