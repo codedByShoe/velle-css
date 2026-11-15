@@ -40,9 +40,9 @@ The controllers import `@hotwired/stimulus`, which velle does not install: `npm 
 Use the bundles from a release through jsDelivr, with Stimulus from an import map:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.2.0/dist/velle.css">
 <script type="importmap">{ "imports": { "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js" } }</script>
-<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.2.0/dist/velle.js"></script>
 ```
 
 Or copy individual files from `dist/css`, `dist/js` and `dist/images`. They are the same files the CLI installs.

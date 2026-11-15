@@ -1,5 +1,5 @@
 /*!
- * velle-css 0.1.0 | MIT License | https://github.com/codedbyshoe/velle-css
+ * velle-css 0.2.0 | MIT License | https://github.com/codedbyshoe/velle-css
  * Based on css-zero by Lázaro Nixon (https://github.com/lazaronixon/css-zero)
  */
 

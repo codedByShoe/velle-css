@@ -8,7 +8,7 @@ import (
 )
 
 // Version is the library version reported by the CLI and printed in the docs.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 //go:embed all:registry
 var embedded embed.FS
