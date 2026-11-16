@@ -3,7 +3,7 @@
   "title": "Input Revealable",
   "category": "Forms",
   "description": "A password field with a button that shows or hides the password.",
-  "files": ["input_revealable.css", "input_revealable_controller.js"],
+  "files": ["input_revealable.css", "input_revealable.js"],
   "dependencies": ["input", "button", "icons"],
   "classes": [
     { "name": "input--revealable", "description": "Shows an eye icon on the button. Use it with input and input--actor; leave the button's icon without an icon--* modifier." },
@@ -11,9 +11,9 @@
   ],
   "variables": [],
   "attributes": [
-    { "name": "data-controller=\"input-revealable\"", "element": "wrapper", "description": "Enables the behavior." },
+    { "name": "data-input-revealable", "element": "wrapper", "description": "Enables the behavior." },
     { "name": "data-input-revealable-target=\"input\"", "element": "<input type=\"password\">", "description": "The field to reveal." },
-    { "name": "data-action=\"input-revealable#reveal\"", "element": "<button>", "description": "Toggles between password and text." }
+    { "name": "data-input-revealable-action=\"reveal\"", "element": "<button>", "description": "Toggles between password and text." }
   ],
   "actions": [
     { "name": "reveal", "description": "Switches the input type between password and text, and toggles input--revealed." }

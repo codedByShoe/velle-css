@@ -3,7 +3,7 @@
   "title": "Lightbox",
   "category": "Overlays",
   "description": "Opens a full-screen viewer for images, with close, download and share buttons. One dialog on the page serves every image link.",
-  "files": ["lightbox.css", "lightbox_controller.js"],
+  "files": ["lightbox.css", "lightbox.js"],
   "dependencies": ["web_share", "button", "icons"],
   "classes": [
     { "name": "lightbox", "description": "The full-screen <dialog>." },
@@ -14,11 +14,11 @@
   ],
   "variables": [],
   "attributes": [
-    { "name": "data-controller=\"lightbox\"", "element": "root, usually <body>", "description": "Must contain both the image links and the dialog." },
-    { "name": "data-action=\"lightbox#show:prevent\"", "element": "<a href=\"full-image.jpg\">", "description": "Opens the viewer with the link's href instead of following it." },
+    { "name": "data-lightbox", "element": "root, usually <body>", "description": "Must contain both the image links and the dialog." },
+    { "name": "data-lightbox-action=\"show:prevent\"", "element": "<a href=\"full-image.jpg\">", "description": "Opens the viewer with the link's href instead of following it." },
     { "name": "data-lightbox-url", "element": "<a>", "description": "URL used for download and share, e.g. a version served with Content-Disposition: attachment." },
     { "name": "data-lightbox-target", "element": "inside the dialog", "description": "dialog (the <dialog>), zoomedImage (the <img>), download (the <a download>) and share (the web share button)." },
-    { "name": "data-action=\"close->lightbox#reset\"", "element": "<dialog>", "description": "Clears the image and links when the dialog closes." }
+    { "name": "data-lightbox-action=\"close->reset\"", "element": "<dialog>", "description": "Clears the image and links when the dialog closes." }
   ],
   "actions": [
     { "name": "show", "description": "Shows the dialog with the clicked link's image." },

@@ -1,7 +1,7 @@
-<form class="flex flex-col gap" action="/notes" method="post" data-controller="form" style="max-inline-size: 24rem">
+<form class="flex flex-col gap" action="/notes" method="post" data-form style="max-inline-size: 24rem">
   <div class="flex flex-col gap-half">
     <label class="text-sm font-medium leading-none" for="form_content">Content</label>
-    <textarea rows="5" class="input" name="content" id="form_content" placeholder="Press ⌘ + Enter or Ctrl + Enter to save" data-action="keydown.ctrl+enter->form#submit keydown.meta+enter->form#submit"></textarea>
+    <textarea rows="5" class="input" name="content" id="form_content" placeholder="Press ⌘ + Enter or Ctrl + Enter to save" data-form-action="keydown.ctrl+enter->submit keydown.meta+enter->submit"></textarea>
   </div>
 
   <div class="flex items-center">

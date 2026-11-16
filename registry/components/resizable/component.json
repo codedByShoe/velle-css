@@ -3,7 +3,7 @@
   "title": "Resizable",
   "category": "Layout",
   "description": "Panels separated by handles that resize them by dragging or with the keyboard. Groups can be nested.",
-  "files": ["resizable.css", "resizable_controller.js"],
+  "files": ["resizable.css", "resizable.js"],
   "dependencies": [],
   "classes": [
     { "name": "resizable", "description": "A row of panels. Give it a size; the panels fill it." },
@@ -13,7 +13,7 @@
   ],
   "variables": [],
   "attributes": [
-    { "name": "data-controller=\"resizable\"", "element": ".resizable", "description": "Enables resizing." },
+    { "name": "data-resizable", "element": ".resizable", "description": "Enables resizing." },
     { "name": "data-resizable-target=\"panel\"", "element": ".resizable__panel", "description": "A panel." },
     { "name": "data-resizable-target=\"handle\"", "element": ".resizable__handle", "description": "A handle. It resizes the panels directly before and after it." },
     { "name": "data-resizable-size", "element": "panel", "description": "Initial size in percent of the group. Panels without it share the remaining space equally." },
@@ -22,7 +22,7 @@
   ],
   "actions": [],
   "events": [
-    { "name": "resizable:resize", "description": "Dispatched after the panels change size. event.detail.sizes lists every panel's size in percent." }
+    { "name": "velle:resizable:resize", "description": "Dispatched after the panels change size. event.detail.sizes lists every panel's size in percent." }
   ],
   "headless": "Panels are sized with flex-grow, so the root must be a flex container. Add resizable--vertical to the root for vertical panels; the behavior reads it to pick the axis.",
   "notes": [

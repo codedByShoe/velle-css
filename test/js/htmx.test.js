@@ -1,8 +1,7 @@
 import { tick, mount } from "./setup.js"
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { Controller } from "@hotwired/stimulus"
-import { application } from "../../dist/js/application.js"
+import { define, controllerFor, prepareSnapshot, Controller } from "../../dist/js/velle.js"
 
 // Runs the real htmx and flatpickr, so a change in what they do fails here.
 const { window } = globalThis
@@ -45,8 +44,8 @@ window.XMLHttpRequest = globalThis.XMLHttpRequest = FakeXHR
 
 const { default: htmx } = await import("htmx.org/dist/htmx.cjs.js")
 await import("../../dist/js/htmx.js")
-application.register("tabs", (await import("../../dist/js/tabs_controller.js")).default)
-application.register("datepicker", (await import("../../dist/js/datepicker_controller.js")).default)
+await import("../../dist/js/tabs.js")
+await import("../../dist/js/datepicker.js")
 
 htmx.config.defaultSettleDelay = 0
 htmx.config.allowEval = true
@@ -66,7 +65,7 @@ function savedPages() {
 
 let connects = 0
 
-application.register("generated", class extends Controller {
+define("generated", class extends Controller {
   connect() {
     connects++
     this.element.insertAdjacentHTML("beforeend", `<i class="built"></i>`)
@@ -81,7 +80,7 @@ application.register("generated", class extends Controller {
 
 const historyMarkup = path => `
   <div>
-    <div data-controller="generated"></div>
+    <div data-generated></div>
     <a id="go" hx-get="${path}" hx-push-url="true" hx-target="#out">Go</a>
     <div id="out"></div>
   </div>`
@@ -93,7 +92,7 @@ test("the saved page leaves out what controllers built, and the live page keeps 
   await settled()
 
   const [ saved ] = savedPages().slice(-1)
-  assert.match(saved.content, /data-controller="generated"/)
+  assert.match(saved.content, /data-generated/)
   assert.doesNotMatch(saved.content, /class="built"/)
   assert.equal(root.querySelectorAll(".built").length, 1)
   assert.match(root.querySelector("#out").innerHTML, /swapped/)
@@ -109,7 +108,7 @@ test("going back reconnects controllers without doubling what they build", async
   await settled()
 
   assert.equal(connects, before + 1)
-  assert.equal(document.querySelectorAll("[data-controller=generated] .built").length, 1)
+  assert.equal(document.querySelectorAll("[data-generated] .built").length, 1)
 })
 
 test("a dialog saved while open comes back closed", async () => {
@@ -129,13 +128,13 @@ test("a dialog saved while open comes back closed", async () => {
   assert.equal(document.querySelector("dialog").hasAttribute("open"), false)
 })
 
-test("htmx can trigger on a controller's event, with a filter", async () => {
+test("htmx can trigger on a velle event, with a filter", async () => {
   const root = await page(`
-    <div class="tabs" data-controller="tabs">
-      <button type="button" data-tabs-target="button" data-action="tabs#select">One</button>
-      <button type="button" data-tabs-target="button" data-action="tabs#select">Two</button>
+    <div data-tabs>
+      <button type="button" data-tabs-target="button" data-tabs-action="select">One</button>
+      <button type="button" data-tabs-target="button" data-tabs-action="select">Two</button>
       <div hidden data-tabs-target="tab"></div>
-      <div hidden data-tabs-target="tab" hx-get="/activity" hx-trigger="tabs:change[detail.index==1] from:closest .tabs once"></div>
+      <div hidden data-tabs-target="tab" hx-get="/activity" hx-trigger="velle:tabs:change[detail.index==1] from:closest [data-tabs] once"></div>
     </div>`)
   const count = () => requests.filter(url => url === "/activity").length
   assert.equal(count(), 0)
@@ -155,7 +154,7 @@ test("controllers connect inside swapped markup", async () => {
   const root = await page(`<div><a id="go" hx-get="/swap" hx-target="#out">Go</a><div id="out"></div></div>`)
   const original = FakeXHR.prototype.send
   FakeXHR.prototype.send = function () {
-    this.response = this.responseText = `<div id="fresh" data-controller="generated"></div>`
+    this.response = this.responseText = `<div id="fresh" data-generated></div>`
     original.call(this)
   }
 
@@ -167,18 +166,17 @@ test("controllers connect inside swapped markup", async () => {
 })
 
 test("datepicker leaves no flatpickr markup in a snapshot and comes back with its date", async () => {
-  const root = await page(`<div><input data-controller="datepicker" value="2028-01-10"></div>`)
-  const input = root.querySelector("[data-controller=datepicker]")
-  const instance = application.getControllerForElementAndIdentifier(input, "datepicker")
+  const root = await page(`<div><input data-datepicker value="2028-01-10"></div>`)
+  const input = root.querySelector("[data-datepicker]")
+  const instance = controllerFor(input, "datepicker")
   assert.equal(root.querySelectorAll("input").length, 2, "flatpickr adds a visible input")
 
-  // htmx copies the page while this event is dispatched; the extension undoes it right after.
-  document.dispatchEvent(new Event("htmx:beforeHistorySave"))
+  const undo = prepareSnapshot()
   assert.equal(root.querySelectorAll("input").length, 1)
   assert.equal(document.querySelector(".flatpickr-calendar"), null)
   assert.equal(input.value, "2028-01-10")
 
-  await null
+  undo()
   assert.equal(root.querySelectorAll("input").length, 2)
   assert.equal(document.querySelectorAll(".flatpickr-calendar").length, 1)
   assert.equal(instance.flatpickr.input, input)

@@ -3,15 +3,12 @@ import { tick, mount } from "./setup.js"
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
-import { Controller } from "@hotwired/stimulus"
-import { application } from "../../dist/js/application.js"
+import { define, controller, controllerFor } from "../../dist/js/velle.js"
 
 const read = file => readFileSync(new URL(`../../internal/docs/templates/${file}`, import.meta.url), "utf8")
 const guide = read("guide.md")
-const controller = file => guide.match(new RegExp("```js\\n(// " + file + "\\n[^`]*)\\n```"))[1]
-const counter = controller("counter_controller.js")
-const cart = controller("cart_controller.js")
-const markup = guide.match(/```html\n(<div data-controller="counter">[^`]*)\n```/)[1]
+const example = guide.match(/```js\n(\/\/ @ts-check\n[^`]*define\("cart"[^`]*)\n```/)[1]
+const markup = guide.match(/```html\n(<div data-counter>[^`]*)\n```/)[1]
 
 const requests = []
 globalThis.fetch = async (url, { signal }) => {
@@ -19,21 +16,17 @@ globalThis.fetch = async (url, { signal }) => {
   return { text: async () => "$12" }
 }
 
-// Each example is a module with one import and a default export.
-const load = source => new Function("Controller", source.replace(/^import .*$/m, "").replace("export default class", "return class"))(Controller)
-application.register("counter", load(counter))
-application.register("cart", load(cart))
+new Function("define", "controller", example.replace(/^import .*$/m, ""))(define, controller)
 
 test("the HTML docs show the same example as the guide", () => {
   const page = read("javascript.html").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&")
-  assert.ok(page.includes(counter))
-  assert.ok(page.includes(cart))
+  assert.ok(page.includes(example))
   assert.ok(page.includes(markup))
 })
 
 test("the cart follows the counter through its event", async () => {
   const wrapper = await mount(`<div>${markup}</div>`)
-  const element = wrapper.querySelector("[data-controller=cart]")
+  const cart = wrapper.querySelector("[data-cart]")
   await tick()
 
   wrapper.querySelector("button").click()
@@ -41,10 +34,10 @@ test("the cart follows the counter through its event", async () => {
   await tick()
 
   assert.equal(wrapper.querySelector("output").textContent, "1")
-  assert.equal(element.getAttribute("data-cart-count-value"), "1")
-  assert.equal(element.querySelector("[data-cart-target=badge]").textContent, "1")
-  assert.equal(element.querySelector("[data-cart-target=total]").textContent, "$12")
-  assert.equal(application.getControllerForElementAndIdentifier(element, "cart").countValue, 1)
+  assert.equal(cart.getAttribute("data-cart-count"), "1")
+  assert.equal(cart.querySelector("[data-cart-target=badge]").textContent, "1")
+  assert.equal(cart.querySelector("[data-cart-target=total]").textContent, "$12")
+  assert.equal(controllerFor(cart, "cart").count, 1)
 
   const { signal, url } = requests.at(-1)
   assert.equal(url, "/cart/total")

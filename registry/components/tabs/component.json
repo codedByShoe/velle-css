@@ -5,7 +5,7 @@
   "description": "Tabbed panels with an animated indicator, plus a tab-styled navigation bar.",
   "files": [
     "tabs.css",
-    "tabs_controller.js"
+    "tabs.js"
   ],
   "dependencies": [
     "button"
@@ -27,12 +27,12 @@
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"tabs\"",
+      "name": "data-tabs",
       "element": ".tabs",
       "description": "Enables the tabs behavior."
     },
     {
-      "name": "data-tabs-index-value",
+      "name": "data-tabs-index",
       "element": ".tabs",
       "description": "Index of the selected tab, starting at 0. Updated as tabs change. Defaults to 0."
     },
@@ -47,9 +47,9 @@
       "description": "The panels, in the same order as the buttons. Start them hidden."
     },
     {
-      "name": "data-action",
+      "name": "data-tabs-action",
       "element": "buttons and the list",
-      "description": "\"tabs#select\" on each button; \"keydown.left->tabs#prev keydown.right->tabs#next\" on the list."
+      "description": "\"select\" on each button; \"keydown.left->prev keydown.right->next\" on the list."
     }
   ],
   "actions": [
@@ -68,7 +68,7 @@
   ],
   "events": [
     {
-      "name": "tabs:change",
+      "name": "velle:tabs:change",
       "description": "Dispatched whenever the visible tab is set, including on connect. event.detail.index is the selected index."
     }
   ],

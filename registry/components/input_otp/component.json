@@ -5,7 +5,7 @@
   "description": "A one-time code field shown as separate slots, with paste and SMS/email autofill support.",
   "files": [
     "input_otp.css",
-    "input_otp_controller.js"
+    "input_otp.js"
   ],
   "dependencies": [
     "icons"
@@ -70,7 +70,7 @@
   ],
   "attributes": [
     {
-      "name": "data-controller=\"input-otp\"",
+      "name": "data-input-otp",
       "element": ".input-otp",
       "description": "Enables the behavior."
     },
@@ -85,7 +85,7 @@
       "description": "A slot, in order."
     },
     {
-      "name": "data-input-otp-pattern-value",
+      "name": "data-input-otp-pattern",
       "element": ".input-otp",
       "description": "Allowed characters: \"digits\" (default), \"chars\" (letters) or \"digits-and-chars\". Anything else typed or pasted is dropped."
     }
@@ -93,7 +93,7 @@
   "actions": [],
   "events": [
     {
-      "name": "input-otp:complete",
+      "name": "velle:input-otp:complete",
       "description": "Dispatched when every slot is filled. event.detail.value is the code."
     }
   ],
@@ -118,7 +118,7 @@
     {
       "file": "form.html",
       "title": "Submit when complete",
-      "description": "Combines input-otp:complete with the form component.",
+      "description": "Combines velle:input-otp:complete with the form component.",
       "requires": [
         "button",
         "card",

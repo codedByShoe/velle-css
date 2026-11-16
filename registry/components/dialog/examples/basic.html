@@ -1,6 +1,6 @@
 <button type="button" class="btn" commandfor="dialog_basic" command="show-modal">Edit profile</button>
 
-<dialog id="dialog_basic" class="dialog" style="--dialog-size: 24rem;" data-controller="dialog" data-action="click->dialog#closeOnClickOutside" aria-labelledby="dialog_basic_title">
+<dialog id="dialog_basic" class="dialog" style="--dialog-size: 24rem;" data-dialog data-dialog-action="click->closeOnClickOutside" aria-labelledby="dialog_basic_title">
   <button type="button" class="btn btn--plain dialog__close" commandfor="dialog_basic" command="close">
     <span class="icon icon--x" aria-hidden="true"></span>
     <span class="sr-only">Close</span>

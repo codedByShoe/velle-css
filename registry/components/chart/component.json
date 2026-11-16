@@ -3,7 +3,7 @@
   "title": "Chart",
   "category": "Elements",
   "description": "Line, bar, area, doughnut and other charts drawn on a <canvas>, styled with the page's fonts and colors.",
-  "files": ["chart_controller.js"],
+  "files": ["chart.js"],
   "dependencies": [],
   "library": {
     "package": "chart.js",
@@ -16,10 +16,10 @@
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-controller=\"chart\"", "element": "<canvas>", "description": "Draws a chart on the canvas." },
-    { "name": "data-chart-type-value", "element": "<canvas>", "description": "Chart.js chart type: line (default), bar, doughnut, pie, radar, bubble, …" },
-    { "name": "data-chart-data-value", "element": "<canvas>", "description": "JSON for Chart.js's data option: labels and datasets." },
-    { "name": "data-chart-options-value", "element": "<canvas>", "description": "JSON for Chart.js's options, e.g. scales and interaction." }
+    { "name": "data-chart", "element": "<canvas>", "description": "Draws a chart on the canvas." },
+    { "name": "data-chart-type", "element": "<canvas>", "description": "Chart.js chart type: line (default), bar, doughnut, pie, radar, bubble, …" },
+    { "name": "data-chart-data", "element": "<canvas>", "description": "JSON for Chart.js's data option: labels and datasets." },
+    { "name": "data-chart-options", "element": "<canvas>", "description": "JSON for Chart.js's options, e.g. scales and interaction." }
   ],
   "actions": [],
   "events": [],

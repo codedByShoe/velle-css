@@ -3,12 +3,12 @@
   "title": "Timezone Cookie",
   "category": "Behaviors",
   "description": "Saves the visitor's time zone in a \"timezone\" cookie so your server can render times in it.",
-  "files": ["timezone_cookie_controller.js"],
+  "files": ["timezone_cookie.js"],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
-    { "name": "data-controller=\"timezone-cookie\"", "element": "any element, usually <body>", "description": "Sets the cookie when the element appears on the page." }
+    { "name": "data-timezone-cookie", "element": "any element, usually <body>", "description": "Sets the cookie when the element appears on the page." }
   ],
   "actions": [],
   "events": [],

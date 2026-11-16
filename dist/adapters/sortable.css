@@ -1,0 +1,10 @@
+/* SortableJS marks the placeholder left where the item will drop. */
+.sortable-ghost {
+  opacity: var(--opacity-50);
+}
+
+/* A drag handle. Icons ignore the pointer, so wrap them in this element. */
+.sortable-handle {
+  cursor: grab;
+  display: inline-flex;
+}

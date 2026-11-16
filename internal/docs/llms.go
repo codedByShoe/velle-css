@@ -31,7 +31,7 @@ func buildLLMs(fsys fs.FS, reg *registry.Registry, out, version string, tokens [
 		return err
 	}
 	pages := []markdownPage{
-		{File: "guide.md", Title: "Guide", Description: "Install, load order, markup conventions and how the Stimulus controllers are loaded and written", Body: guide},
+		{File: "guide.md", Title: "Guide", Description: "Install, load order, markup conventions and the JavaScript runtime's data attributes", Body: guide},
 		{File: "tokens.md", Title: "Tokens", Description: "Design tokens: colors, typography, sizes, borders, shadows, animations", Body: tokensMarkdown(tokens)},
 		{File: "utilities.md", Title: "Utilities", Description: "Utility classes for layout, spacing, typography and color", Body: utilitiesMarkdown(utilities)},
 	}
@@ -48,9 +48,9 @@ func buildLLMs(fsys fs.FS, reg *registry.Registry, out, version string, tokens [
 
 	var index, full strings.Builder
 	intro := "# velle-css\n\n" +
-		"> Language and framework agnostic CSS components: plain CSS with design tokens and utilities, Stimulus controllers for the interactive pieces, and a Go CLI that copies only the components you use into your project.\n\n" +
+		"> Language and framework agnostic CSS components: plain CSS with design tokens and utilities, a small dependency-free JavaScript runtime driven by data attributes, and a Go CLI that copies only the components you use into your project.\n\n" +
 		"Version " + version + ". Components are styled with BEM-style classes (`.btn`, `.btn--primary`, `.card__header`) and customized through CSS custom properties. " +
-		"Interactive components are Stimulus controllers that read `data-controller`, `data-action`, `data-NAME-target` and `data-NAME-*-value` attributes; the guide explains how to load them. Each component page lists its classes, variables, attributes, actions, events and HTML examples.\n"
+		"Interactive components read `data-NAME`, `data-NAME-target` and `data-NAME-action` attributes; the guide explains the syntax. Each component page lists its classes, variables, attributes, actions, events and HTML examples.\n"
 	index.WriteString(intro)
 	full.WriteString(intro)
 
@@ -90,11 +90,7 @@ func guideMarkdown(version string) (string, error) {
 		return "", err
 	}
 	var b bytes.Buffer
-	data := struct {
-		Version  string
-		Stimulus registry.Library
-	}{version, registry.Stimulus}
-	if err := t.Execute(&b, data); err != nil {
+	if err := t.Execute(&b, struct{ Version string }{version}); err != nil {
 		return "", err
 	}
 	return b.String(), nil

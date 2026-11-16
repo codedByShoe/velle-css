@@ -5,7 +5,7 @@
   "description": "A light, dark or system theme switcher that remembers the choice in localStorage.",
   "files": [
     "color_scheme.css",
-    "color_scheme_controller.js"
+    "color_scheme.js"
   ],
   "dependencies": [
     "icons"
@@ -23,19 +23,14 @@
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"color-scheme\"",
-      "element": "<html>",
-      "description": "The controller root."
-    },
-    {
       "name": "data-color-scheme",
       "element": "<html>",
-      "description": "Set to light, dark or system by the controller; CSS sets color-scheme from it. Add it with no value."
+      "description": "The controller root. Its value is set to light, dark or system, and CSS sets color-scheme from it."
     },
     {
-      "name": "data-action",
+      "name": "data-color-scheme-action",
       "element": "buttons inside the root",
-      "description": "\"color-scheme#setLight\", \"color-scheme#setDark\" or \"color-scheme#setSystem\"."
+      "description": "\"setLight\", \"setDark\" or \"setSystem\"."
     }
   ],
   "actions": [
@@ -54,7 +49,7 @@
   ],
   "events": [
     {
-      "name": "color-scheme:change",
+      "name": "velle:color-scheme:change",
       "description": "Dispatched after the scheme changes. event.detail.colorScheme holds the new value."
     }
   ],

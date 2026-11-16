@@ -40,20 +40,36 @@ func TestBundles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if n := strings.Count(js, `from "@hotwired/stimulus"`); n != 1 {
-		t.Errorf("the JS bundle should import Stimulus once, got %d imports", n)
-	}
-	if !strings.Contains(js, "export const application = Application.start()") {
-		t.Error("the JS bundle should start and export the application")
+	if strings.Contains(js, `from "./velle.js"`) {
+		t.Error("the JS bundle must not import ./velle.js")
 	}
 	for _, f := range build.ComponentFiles(reg, registry.KindJS) {
-		identifier, _ := registry.Identifier(f)
-		if !strings.Contains(js, "// "+f+"\n{") || !strings.Contains(js, `application.register("`+identifier+`", controller)`) {
+		if !strings.Contains(js, "// "+f+"\n{") {
 			t.Errorf("%s is missing from the JS bundle", f)
 		}
 	}
-	if strings.Contains(js, "export default") {
-		t.Error("the JS bundle must register its controllers, not export them")
+}
+
+func TestDistShipsRuntimeTypes(t *testing.T) {
+	fsys := velle.Registry()
+	reg, err := registry.Load(fsys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := t.TempDir()
+	if err := build.Dist(fsys, reg, out, "test"); err != nil {
+		t.Fatal(err)
+	}
+
+	want, _ := fs.ReadFile(fsys, registry.RuntimeTypesFile)
+	got, err := os.ReadFile(filepath.Join(out, "js", "velle.d.ts"))
+	if err != nil || string(got) != string(want) {
+		t.Errorf("js/velle.d.ts should be a copy of the registry file: %v", err)
+	}
+	bundle, err := os.ReadFile(filepath.Join(out, "velle.d.ts"))
+	if err != nil || !strings.Contains(string(bundle), `"./js/velle.js"`) {
+		t.Errorf("velle.d.ts should re-export the runtime's declarations, got %q: %v", bundle, err)
 	}
 }
 
@@ -108,8 +124,8 @@ func TestDistShipsExtensionsOutsideTheBundle(t *testing.T) {
 		t.Error("the JS bundle must leave extensions out")
 	}
 
-	// One copy for each application, so an extension never starts a second one.
-	for file, want := range map[string]string{"extensions/htmx.js": `from "../velle.js"`, "js/htmx.js": `from "./application.js"`} {
+	// One copy for each runtime, so an extension never loads a second one.
+	for file, want := range map[string]string{"extensions/htmx.js": `from "../velle.js"`, "js/htmx.js": `from "./velle.js"`} {
 		data, err := os.ReadFile(filepath.Join(out, filepath.FromSlash(file)))
 		if err != nil {
 			t.Fatal(err)

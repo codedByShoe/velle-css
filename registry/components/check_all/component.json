@@ -4,14 +4,14 @@
   "category": "Forms",
   "description": "A \"select all\" checkbox that checks or clears a group of checkboxes and shows an indeterminate state when only some are checked.",
   "files": [
-    "check_all_controller.js"
+    "check_all.js"
   ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"check-all\"",
+      "name": "data-check-all",
       "element": "root",
       "description": "Wraps the master checkbox and the checkboxes it controls."
     },
@@ -26,7 +26,7 @@
       "description": "A checkbox controlled by the master checkbox."
     },
     {
-      "name": "data-action=\"check-all#check\"",
+      "name": "data-check-all-action=\"check\"",
       "element": "every checkbox",
       "description": "Runs the check action when the checkbox changes."
     }

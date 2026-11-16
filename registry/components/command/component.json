@@ -5,7 +5,7 @@
   "description": "A command palette: type to filter a list of links or actions, move with the arrow keys and press Enter to run one.",
   "files": [
     "command.css",
-    "command_controller.js"
+    "command.js"
   ],
   "dependencies": [
     "input",
@@ -59,7 +59,7 @@
   ],
   "attributes": [
     {
-      "name": "data-controller=\"command\"",
+      "name": "data-command",
       "element": ".command",
       "description": "Enables the palette."
     },
@@ -92,7 +92,7 @@
   ],
   "events": [
     {
-      "name": "command:select",
+      "name": "velle:command:select",
       "description": "Dispatched when an item is activated by click or Enter. event.detail has item and value."
     }
   ],

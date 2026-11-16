@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"embed"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io/fs"
 	"os"
@@ -32,12 +31,11 @@ var Categories = []string{"Elements", "Forms", "Overlays", "Layout", "Behaviors"
 // Site holds what every page needs.
 type Site struct {
 	Version  string
-	Stimulus registry.Library
 	Repo     string
 	Nav      []NavGroup
 	Registry *registry.Registry
-	// ImportMap maps Stimulus and every adapter's library to its CDN build, so the demos
-	// work without a bundler.
+	// ImportMap maps every adapter's library to its CDN build, so adapter demos work
+	// without a bundler.
 	ImportMap template.HTML
 }
 
@@ -67,10 +65,9 @@ type ComponentPage struct {
 	HasCSS       bool
 	HasJS        bool
 	Examples     []ExamplePage
-	// Stylesheets are adapter files the page loads on top of the bundles, and Module is a
-	// script that registers the page's adapter controllers with the bundle's application.
+	// Stylesheets and Scripts are adapter files the page loads on top of the bundles.
 	Stylesheets []string
-	Module      template.JS
+	Scripts     []string
 	// ImportMapEntry is the import map snippet shown in an adapter's install instructions.
 	ImportMapEntry string
 }
@@ -127,7 +124,7 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 	if err != nil {
 		return err
 	}
-	site := &Site{Version: version, Stimulus: registry.Stimulus, Repo: Repository, Registry: reg, Nav: navigation(reg), ImportMap: importMap}
+	site := &Site{Version: version, Repo: Repository, Registry: reg, Nav: navigation(reg), ImportMap: importMap}
 
 	pages := map[string]Page{
 		"index.html":      {Title: "Introduction"},
@@ -147,7 +144,7 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 	pages["utilities.html"] = Page{Title: "Utilities", Utilities: utilities}
 
 	for _, name := range reg.Names() {
-		component, err := componentPage(fsys, reg, reg.Components[name], importMap)
+		component, err := componentPage(fsys, reg, reg.Components[name])
 		if err != nil {
 			return err
 		}
@@ -175,6 +172,9 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 	for _, kind := range []registry.FileKind{registry.KindCSS, registry.KindJS} {
 		for _, f := range build.AdapterFiles(reg, kind) {
 			data, err := fs.ReadFile(fsys, f)
+			if kind == registry.KindJS {
+				data, err = build.Adapter(fsys, f)
+			}
 			if err != nil {
 				return err
 			}
@@ -201,13 +201,16 @@ func Build(fsys fs.FS, reg *registry.Registry, out, version, css, js string) err
 }
 
 func importMap(reg *registry.Registry) (template.HTML, error) {
-	imports := map[string]string{registry.Stimulus.Package: registry.Stimulus.ESM}
+	imports := map[string]string{}
 	for _, name := range reg.Names() {
 		if lib := reg.Components[name].Library; lib != nil {
 			for pkg, esm := range lib.Imports() {
 				imports[pkg] = esm
 			}
 		}
+	}
+	if len(imports) == 0 {
+		return "", nil
 	}
 	data, err := json.MarshalIndent(map[string]any{"imports": imports}, "  ", "  ")
 	if err != nil {
@@ -256,13 +259,7 @@ func navigation(reg *registry.Registry) []NavGroup {
 
 var demoAttribute = regexp.MustCompile(` data-demo-[a-z-]+="[^"]*"`)
 
-// frame is the data of an example rendered in an iframe, which needs its own import map.
-type frame struct {
-	ImportMap template.HTML
-	Body      template.HTML
-}
-
-func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component, importMap template.HTML) (*ComponentPage, error) {
+func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component) (*ComponentPage, error) {
 	page := &ComponentPage{Component: c}
 
 	for _, dep := range c.Dependencies {
@@ -277,21 +274,13 @@ func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component, im
 		if url := lib.StylesheetURL(); url != "" {
 			page.Stylesheets = append(page.Stylesheets, url)
 		}
-		var imports, registrations []string
 		for _, f := range c.Files {
-			if registry.Kind(f) == registry.KindCSS {
+			switch registry.Kind(f) {
+			case registry.KindCSS:
 				page.Stylesheets = append(page.Stylesheets, "assets/adapters/"+f)
+			case registry.KindJS:
+				page.Scripts = append(page.Scripts, "assets/adapters/"+f)
 			}
-			if identifier, ok := registry.Identifier(f); ok {
-				name := registry.ClassName(identifier)
-				imports = append(imports, fmt.Sprintf("import %s from %q", name, "./assets/adapters/"+f))
-				registrations = append(registrations, fmt.Sprintf("application.register(%q, %s)", identifier, name))
-			}
-		}
-		if len(imports) > 0 {
-			// Built from file names in this repository, which are plain identifiers.
-			lines := append(append([]string{`import { application } from "./assets/velle.js"`}, imports...), registrations...)
-			page.Module = template.JS("\n  " + strings.Join(lines, "\n  ") + "\n  ")
 		}
 		entry, err := importMapEntry(lib)
 		if err != nil {
@@ -316,7 +305,7 @@ func componentPage(fsys fs.FS, reg *registry.Registry, c *registry.Component, im
 		}
 		if e.Frame {
 			var doc bytes.Buffer
-			if err := frameTemplate.ExecuteTemplate(&doc, "frame", frame{ImportMap: importMap, Body: template.HTML(source)}); err != nil {
+			if err := frameTemplate.ExecuteTemplate(&doc, "frame", template.HTML(source)); err != nil {
 				return nil, err
 			}
 			example.FrameDoc = doc.String()

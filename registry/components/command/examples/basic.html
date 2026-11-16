@@ -1,9 +1,9 @@
-<button type="button" class="btn" commandfor="command_dialog" command="show-modal" data-controller="hotkey" data-action="keydown.meta+k@document->hotkey#click keydown.ctrl+k@document->hotkey#click">
+<button type="button" class="btn" commandfor="command_dialog" command="show-modal" data-hotkey data-hotkey-action="keydown.meta+k@document->click keydown.ctrl+k@document->click">
   Open command menu <kbd class="kbd">⌘K</kbd>
 </button>
 
-<dialog id="command_dialog" class="dialog" style="--dialog-size: 28rem;" aria-label="Command menu" data-controller="dialog" data-action="click->dialog#closeOnClickOutside">
-  <div class="command" data-controller="command">
+<dialog id="command_dialog" class="dialog" style="--dialog-size: 28rem;" aria-label="Command menu" data-dialog data-dialog-action="click->closeOnClickOutside">
+  <div class="command" data-command>
     <label class="input input--actor flex items-center gap command__input">
       <span class="icon icon--search" aria-hidden="true"></span>
       <input type="text" autocomplete="off" autofocus placeholder="Type a command or search…" aria-label="Search commands" aria-controls="command_dialog_list" data-command-target="input">

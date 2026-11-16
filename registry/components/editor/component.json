@@ -5,7 +5,7 @@
   "description": "A rich text editor with a toolbar you write as markup. It submits HTML or Markdown through a hidden input.",
   "files": [
     "editor.css",
-    "editor_controller.js"
+    "editor.js"
   ],
   "dependencies": [
     "button",
@@ -65,7 +65,7 @@
   ],
   "attributes": [
     {
-      "name": "data-controller=\"editor\"",
+      "name": "data-editor",
       "element": "container",
       "description": "Turns the container into an editor."
     },
@@ -80,17 +80,17 @@
       "description": "Holds the document: its value is the initial content and it is updated on every change, so the form submits it."
     },
     {
-      "name": "data-editor-format-value",
+      "name": "data-editor-format",
       "element": "container",
       "description": "\"html\" (default) or \"markdown\". Markdown reads and writes the input as Markdown and needs @tiptap/markdown."
     },
     {
-      "name": "data-editor-placeholder-value",
+      "name": "data-editor-placeholder",
       "element": "container",
       "description": "Text shown while the editor is empty."
     },
     {
-      "name": "data-editor-editable-value",
+      "name": "data-editor-editable",
       "element": "container",
       "description": "Set to \"false\" to show the content read-only."
     },
@@ -118,17 +118,17 @@
   ],
   "events": [
     {
-      "name": "editor:ready",
+      "name": "velle:editor:ready",
       "description": "The editor was created. event.detail.editor is the Tiptap Editor, for adding your own commands."
     },
     {
-      "name": "editor:change",
+      "name": "velle:editor:change",
       "description": "The document changed. event.detail has editor and value (the HTML or Markdown)."
     }
   ],
   "notes": [
     "Toolbar buttons get aria-pressed when their format applies to the selection, and are disabled when their action cannot run there. Use any subset of buttons, in any order.",
-    "@tiptap/markdown is loaded only when data-editor-format-value=\"markdown\" is used, so an HTML-only page can leave it out of the import map.",
+    "@tiptap/markdown is loaded only when data-editor-format=\"markdown\" is used, so an HTML-only page can leave it out of the import map.",
     "Keep every @tiptap package on the same version. Mixing versions loads two copies of ProseMirror and breaks the editor.",
     "The import map uses esm.sh, as Tiptap's docs do, because it shares one copy of each ProseMirror package. jsDelivr's +esm builds load several copies and the editor fails with \"Adding different instances of a keyed plugin\".",
     "The hidden input also fires an input event on every change, so autosave and other form behaviors see edits.",

@@ -14,8 +14,8 @@
   "events": [],
   "notes": [
     "velle does not ship htmx. Written and tested against htmx 2.0.11.",
-    "Swaps need no extension: Stimulus connects controllers in swapped markup on its own, and htmx can trigger on any event a controller dispatches, such as tabs:change.",
-    "Before htmx saves a page, every connected controller's beforeSnapshot() runs, if it defines one. Its changes are undone right after the copy is taken, so the live page is not affected.",
+    "Swaps need no extension: velle connects controllers in swapped markup on its own, and htmx can trigger on any velle:* event.",
+    "Before htmx saves a page, each controller's beforeSnapshot() runs. Its changes are undone right after the copy is taken, so the live page is not affected.",
     "Dialogs that were open when the page was saved come back closed."
   ],
   "examples": [

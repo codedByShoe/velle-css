@@ -1,12 +1,9 @@
-import { application } from "../velle.js"
+// @ts-check
+import { prepareSnapshot } from "../velle.js"
 
-// htmx copies the page right after this event. Controllers that define beforeSnapshot()
-// take out what connect() built, so the copy restores cleanly; the page often stays live
-// after a partial swap, so each one gets its changes back as soon as the copy is taken.
-document.addEventListener("htmx:beforeHistorySave", () => {
-  const undo = application.controllers.map(controller => controller.beforeSnapshot?.())
-  queueMicrotask(() => undo.forEach(callback => callback?.()))
-})
+// htmx copies the page right after this event, and the page often stays live after a partial
+// swap, so controllers get their changes back as soon as the copy is taken.
+document.addEventListener("htmx:beforeHistorySave", () => queueMicrotask(prepareSnapshot()))
 
 // A saved dialog keeps its open attribute but comes back outside the top layer.
 document.addEventListener("htmx:historyRestore", () => {

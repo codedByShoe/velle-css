@@ -4,21 +4,21 @@
   "category": "Behaviors",
   "description": "Clicks or focuses an element when a keyboard shortcut is pressed anywhere on the page.",
   "files": [
-    "hotkey_controller.js"
+    "hotkey.js"
   ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"hotkey\"",
+      "name": "data-hotkey",
       "element": "button, link or input",
       "description": "The element to click or focus. It is its own root."
     },
     {
-      "name": "data-action",
+      "name": "data-hotkey-action",
       "element": "same element",
-      "description": "A key filter on the document, e.g. \"keydown.k@document->hotkey#click\" or \"keydown.meta+k@document->hotkey#focus\"."
+      "description": "A key filter on the document, e.g. \"keydown.k@document->click\" or \"keydown.meta+k@document->focus\"."
     }
   ],
   "actions": [

@@ -1,6 +1,6 @@
 # velle-css
 
-Language and framework agnostic CSS components. Plain CSS with design tokens and utilities, [Stimulus](https://stimulus.hotwired.dev) controllers for the interactive pieces, and a Go CLI that copies only what you use into your project.
+Language and framework agnostic CSS components. Plain CSS with design tokens and utilities, a small dependency-free JavaScript runtime for the interactive pieces, and a Go CLI that copies only what you use into your project.
 
 **Documentation:** https://codedbyshoe.github.io/velle-css/ (built and published by the GitHub Pages workflow). To browse it locally, run `go run ./cmd/docsgen` and open `docs/index.html`. For AI assistants, the docs also publish [llms.txt](https://codedbyshoe.github.io/velle-css/llms.txt) (an index of Markdown pages) and [llms-full.txt](https://codedbyshoe.github.io/velle-css/llms-full.txt) (everything in one file).
 
@@ -16,11 +16,11 @@ go install github.com/codedbyshoe/velle-css/cmd/velle@latest
 velle init                # writes velle.json, copies the core styles, creates main.css and main.js
 velle add button dialog   # copies components plus everything they depend on, and imports them
 velle add --all           # or every component
-velle new controller cart # creates a Stimulus controller of your own and registers it
+velle new controller cart # creates a controller of your own and imports it
 velle list                # what is available
 ```
 
-To use only the JavaScript, run `velle init --js`. `velle add` then copies each controller without its styles and prints what it expects from your CSS. Without the CLI, `dist/js/` holds `application.js` and each controller on its own, and `dist/velle.js` is all of them in one module.
+To use only the JavaScript, run `velle init --js`. `velle add` then copies each behavior without its styles and prints what it expects from your CSS. Without the CLI, `dist/js/velle.js` is the runtime alone and `dist/velle.js` is the runtime with every behavior.
 
 `velle init` uses `assets/css/velle`, `assets/js/velle` and `assets/images/velle`. Change them with `--css-dir`, `--js-dir` and `--images-dir`, or edit `velle.json`. `velle add` never replaces a file you changed unless you pass `--overwrite`.
 
@@ -31,50 +31,48 @@ Your layout only needs two tags:
 <script type="module" src="/assets/js/velle/main.js"></script>
 ```
 
-`main.css` and `main.js` are entry files the CLI maintains: each `velle add` adds imports to a block between `velle:begin` and `velle:end` and keeps it in load order (reset, tokens, base, components alphabetically, utilities). In `main.js` the block imports `application.js`, which starts Stimulus, and registers each controller with it. Anything you add after `velle:end` is yours. Point `cssEntry`/`jsEntry` in `velle.json` at other files, or set them to `""` to manage the tags yourself.
-
-The controllers import `@hotwired/stimulus`, which velle does not install: `npm install @hotwired/stimulus`, or map it in an import map (`velle add` prints the line). If your project already starts a Stimulus application, export it from `application.js` instead.
+`main.css` and `main.js` are entry files the CLI maintains: each `velle add` adds imports to a block between `velle:begin` and `velle:end` and keeps it in load order (reset, tokens, base, components alphabetically, utilities). Anything you add after `velle:end` is yours. Point `cssEntry`/`jsEntry` in `velle.json` at other files, or set them to `""` to manage the tags yourself.
 
 ### From GitHub
 
-Use the bundles from a release through jsDelivr, with Stimulus from an import map:
+Use the bundles from a release through jsDelivr:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.2.0/dist/velle.css">
-<script type="importmap">{ "imports": { "@hotwired/stimulus": "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js" } }</script>
-<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.2.0/dist/velle.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.css">
+<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.js"></script>
 ```
 
 Or copy individual files from `dist/css`, `dist/js` and `dist/images`. They are the same files the CLI installs.
 
 ## Use
 
-The entry files handle load order. If you load files yourself, use this order: `reset.css`, `variables.css`, `base.css`, the component stylesheets **in alphabetical order** (a few rules rely on it), then `utilities.css`. Register each controller you use with your Stimulus application, e.g. `application.register("dialog", DialogController)`.
+The entry files handle load order. If you load files yourself, use this order: `reset.css`, `variables.css`, `base.css`, the component stylesheets **in alphabetical order** (a few rules rely on it), then `utilities.css`. Load each behavior you use as a module, e.g. `<script type="module" src="/assets/js/velle/dialog.js">`.
 
 ```html
 <button type="button" class="btn btn--primary" commandfor="welcome" command="show-modal">Open</button>
 
-<dialog id="welcome" class="dialog" data-controller="dialog" data-action="click->dialog#closeOnClickOutside">
+<dialog id="welcome" class="dialog" data-dialog data-dialog-action="click->closeOnClickOutside">
   <div class="dialog__content">Hello!</div>
 </dialog>
 ```
 
-Interactive components are Stimulus controllers, so the markup is standard Stimulus (`data-controller="tabs"`, `data-tabs-target="button"`, `data-action="tabs#select"`). Stimulus picks up markup added at any time, so it works with server-rendered pages, htmx, or markup from a client framework. Each controller lives in a file named after it (`tabs_controller.js`), so Stimulus loaders that look for `*_controller.js` files pick them up as they are. See the JavaScript page in the docs.
+Interactive components use data attributes (`data-tabs`, `data-tabs-target="button"`, `data-tabs-action="select"`) handled by `velle.js`, a runtime of under 400 lines with no dependencies. It picks up markup added at any time, so it works with server-rendered pages, htmx, or markup from a client framework. It ships with types: `velle.d.ts` sits next to it, so `// @ts-check` gives you checked targets and values in plain JavaScript with no build step. See the JavaScript page in the docs.
 
 ## Adapters
 
-`chart`, `datepicker`, `editor`, `inputmask` and `sortable` wrap Chart.js, flatpickr, Tiptap, maska and SortableJS. velle ships the adapter (controller and theme) but not the library: install it with npm or map it in an import map; `velle add` and each docs page show how. Adapters are left out of `dist/velle.js`/`dist/velle.css`; with the bundles, load the controller from `dist/js/` and register it with the `application` that `dist/velle.js` exports.
+`chart`, `datepicker`, `editor`, `inputmask` and `sortable` wrap Chart.js, flatpickr, Tiptap, maska and SortableJS. velle ships the adapter (controller and theme) but not the library: install it with npm or map it in an import map; `velle add` and each docs page show how. Adapters are left out of `dist/velle.js`/`dist/velle.css`; with the bundles, load them from `dist/adapters/`.
 
 ## Extensions
 
-Extensions connect velle's controllers to other tools and are installed only by name. `velle add htmx` keeps controllers correct when htmx saves and restores pages in its history. They are left out of the bundles; load them from `dist/extensions/` with `dist/velle.js`, or from `dist/js/` next to `dist/js/application.js`, so they use the same application.
+Extensions connect the runtime to other tools and are installed only by name. `velle add htmx` keeps behaviors correct when htmx saves and restores pages in its history. They are left out of the bundles; load them from `dist/extensions/` with `dist/velle.js`, or from `dist/js/` next to `dist/js/velle.js`, so the page only loads one runtime.
 
 ## Development
 
 ```text
 registry/                  source of truth, embedded into the CLI
   core/                    reset, tokens, base, utilities
-  js/application.js        starts the Stimulus application controllers register with
+  js/velle.js              shared JavaScript runtime
+  js/velle.d.ts            its type declarations
   components/<name>/       CSS/JS, component.json (metadata) and examples/*.html
   extensions/<name>/       optional integrations, laid out the same way
 cmd/velle                  the CLI
@@ -91,7 +89,7 @@ go run ./cmd/docsgen   # rebuild dist/ and docs/
 go test ./...          # validates metadata, examples, bundles and the CLI
 ```
 
-The tests check that every documented class and CSS variable exists, that every class used in an example is defined, that example actions, targets and values match the controllers, that no Turbo/Rails leftovers remain, and that the committed `dist/` is current.
+The tests check that every documented class and CSS variable exists, that every class used in an example is defined, that example actions are valid, that no Hotwire/Rails leftovers remain, and that the committed `dist/` is current.
 
 To release, bump `Version` in `embed.go`, rebuild, commit and tag `vX.Y.Z`.
 

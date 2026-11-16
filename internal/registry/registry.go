@@ -139,41 +139,12 @@ var CoreFiles = []string{
 	"core/utilities.css",
 }
 
-// ApplicationFile starts the Stimulus application that every controller is registered with.
-const ApplicationFile = "js/application.js"
-
-// Stimulus is the library every controller extends. Like an adapter's library, velle does not
-// ship it: the project installs it or maps it in an import map.
-var Stimulus = Library{
-	Package:  "@hotwired/stimulus",
-	Version:  "3.2.2",
-	Homepage: "https://stimulus.hotwired.dev",
-	License:  "MIT",
-	ESM:      "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js",
-}
-
-// ControllerSuffix ends the name of every file that holds a Stimulus controller.
-const ControllerSuffix = "_controller.js"
-
-// Identifier returns the identifier a controller file is registered under, following the
-// Stimulus convention: check_all_controller.js is "check-all". ok is false for other files.
-func Identifier(file string) (identifier string, ok bool) {
-	name := path.Base(file)
-	if !strings.HasSuffix(name, ControllerSuffix) {
-		return "", false
-	}
-	return strings.ReplaceAll(strings.TrimSuffix(name, ControllerSuffix), "_", "-"), true
-}
-
-// ClassName is the name generated code imports a controller under: "check-all" is
-// CheckAllController.
-func ClassName(identifier string) string {
-	var b strings.Builder
-	for _, part := range strings.FieldsFunc(identifier, func(r rune) bool { return r == '-' || r == '_' }) {
-		b.WriteString(strings.ToUpper(part[:1]) + part[1:])
-	}
-	return b.String() + "Controller"
-}
+// RuntimeFile is the shared JavaScript runtime every behavior imports, and RuntimeTypesFile
+// holds its type declarations, which always sit next to it.
+const (
+	RuntimeFile      = "js/velle.js"
+	RuntimeTypesFile = "js/velle.d.ts"
+)
 
 // Registry is the set of all components.
 type Registry struct {

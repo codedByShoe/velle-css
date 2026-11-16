@@ -3,19 +3,399 @@
  * Based on css-zero by Lázaro Nixon (https://github.com/lazaronixon/css-zero)
  */
 
-import { Application, Controller } from "@hotwired/stimulus"
+// velle.js — the tiny runtime shared by every velle-css behavior.
+//
+// It gives plain data attributes a controller lifecycle:
+//
+//   <div data-tabs>                                   controller root
+//     <button data-tabs-target="button"               target
+//             data-tabs-action="click->select">       action
+//
+// Action syntax: "[event[.keyfilter][@document|@window]->]method[:prevent][:stop][:self]"
+// separated by whitespace. When the event is omitted the element's default event is used
+// (click for buttons and links, input for inputs and textareas, change for selects,
+// submit for forms, toggle for details).
+//
+// controller({ targets, values }) builds a base class. Each value is a property stored in
+// data-<name>-<key> and parsed by its default's type. <key>Changed(value, oldValue) runs
+// after the attribute changes, never during connect(), so call it from connect() to render
+// the initial state. this.$.x and this.$$.x are target("x") and targets("x"). Listeners
+// added with on(), and anything given this.signal, end when the controller disconnects.
+// controllerFor(element, name) returns a connected instance to code outside controllers.
+// prepareSnapshot() calls each controller's beforeSnapshot(), for libraries that save a copy
+// of the page; beforeSnapshot() can return a function that undoes what it did.
 
-// The Stimulus application velle's controllers are registered with. If your project already
-// starts one, export that instead: export { application } from "../controllers/application.js"
-export const application = Application.start()
+const registrations = []
+const instances = new WeakMap()
+const bindings = new WeakMap()
+const abort = Symbol("abort")
+let observer = null
 
-// components/autosave/autosave_controller.js
+// observe(selector, { connect, disconnect }) runs connect(element) once for every element
+// that matches the selector (now or later) and disconnect(element) when it stops matching
+// or leaves the document.
+export function observe(selector, { connect, disconnect } = {}) {
+  const registration = { selector, connect, disconnect, elements: new Set() }
+  registrations.push(registration)
+  whenReady(() => {
+    scan(registration, document.documentElement)
+    start()
+  })
+  return registration
+}
+
+// define(name, Class) registers a controller. Every element with a data-<name> attribute
+// gets its own instance, and data-<name>-action attributes are routed to the instance of
+// the closest root.
+export function define(name, Controller) {
+  const rootSelector = `[data-${name}]`
+  const actionAttribute = `data-${name}-action`
+
+  observe(rootSelector, {
+    connect(element) {
+      const controller = new Controller(element, name)
+      if (!instances.has(element)) instances.set(element, new Map())
+      instances.get(element).set(name, controller)
+      controller.connect()
+    },
+    disconnect(element) {
+      const controller = instances.get(element)?.get(name)
+      instances.get(element)?.delete(name)
+      try { controller?.disconnect() } finally { controller?.[abort].abort() }
+    }
+  })
+
+  const actions = observe(`[${actionAttribute}]`, {
+    connect(element) {
+      const listeners = parseActions(element.getAttribute(actionAttribute), element).map(action => {
+        const listener = event => invoke(name, rootSelector, action, element, event)
+        const eventTarget = action.global === "window" ? window : action.global === "document" ? document : element
+        eventTarget.addEventListener(action.event, listener)
+        return { eventTarget, event: action.event, listener }
+      })
+      bindings.set(element, listeners)
+    },
+    disconnect(element) {
+      bindings.get(element)?.forEach(({ eventTarget, event, listener }) => eventTarget.removeEventListener(event, listener))
+      bindings.delete(element)
+    }
+  })
+  actions.attribute = actionAttribute
+}
+
+// The connected instance of a controller on an element, or null.
+export function controllerFor(element, name) {
+  return instances.get(element)?.get(name) ?? null
+}
+
+// Asks every connected controller to leave the DOM as a saved copy of the page should have
+// it. Returns a function that puts it back, for a page that stays live after the copy.
+export function prepareSnapshot() {
+  const undo = []
+  for (const element of new Set(registrations.flatMap(({ elements }) => [ ...elements ]))) {
+    instances.get(element)?.forEach(controller => run(() => undo.push(controller.beforeSnapshot?.()), element))
+  }
+  return () => undo.forEach(callback => run(callback))
+}
+
+export class Controller {
+  constructor(element, name) {
+    this.element = element
+    this.name = name
+    this[abort] = new AbortController()
+    this.$ = new Proxy({}, { get: (_, key) => this.target(key) })
+    this.$$ = new Proxy({}, { get: (_, key) => this.targets(key) })
+  }
+
+  connect() {}
+
+  disconnect() {}
+
+  get signal() { return this[abort].signal }
+
+  // addEventListener that is removed automatically when the controller disconnects.
+  on(target, type, listener, options) {
+    target.addEventListener(type, listener, { ...options, signal: this.signal })
+  }
+
+  // All elements with data-<name>-target="<target>" that belong to this root.
+  targets(target) {
+    return [ ...this.element.querySelectorAll(`[data-${this.name}-target~="${target}"]`) ]
+      .filter(element => element.closest(`[data-${this.name}]`) === this.element)
+  }
+
+  target(target) {
+    return this.targets(target)[0] ?? null
+  }
+
+  hasTarget(target) {
+    return this.target(target) !== null
+  }
+
+  // Reads data-<name>-<key> from the root element.
+  data(key) {
+    return this.element.getAttribute(`data-${this.name}-${key}`)
+  }
+
+  hasData(key) {
+    return this.element.hasAttribute(`data-${this.name}-${key}`)
+  }
+
+  // Dispatches a bubbling "velle:<name>:<type>" CustomEvent from the root element.
+  dispatch(type, detail = {}) {
+    this.element.dispatchEvent(new CustomEvent(`velle:${this.name}:${type}`, { bubbles: true, detail }))
+  }
+}
+
+// A Controller subclass with a property for each value. `targets` only feeds the types.
+export function controller({ values = {} } = {}) {
+  const Base = class extends Controller {}
+  Base.values = values
+  for (const [ key, fallback ] of Object.entries(values)) {
+    if (key in Base.prototype || [ "element", "name", "action", "$", "$$" ].includes(key)) throw new Error(`[velle] "${key}" is reserved`)
+    Object.defineProperty(Base.prototype, key, {
+      get() { return read(this.data(dasherize(key)), fallback) },
+      set(value) {
+        this.element.setAttribute(`data-${this.name}-${dasherize(key)}`, typeof value === "string" ? value : JSON.stringify(value))
+      }
+    })
+  }
+  return Base
+}
+
+function read(raw, fallback) {
+  if (raw === null) return structuredClone(fallback)
+  if (typeof fallback === "number") return Number(raw)
+  if (typeof fallback === "boolean") return raw !== "false"
+  if (typeof fallback === "string") return raw
+  return JSON.parse(raw)
+}
+
+function dasherize(value) {
+  return value.replace(/[A-Z]/g, character => `-${character.toLowerCase()}`)
+}
+
+function valueChanged(element, attribute, oldRaw) {
+  if (!element.isConnected) return
+
+  instances.get(element)?.forEach((controller, name) => {
+    const prefix = `data-${name}-`
+    if (!attribute.startsWith(prefix)) return
+    const key = camelize(attribute.slice(prefix.length))
+    const fallback = controller.constructor.values?.[key]
+    if (fallback === undefined || typeof controller[`${key}Changed`] !== "function") return
+    run(() => controller[`${key}Changed`](controller[key], read(oldRaw, fallback)), element)
+  })
+}
+
+// Trailing-edge debounce.
+export function debounce(fn, wait) {
+  let timeout
+  return function (...args) {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => fn.apply(this, args), wait)
+  }
+}
+
+// --- Actions ----------------------------------------------------------------------------
+
+const actionPattern = /^(?:([^.@\s]+?)(?:\.([^@\s]+?))?(?:@(window|document))?->)?(\w+)((?::\w+)*)$/
+
+const defaultEvents = {
+  a: () => "click",
+  button: () => "click",
+  details: () => "toggle",
+  form: () => "submit",
+  input: element => element.type === "submit" ? "click" : "input",
+  select: () => "change",
+  textarea: () => "input"
+}
+
+const keyMappings = {
+  enter: "Enter", tab: "Tab", esc: "Escape", space: " ",
+  up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight",
+  home: "Home", end: "End", page_up: "PageUp", page_down: "PageDown"
+}
+
+const modifierKeys = [ "meta", "ctrl", "alt", "shift" ]
+
+function parseActions(value, element) {
+  return (value || "").trim().split(/\s+/).filter(Boolean).flatMap(descriptor => {
+    const match = descriptor.match(actionPattern)
+
+    if (!match) {
+      console.error(`[velle] Invalid action "${descriptor}"`, element)
+      return []
+    }
+
+    const [ , event, keyFilter, global, method, options ] = match
+    const eventName = event || defaultEvents[element.localName]?.(element)
+
+    if (!eventName) {
+      console.error(`[velle] Action "${descriptor}" needs an event name`, element)
+      return []
+    }
+
+    return [ { event: eventName, keyFilter, global, method, options: options.split(":").filter(Boolean) } ]
+  })
+}
+
+function invoke(name, rootSelector, action, element, event) {
+  if (action.keyFilter && isKeyboardEvent(event) && !keyFilterMatches(event, action.keyFilter)) return
+  if (action.options.includes("self") && event.target !== element) return
+
+  const root = element.closest(rootSelector)
+  const controller = root && instances.get(root)?.get(name)
+
+  if (!controller) {
+    console.error(`[velle] No ${rootSelector} root found for action "${action.method}"`, element)
+    return
+  }
+
+  if (typeof controller[action.method] !== "function") {
+    console.error(`[velle] "${action.method}" is not an action of ${name}`, element)
+    return
+  }
+
+  if (action.options.includes("prevent")) event.preventDefault()
+  if (action.options.includes("stop")) event.stopPropagation()
+
+  Object.assign(event, { params: paramsFor(name, element) })
+  controller[action.method](event, element)
+}
+
+function isKeyboardEvent(event) {
+  return event.type === "keydown" || event.type === "keyup" || event.type === "keypress"
+}
+
+function keyFilterMatches(event, keyFilter) {
+  const filters = keyFilter.split("+")
+  const [ meta, ctrl, alt, shift ] = modifierKeys.map(modifier => filters.includes(modifier))
+
+  if (event.metaKey !== meta || event.ctrlKey !== ctrl || event.altKey !== alt || event.shiftKey !== shift) return false
+
+  const standardFilter = filters.find(key => !modifierKeys.includes(key))
+  if (!standardFilter) return true
+
+  const key = standardFilter.length === 1 ? standardFilter : keyMappings[standardFilter]
+  if (!key) {
+    console.error(`[velle] Unknown key filter "${standardFilter}"`)
+    return false
+  }
+
+  return key.toLowerCase() === event.key.toLowerCase()
+}
+
+// data-<name>-<param>-param attributes on the action element. Values that parse as JSON
+// (numbers, booleans, objects) are typecast; everything else stays a string.
+function paramsFor(name, element) {
+  const pattern = new RegExp(`^data-${name}-(.+)-param$`)
+  const params = {}
+
+  for (const { name: attribute, value } of element.attributes) {
+    const match = attribute.match(pattern)
+    if (match) params[camelize(match[1])] = typecast(value)
+  }
+
+  return params
+}
+
+function camelize(value) {
+  return value.replace(/-(\w)/g, (_, character) => character.toUpperCase())
+}
+
+function typecast(value) {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return value
+  }
+}
+
+// --- Lifecycle --------------------------------------------------------------------------
+
+function whenReady(callback) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", callback, { once: true })
+  } else {
+    callback()
+  }
+}
+
+function start() {
+  if (observer) return
+
+  observer = new MutationObserver(mutations => {
+    let removed = false
+
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) registrations.forEach(registration => scan(registration, node))
+        }
+        if (mutation.removedNodes.length) removed = true
+      } else if (mutation.type === "attributes") {
+        registrations.forEach(registration => {
+          if (registration.attribute === mutation.attributeName) remove(registration, mutation.target)
+          refresh(registration, mutation.target)
+        })
+        valueChanged(mutation.target, mutation.attributeName, mutation.oldValue)
+      }
+    }
+
+    if (removed) registrations.forEach(prune)
+  })
+
+  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeOldValue: true })
+}
+
+function scan(registration, root) {
+  if (root.matches(registration.selector)) add(registration, root)
+  root.querySelectorAll(registration.selector).forEach(element => add(registration, element))
+}
+
+function refresh(registration, element) {
+  if (!element.isConnected) return
+
+  if (element.matches(registration.selector)) {
+    add(registration, element)
+  } else {
+    remove(registration, element)
+  }
+}
+
+function prune(registration) {
+  registration.elements.forEach(element => {
+    if (!element.isConnected) remove(registration, element)
+  })
+}
+
+function add(registration, element) {
+  if (registration.elements.has(element)) return
+  registration.elements.add(element)
+  run(registration.connect, element)
+}
+
+function remove(registration, element) {
+  if (!registration.elements.has(element)) return
+  registration.elements.delete(element)
+  run(registration.disconnect, element)
+}
+
+function run(callback, element) {
+  try {
+    callback?.(element)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+// components/autosave/autosave.js
 {
+
 const AUTOSAVE_INTERVAL = 3000
 
-const controller = class extends Controller {
-  static targets = [ "submit" ]
-
+define("autosave", class extends Controller {
   #timer
 
   disconnect() {
@@ -45,9 +425,9 @@ const controller = class extends Controller {
 
     try {
       const response = await this.#performRequest()
-      this.dispatch(response.ok ? "success" : "error", { detail: { response } })
+      this.dispatch(response.ok ? "success" : "error", { response })
     } catch (error) {
-      this.dispatch("error", { detail: { error } })
+      this.dispatch("error", { error })
     } finally {
       this.#toggleSaving(false)
     }
@@ -55,7 +435,8 @@ const controller = class extends Controller {
 
   #toggleSaving(saving) {
     this.element.ariaBusy = saving
-    if (this.hasSubmitTarget) this.submitTarget.disabled = saving
+    const submit = this.target("submit")
+    if (submit) submit.disabled = saving
   }
 
   #performRequest() {
@@ -89,13 +470,13 @@ const controller = class extends Controller {
   get #dirty() {
     return !!this.#timer
   }
-}
-application.register("autosave", controller)
+})
 }
 
-// components/autoselect/autoselect_controller.js
+// components/autoselect/autoselect.js
 {
-const controller = class extends Controller {
+
+define("autoselect", class extends Controller {
   connect() {
     this.#autoselect && this.element.select()
   }
@@ -103,31 +484,27 @@ const controller = class extends Controller {
   get #autoselect() {
     return this.element.autofocus
   }
-}
-application.register("autoselect", controller)
+})
 }
 
-// components/carousel/carousel_controller.js
+// components/carousel/carousel.js
 {
-const controller = class extends Controller {
-  static targets = [ "content" ]
 
+define("carousel", class extends Controller {
   next() {
-    this.contentTarget.scrollBy(100, 0)
+    this.target("content").scrollBy(100, 0)
   }
 
   prev() {
-    this.contentTarget.scrollBy(-100, 0)
+    this.target("content").scrollBy(-100, 0)
   }
-}
-application.register("carousel", controller)
+})
 }
 
-// components/check_all/check_all_controller.js
+// components/check_all/check_all.js
 {
-const controller = class extends Controller {
-  static targets = [ "dependee", "dependant" ]
 
+define("check-all", class extends Controller {
   connect() {
     this.#checkDependee()
   }
@@ -146,11 +523,11 @@ const controller = class extends Controller {
   }
 
   get #dependee() {
-    return this.dependeeTarget
+    return this.target("dependee")
   }
 
   get #dependants() {
-    return this.dependantTargets
+    return this.targets("dependant")
   }
 
   get #indeterminate() {
@@ -164,35 +541,32 @@ const controller = class extends Controller {
   get #allChecked() {
     return this.#dependants.length > 0 && this.#dependants.every(it => it.checked)
   }
-}
-application.register("check-all", controller)
+})
 }
 
-// components/collapsible/collapsible_controller.js
+// components/collapsible/collapsible.js
 {
-const controller = class extends Controller {
-  static targets = [ "details" ]
 
+define("collapsible", class extends Controller {
   open() {
-    this.detailsTarget.open = true
+    this.target("details").open = true
   }
 
   close() {
-    this.detailsTarget.open = false
+    this.target("details").open = false
   }
 
   toggle() {
-    this.detailsTarget.open ? this.close() : this.open()
+    this.target("details").open ? this.close() : this.open()
   }
-}
-application.register("collapsible", controller)
+})
 }
 
-// components/color_scheme/color_scheme_controller.js
+// components/color_scheme/color_scheme.js
 {
-// The root element carries the current scheme itself:
-// <html data-controller="color-scheme" data-color-scheme>.
-const controller = class extends Controller {
+
+// The root element carries the current scheme itself: <html data-color-scheme>.
+define("color-scheme", class extends Controller {
   connect() {
     this.element.dataset.colorScheme = this.#colorScheme
   }
@@ -212,26 +586,23 @@ const controller = class extends Controller {
   #set(colorScheme) {
     this.element.dataset.colorScheme = colorScheme
     localStorage.setItem("color_scheme", colorScheme)
-    this.dispatch("change", { detail: { colorScheme } })
+    this.dispatch("change", { colorScheme })
   }
 
   get #colorScheme() {
     return localStorage.getItem("color_scheme") || "system"
   }
-}
-application.register("color-scheme", controller)
+})
 }
 
-// components/command/command_controller.js
+// components/command/command.js
 {
+
 let uid = 0
 
 // A command palette: a search field that filters a list of items, with keyboard
 // navigation. Activating an item clicks it, so links navigate and buttons run.
-const controller = class extends Controller {
-  static targets = [ "input", "item", "group", "separator", "empty" ]
-
-  #listeners
+define("command", class extends Controller {
   #observer
   #selected = null
 
@@ -239,12 +610,10 @@ const controller = class extends Controller {
     this.#input.setAttribute("role", "combobox")
     this.#input.setAttribute("aria-expanded", "true")
     this.#input.setAttribute("aria-autocomplete", "list")
-    this.#listeners = new AbortController()
-    const { signal } = this.#listeners
-    this.#input.addEventListener("input", this.#filter, { signal })
-    this.#input.addEventListener("keydown", this.#keydown, { signal })
-    this.element.addEventListener("pointermove", this.#pointermove, { signal })
-    this.element.addEventListener("click", this.#click, { signal })
+    this.on(this.#input, "input", this.#filter)
+    this.on(this.#input, "keydown", this.#keydown)
+    this.on(this.element, "pointermove", this.#pointermove)
+    this.on(this.element, "click", this.#click)
 
     // Start fresh every time the palette becomes visible, e.g. when its dialog opens.
     this.#observer = new IntersectionObserver(([ entry ]) => entry.isIntersecting && this.reset())
@@ -253,7 +622,6 @@ const controller = class extends Controller {
   }
 
   disconnect() {
-    this.#listeners.abort()
     this.#observer.disconnect()
   }
 
@@ -272,16 +640,17 @@ const controller = class extends Controller {
       item.hidden = !terms.every(term => text.includes(term))
     }
 
-    for (const group of this.groupTargets) {
+    for (const group of this.targets("group")) {
       group.hidden = !this.#items.some(item => group.contains(item) && !item.hidden)
     }
 
-    for (const separator of this.separatorTargets) {
+    for (const separator of this.targets("separator")) {
       separator.hidden = terms.length > 0
     }
 
     const visible = this.#visibleItems
-    if (this.hasEmptyTarget) this.emptyTarget.hidden = visible.length > 0
+    const empty = this.target("empty")
+    if (empty) empty.hidden = visible.length > 0
 
     this.#select(visible[0] ?? null)
   }
@@ -316,7 +685,7 @@ const controller = class extends Controller {
     const item = target instanceof Element ? target.closest('[data-command-target~="item"]') : null
     if (!item || !this.#items.includes(item)) return
 
-    this.dispatch("select", { detail: { item, value: item.getAttribute("data-command-value") ?? item.textContent.trim() } })
+    this.dispatch("select", { item, value: item.getAttribute("data-command-value") ?? item.textContent.trim() })
   }
 
   #select(item, scroll = false) {
@@ -336,29 +705,29 @@ const controller = class extends Controller {
   }
 
   get #input() {
-    return this.inputTarget
+    return this.target("input")
   }
 
   get #items() {
-    return this.itemTargets
+    return this.targets("item")
   }
 
   get #visibleItems() {
     return this.#items.filter(item => !item.hidden && item.getAttribute("aria-disabled") !== "true")
   }
-}
-application.register("command", controller)
+})
 }
 
-// components/confirm/confirm_dialog_controller.js
+// components/confirm/confirm.js
 {
+
 // Asks for confirmation before a form submits or a link is followed:
 //
 //   <form data-confirm="Are you sure?" data-confirm-text="This cannot be undone.">
 //   <button type="submit" data-confirm="Delete this item?">
 //   <a href="/logout" data-confirm="Sign out?">
 //
-// The question is shown in the <dialog data-controller="confirm-dialog"> on the page. When there is no
+// The question is shown in the <dialog data-confirm-dialog> on the page. When there is no
 // such dialog the browser's native confirm() is used instead.
 
 const DEFAULT_CONFIRM_TEXT = "This action cannot be undone and may have permanent consequences."
@@ -366,25 +735,21 @@ const DEFAULT_CONFIRM_TEXT = "This action cannot be undone and may have permanen
 const confirmed = new WeakSet()
 let confirmDialog = null
 
-const controller = class extends Controller {
-  static targets = [ "title", "text" ]
-  static values = { defaultText: String }
-
+define("confirm-dialog", class extends Controller {
   #resolve = null
 
   connect() {
     confirmDialog = this
-    this.element.addEventListener("close", this.#submit)
+    this.on(this.element, "close", this.#submit)
   }
 
   disconnect() {
-    this.element.removeEventListener("close", this.#submit)
     if (confirmDialog === this) confirmDialog = null
   }
 
   confirm(message, text) {
-    this.titleTarget.textContent = message
-    this.textTarget.textContent  = text || this.defaultTextValue || DEFAULT_CONFIRM_TEXT
+    this.target("title").textContent = message
+    this.target("text").textContent  = text || this.data("default-text") || DEFAULT_CONFIRM_TEXT
     this.element.returnValue = ""
     this.element.showModal()
     return new Promise(resolve => (this.#resolve = resolve))
@@ -394,7 +759,7 @@ const controller = class extends Controller {
     this.#resolve?.(this.element.returnValue === "confirm")
     this.#resolve = null
   }
-}
+})
 
 function ask(message, text) {
   return confirmDialog ? confirmDialog.confirm(message, text) : Promise.resolve(window.confirm(message))
@@ -443,32 +808,30 @@ window.addEventListener("click", event => {
     }
   })
 }, true)
-application.register("confirm-dialog", controller)
 }
 
-// components/context_menu/context_menu_controller.js
+// components/context_menu/context_menu.js
 {
-const controller = class extends Controller {
-  static targets = [ "content" ]
 
+define("context-menu", class extends Controller {
   show({ clientX, clientY }) {
-    const content = this.contentTarget
+    const content = this.target("content")
     content.style.insetInlineStart = `${clientX}px`
     content.style.insetBlockStart  = `${clientY}px`
     content.showPopover()
   }
 
   hide({ target }) {
-    const content = this.contentTarget
+    const content = this.target("content")
     !content.contains(target) && content.hidePopover()
   }
-}
-application.register("context-menu", controller)
+})
 }
 
-// components/dialog/dialog_controller.js
+// components/dialog/dialog.js
 {
-const controller = class extends Controller {
+
+define("dialog", class extends Controller {
   show() {
     this.element.show()
   }
@@ -484,12 +847,12 @@ const controller = class extends Controller {
   closeOnClickOutside({ target }) {
     target.nodeName === "DIALOG" && this.close()
   }
-}
-application.register("dialog", controller)
+})
 }
 
-// components/dropzone/dropzone_controller.js
+// components/dropzone/dropzone.js
 {
+
 const MESSAGES = {
   type: "This file type is not accepted.",
   size: "This file is too large.",
@@ -498,42 +861,37 @@ const MESSAGES = {
 
 // A drop area for a file input. Dropped and picked files are validated, previewed and kept
 // in the input, so they are submitted with the form like any other file field.
-const controller = class extends Controller {
-  static targets = [ "input", "files" ]
-  static values = {
-    typeMessage: { type: String, default: MESSAGES.type },
-    sizeMessage: { type: String, default: MESSAGES.size },
-    countMessage: { type: String, default: MESSAGES.count },
-    maxFileSize: { type: Number, default: Infinity },
-    maxFiles: { type: Number, default: Infinity }
-  }
-
-  #listeners
+define("dropzone", class extends controller({
+  values: {
+    typeMessage: MESSAGES.type,
+    sizeMessage: MESSAGES.size,
+    countMessage: MESSAGES.count,
+    maxFileSize: Infinity,
+    maxFiles: Infinity,
+  },
+}) {
   #files = []
   #rejected = []
   #urls = new Map()
   #errors = new WeakMap()
 
   connect() {
-    this.#listeners = new AbortController()
-    const { signal } = this.#listeners
     for (const type of [ "dragenter", "dragover", "dragleave", "drop" ]) {
-      this.element.addEventListener(type, this.#drag, { signal })
+      this.on(this.element, type, this.#drag)
     }
-    this.#input.addEventListener("change", this.#picked, { signal })
-    this.#input.form?.addEventListener("reset", this.#reset, { signal })
+    this.on(this.#input, "change", this.#picked)
+    if (this.#input.form) this.on(this.#input.form, "reset", this.#reset)
     this.#render()
   }
 
   disconnect() {
-    this.#listeners.abort()
     this.#urls.forEach(url => URL.revokeObjectURL(url))
     this.#urls.clear()
   }
 
-  remove({ currentTarget }) {
-    const index = Number(currentTarget.closest("[data-index]").dataset.index)
-    const list = currentTarget.closest("[data-error]") ? this.#rejected : this.#files
+  remove(event, element) {
+    const index = Number(element.closest("[data-index]").dataset.index)
+    const list = element.closest("[data-error]") ? this.#rejected : this.#files
     this.#forget(list.splice(index, 1)[0])
     this.#sync()
   }
@@ -589,9 +947,9 @@ const controller = class extends Controller {
   }
 
   #validate(file) {
-    if (!this.#accepts(file)) return this.typeMessageValue
-    if (file.size > this.maxFileSizeValue * 1024 * 1024) return this.sizeMessageValue
-    if (this.#files.length >= this.maxFilesValue) return this.countMessageValue
+    if (!this.#accepts(file)) return this.typeMessage
+    if (file.size > this.maxFileSize * 1024 * 1024) return this.sizeMessage
+    if (this.#files.length >= this.maxFiles) return this.countMessage
     return null
   }
 
@@ -615,13 +973,14 @@ const controller = class extends Controller {
     this.#files.forEach(file => transfer.items.add(file))
     this.#input.files = transfer.files
     this.#render()
-    this.dispatch("change", { detail: { files: [ ...this.#files ], rejected: [ ...this.#rejected ] } })
+    this.dispatch("change", { files: [ ...this.#files ], rejected: [ ...this.#rejected ] })
   }
 
   #render() {
-    if (!this.hasFilesTarget) return
+    const list = this.target("files")
+    if (!list) return
 
-    this.filesTarget.replaceChildren(
+    list.replaceChildren(
       ...this.#files.map((file, index) => this.#preview(file, index, null)),
       ...this.#rejected.map((file, index) => this.#preview(file, index, this.#errors.get(file)))
     )
@@ -658,7 +1017,7 @@ const controller = class extends Controller {
     const remove = document.createElement("button")
     remove.type = "button"
     remove.className = "btn btn--plain"
-    remove.setAttribute("data-action", "dropzone#remove")
+    remove.setAttribute("data-dropzone-action", "remove")
     remove.innerHTML = '<span class="icon icon--x" aria-hidden="true"></span><span class="sr-only"></span>'
     remove.lastChild.textContent = `Remove ${file.name}`
 
@@ -690,43 +1049,33 @@ const controller = class extends Controller {
   }
 
   get #input() {
-    return this.inputTarget
+    return this.target("input")
   }
-}
-application.register("dropzone", controller)
+})
 }
 
-// components/dual_range/dual_range_controller.js
+// components/dual_range/dual_range.js
 {
+
 // Two range inputs that select a minimum and a maximum on one track. Each input is resized
 // to cover its half of the range, split at the midpoint between the two values.
 // Technique from @stanko/dual-range-input (MIT, https://muffinman.io/dual-range-input).
-const controller = class extends Controller {
-  static targets = [ "min", "max" ]
-  static values = { precision: { type: Number, default: 3 } }
-
-  #listeners
+define("dual-range", class extends controller({ values: { precision: 3 } }) {
   #min
   #max
 
   connect() {
-    this.#min = this.minTarget
-    this.#max = this.maxTarget
-    this.#listeners = new AbortController()
-    const { signal } = this.#listeners
+    this.#min = this.target("min")
+    this.#max = this.target("max")
 
     for (const type of [ "input", "focus", "mousedown", "touchstart" ]) {
-      this.#min.addEventListener(type, this.#updateCeil, { passive: true, signal })
-      this.#max.addEventListener(type, this.#updateFloor, { passive: true, signal })
+      this.on(this.#min, type, this.#updateCeil, { passive: true })
+      this.on(this.#max, type, this.#updateFloor, { passive: true })
     }
 
     this.#update("ceil")
     this.#min.setAttribute("data-ready", "")
     this.#max.setAttribute("data-ready", "")
-  }
-
-  disconnect() {
-    this.#listeners.abort()
   }
 
   // Moving the minimum rounds the midpoint up, moving the maximum rounds it down, so the
@@ -757,15 +1106,15 @@ const controller = class extends Controller {
   }
 
   #fixed(number) {
-    return number.toFixed(this.precisionValue)
+    return number.toFixed(this.precision)
   }
-}
-application.register("dual-range", controller)
+})
 }
 
-// components/flash/flash_controller.js
+// components/flash/flash.js
 {
-const controller = class extends Controller {
+
+define("flash", class extends Controller {
   connect() {
     this.element.showPopover()
   }
@@ -773,18 +1122,19 @@ const controller = class extends Controller {
   hide() {
     this.element.hidePopover()
   }
-}
-application.register("flash", controller)
+})
 }
 
-// components/form/form_controller.js
+// components/form/form.js
 {
-const controller = class extends Controller {
-  static targets = [ "submit", "cancel" ]
-  static values = { debounce: { type: Number, default: 300 } }
 
-  initialize() {
-    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.debounceValue)
+define("form", class extends controller({
+  targets: { submit: HTMLElement, cancel: HTMLElement },
+  values: { debounce: 300 },
+}) {
+  constructor(element, name) {
+    super(element, name)
+    this.debouncedSubmit = debounce(this.debouncedSubmit.bind(this), this.debounce)
   }
 
   submit(event) {
@@ -802,7 +1152,7 @@ const controller = class extends Controller {
   }
 
   disableSubmitWhenInvalid() {
-    const submit = this.submitTarget
+    const submit = this.$.submit
 
     if (this.element.checkValidity()) {
       submit.removeAttribute("disabled")
@@ -820,7 +1170,7 @@ const controller = class extends Controller {
   }
 
   cancel() {
-    if (this.hasCancelTarget) this.cancelTarget.click()
+    this.$.cancel?.click()
   }
 
   #find(id) {
@@ -830,24 +1180,13 @@ const controller = class extends Controller {
   #notFound(id) {
     throw new Error(`Submitter with ID "${id}" not found`)
   }
+})
 }
 
-// Trailing-edge debounce.
-function debounce(fn, wait) {
-  let timeout
-  return function (...args) {
-    clearTimeout(timeout)
-    timeout = setTimeout(() => fn.apply(this, args), wait)
-  }
-}
-application.register("form", controller)
-}
-
-// components/fullscreen/fullscreen_controller.js
+// components/fullscreen/fullscreen.js
 {
-const controller = class extends Controller {
-  static targets = [ "button" ]
 
+define("fullscreen", class extends Controller {
   connect() {
     this.#hideButtonIfNotSupported()
   }
@@ -857,7 +1196,7 @@ const controller = class extends Controller {
   }
 
   #hideButtonIfNotSupported() {
-    this.buttonTargets.forEach(button => button.hidden = !this.#supportsFullScreen)
+    this.targets("button").forEach(button => button.hidden = !this.#supportsFullScreen)
   }
 
   #exitFullscreen() {
@@ -875,13 +1214,13 @@ const controller = class extends Controller {
   get #fullScreenMode() {
     return document.fullscreenElement
   }
-}
-application.register("fullscreen", controller)
+})
 }
 
-// components/hotkey/hotkey_controller.js
+// components/hotkey/hotkey.js
 {
-const controller = class extends Controller {
+
+define("hotkey", class extends Controller {
   click(event) {
     if (this.#isClickable && !this.#shouldIgnore(event)) {
       event.preventDefault(); this.element.click()
@@ -901,29 +1240,25 @@ const controller = class extends Controller {
   get #isClickable() {
     return getComputedStyle(this.element).pointerEvents !== "none"
   }
-}
-application.register("hotkey", controller)
+})
 }
 
-// components/input_clearable/input_clearable_controller.js
+// components/input_clearable/input_clearable.js
 {
-const controller = class extends Controller {
-  static targets = [ "input" ]
 
+define("input-clearable", class extends Controller {
   clear() {
-    const input = this.inputTarget
+    const input = this.target("input")
     input.value = ""
     input.focus()
   }
-}
-application.register("input-clearable", controller)
+})
 }
 
-// components/input_copyable/input_copyable_controller.js
+// components/input_copyable/input_copyable.js
 {
-const controller = class extends Controller {
-  static targets = [ "input" ]
 
+define("input-copyable", class extends Controller {
   async copy() {
     this.#reset()
     this.#writeToClipboard()
@@ -931,7 +1266,7 @@ const controller = class extends Controller {
 
   async #writeToClipboard() {
     try {
-      await navigator.clipboard.writeText(this.inputTarget.value)
+      await navigator.clipboard.writeText(this.target("input").value)
       this.element.classList.add("input--copied")
     } catch {}
   }
@@ -944,12 +1279,12 @@ const controller = class extends Controller {
   #forceReflow() {
     this.element.offsetWidth
   }
-}
-application.register("input-copyable", controller)
+})
 }
 
-// components/input_otp/input_otp_controller.js
+// components/input_otp/input_otp.js
 {
+
 const PATTERNS = {
   "digits": /\d/,
   "chars": /\p{L}/u,
@@ -958,35 +1293,25 @@ const PATTERNS = {
 
 // A one-time-code field: one real <input> laid over a row of slots. The input does the
 // typing, pasting and autofill; this script shows each character in its slot.
-const controller = class extends Controller {
-  static targets = [ "input", "slot" ]
-  static values = { pattern: { type: String, default: "digits" } }
-
-  #listeners
+define("input-otp", class extends controller({ values: { pattern: "digits" } }) {
   #focused = false
 
   connect() {
     const input = this.#input
     if (!input.hasAttribute("maxlength")) input.maxLength = this.#slots.length
     if (!input.hasAttribute("autocomplete")) input.autocomplete = "one-time-code"
-    if (!input.hasAttribute("inputmode")) input.inputMode = this.patternValue === "digits" ? "numeric" : "text"
+    if (!input.hasAttribute("inputmode")) input.inputMode = this.pattern === "digits" ? "numeric" : "text"
     if (!input.hasAttribute("spellcheck")) input.spellcheck = false
 
-    this.#listeners = new AbortController()
-    const { signal } = this.#listeners
-    input.addEventListener("input", this.#changed, { signal })
-    input.addEventListener("focus", this.#focus, { signal })
-    input.addEventListener("blur", this.#blur, { signal })
-    input.addEventListener("select", this.#moveCaretToEnd, { signal })
-    input.addEventListener("click", this.#moveCaretToEnd, { signal })
-    input.addEventListener("keyup", this.#moveCaretToEnd, { signal })
+    this.on(input, "input", this.#changed)
+    this.on(input, "focus", this.#focus)
+    this.on(input, "blur", this.#blur)
+    this.on(input, "select", this.#moveCaretToEnd)
+    this.on(input, "click", this.#moveCaretToEnd)
+    this.on(input, "keyup", this.#moveCaretToEnd)
 
     input.value = this.#sanitize(input.value)
     this.#render()
-  }
-
-  disconnect() {
-    this.#listeners.abort()
   }
 
   #changed = () => {
@@ -997,7 +1322,7 @@ const controller = class extends Controller {
     this.#render()
 
     if (value.length === this.#slots.length) {
-      this.dispatch("complete", { detail: { value } })
+      this.dispatch("complete", { value })
     }
   }
 
@@ -1031,49 +1356,40 @@ const controller = class extends Controller {
   }
 
   #sanitize(value) {
-    const allowed = PATTERNS[this.patternValue] ?? PATTERNS.digits
+    const allowed = PATTERNS[this.pattern] ?? PATTERNS.digits
     return [ ...value ].filter(character => allowed.test(character)).join("").slice(0, this.#slots.length)
   }
 
   get #input() {
-    return this.inputTarget
+    return this.target("input")
   }
 
   get #slots() {
-    return this.slotTargets
+    return this.targets("slot")
   }
-}
-application.register("input-otp", controller)
+})
 }
 
-// components/input_revealable/input_revealable_controller.js
+// components/input_revealable/input_revealable.js
 {
-const controller = class extends Controller {
-  static targets = [ "input" ]
 
+define("input-revealable", class extends Controller {
   reveal() {
-    const input = this.inputTarget
+    const input = this.target("input")
     this.element.classList.toggle("input--revealed")
     input.type = input.type === "text" ? "password" : "text"
   }
-}
-application.register("input-revealable", controller)
+})
 }
 
-// components/popover/interest_controller.js
+// components/popover/interest.js
 {
-// Shows the popover named by data-interest-for-value while the pointer hovers the element.
-const controller = class extends Controller {
-  static values = { for: String }
 
+// Shows the popover named by data-interest-for while the pointer hovers the element.
+define("interest", class extends Controller {
   connect() {
-    this.element.addEventListener("mouseenter", this.#show)
-    this.element.addEventListener("mouseleave", this.#hide)
-  }
-
-  disconnect() {
-    this.element.removeEventListener("mouseenter", this.#show)
-    this.element.removeEventListener("mouseleave", this.#hide)
+    this.on(this.element, "mouseenter", this.#show)
+    this.on(this.element, "mouseleave", this.#hide)
   }
 
   #show = () => {
@@ -1085,46 +1401,43 @@ const controller = class extends Controller {
   }
 
   get #forElement() {
-    return document.getElementById(this.forValue)
+    return document.getElementById(this.data("for"))
   }
-}
-application.register("interest", controller)
+})
 }
 
-// components/lightbox/lightbox_controller.js
+// components/lightbox/lightbox.js
 {
-const controller = class extends Controller {
-  static targets = [ "dialog", "zoomedImage", "download", "share" ]
 
-  show({ currentTarget }) {
-    this.dialogTarget.showModal()
-    this.#set(currentTarget)
+define("lightbox", class extends Controller {
+  show(event, link) {
+    this.target("dialog").showModal()
+    this.#set(link)
   }
 
   close() {
-    this.dialogTarget.close()
+    this.target("dialog").close()
   }
 
   reset() {
-    this.zoomedImageTarget.src = ""
-    this.downloadTarget.href = ""
-    if (this.hasShareTarget) this.shareTarget.setAttribute("data-web-share-file-value", "")
+    this.target("zoomedImage").src = ""
+    this.target("download").href = ""
+    this.target("share")?.setAttribute("data-web-share-file", "")
   }
 
   #set(link) {
-    this.zoomedImageTarget.src = link.href
-    this.downloadTarget.href = link.getAttribute("data-lightbox-url")
-    if (this.hasShareTarget) this.shareTarget.setAttribute("data-web-share-file-value", link.getAttribute("data-lightbox-url"))
+    this.target("zoomedImage").src = link.href
+    this.target("download").href = link.getAttribute("data-lightbox-url")
+    this.target("share")?.setAttribute("data-web-share-file", link.getAttribute("data-lightbox-url"))
   }
-}
-application.register("lightbox", controller)
+})
 }
 
-// components/local_time/local_time_controller.js
+// components/local_time/local_time.js
 {
-// Formats <time datetime="…" data-controller="local-time" data-local-time-format-value="…">
-// in the visitor's locale and time zone. The format is time, date, shortdate, datetime or
-// ago; "ago" values are refreshed every 30 seconds.
+
+// Formats <time datetime="…" data-local-time="time|date|shortdate|datetime|ago"> in the
+// visitor's locale and time zone. "ago" values are refreshed every 30 seconds.
 
 class TimeAgoFormat extends Intl.RelativeTimeFormat {
   format(date) {
@@ -1166,66 +1479,59 @@ const formatters = {
   ago: new TimeAgoFormat(undefined, { numeric: "always" })
 }
 
-const agoControllers = new Set()
+const agoElements = new Set()
 let timer = null
 
-const controller = class extends Controller {
-  static values = { format: String }
+function formatTime(element) {
+  const formatter = formatters[element.getAttribute("data-local-time")]
 
-  connect() {
-    this.#render()
-
-    if (this.formatValue === "ago") {
-      agoControllers.add(this)
-      timer ??= setInterval(() => agoControllers.forEach(controller => controller.#render()), 30_000)
-    }
+  if (!formatter) {
+    console.error(`[velle] Unknown data-local-time format "${element.getAttribute("data-local-time")}"`, element)
+    return
   }
 
-  disconnect() {
-    agoControllers.delete(this)
+  const date = new Date(element.getAttribute("datetime"))
+  element.textContent = formatter.format(date)
+  element.title = formatters.datetime.format(date)
+}
 
-    if (agoControllers.size === 0 && timer) {
+observe("[data-local-time]", {
+  connect(element) {
+    formatTime(element)
+
+    if (element.getAttribute("data-local-time") === "ago") {
+      agoElements.add(element)
+      timer ??= setInterval(() => agoElements.forEach(formatTime), 30_000)
+    }
+  },
+  disconnect(element) {
+    agoElements.delete(element)
+
+    if (agoElements.size === 0 && timer) {
       clearInterval(timer)
       timer = null
     }
   }
-
-  #render() {
-    const formatter = formatters[this.formatValue]
-
-    if (!formatter) {
-      console.error(`[velle] Unknown local-time format "${this.formatValue}"`, this.element)
-      return
-    }
-
-    const date = new Date(this.element.getAttribute("datetime"))
-    this.element.textContent = formatter.format(date)
-    this.element.title = formatters.datetime.format(date)
-  }
-}
-application.register("local-time", controller)
+})
 }
 
-// components/menu/menu_controller.js
+// components/menu/menu.js
 {
+
 // Roving tabindex for menus: arrow keys move focus between data-menu-target="item"
 // elements, and the first item is focused every time the menu becomes visible.
-const controller = class extends Controller {
-  static targets = [ "item" ]
-
+define("menu", class extends controller({ targets: { item: HTMLElement } }) {
   #observer
   #index = 0
 
   connect() {
-    this.element.addEventListener("keydown", this.#keydown)
-    this.element.addEventListener("focusin", this.#focusin)
+    this.on(this.element, "keydown", this.#keydown)
+    this.on(this.element, "focusin", this.#focusin)
     this.#observer = new IntersectionObserver(this.#reset.bind(this))
     this.#observer.observe(this.element)
   }
 
   disconnect() {
-    this.element.removeEventListener("keydown", this.#keydown)
-    this.element.removeEventListener("focusin", this.#focusin)
     this.#observer.disconnect()
   }
 
@@ -1292,31 +1598,27 @@ const controller = class extends Controller {
   }
 
   get #items() {
-    return this.itemTargets
+    return this.$$.item
   }
-}
-application.register("menu", controller)
+})
 }
 
-// components/resizable/resizable_controller.js
+// components/resizable/resizable.js
 {
+
 // Panels separated by draggable handles. Sizes are percentages of the group, applied as
 // flex-grow, so the panels always fill it.
-const controller = class extends Controller {
-  static targets = [ "panel", "handle" ]
-
+define("resizable", class extends Controller {
   #sizes = new Map()
   #drag = null
 
   connect() {
     this.#applyInitialSizes()
-    this.element.addEventListener("pointerdown", this.#pointerdown)
-    this.element.addEventListener("keydown", this.#keydown)
+    this.on(this.element, "pointerdown", this.#pointerdown)
+    this.on(this.element, "keydown", this.#keydown)
   }
 
   disconnect() {
-    this.element.removeEventListener("pointerdown", this.#pointerdown)
-    this.element.removeEventListener("keydown", this.#keydown)
     this.#stopDragging()
   }
 
@@ -1415,7 +1717,7 @@ const controller = class extends Controller {
     this.#setSize(before, clamped)
     this.#setSize(after, total - clamped)
     this.#updateHandle(handle)
-    this.dispatch("resize", { detail: { sizes: this.#panels.map(panel => this.#sizes.get(panel)) } })
+    this.dispatch("resize", { sizes: this.#panels.map(panel => this.#sizes.get(panel)) })
   }
 
   #setSize(panel, size) {
@@ -1468,134 +1770,136 @@ const controller = class extends Controller {
   }
 
   get #panels() {
-    return this.panelTargets
+    return this.targets("panel")
   }
 
   get #handles() {
-    return this.handleTargets
+    return this.targets("handle")
   }
-}
-application.register("resizable", controller)
+})
 }
 
-// components/tabs/tabs_controller.js
+// components/tabs/tabs.js
 {
-const controller = class extends Controller {
-  static targets = [ "button", "tab" ]
-  static values = { index: Number }
+// @ts-check
 
-  select({ currentTarget }) {
-    this.indexValue = this.buttonTargets.indexOf(currentTarget)
+define("tabs", class extends controller({
+  targets: { button: HTMLElement, tab: HTMLElement },
+  values: { index: 0 },
+}) {
+  connect() {
+    this.indexChanged()
+  }
+
+  /** @param {Event & { target: Element }} event */
+  select({ target }) {
+    this.index = this.$$.button.indexOf(/** @type {HTMLElement} */ (target.closest(`[data-tabs-target~="button"]`)))
   }
 
   prev() {
-    if (this.indexValue > 0) {
-      this.indexValue--
+    if (this.index > 0) {
+      this.index--
       this.#focusCurrentButton()
     }
   }
 
   next() {
-    if (this.indexValue < this.#lastIndex) {
-      this.indexValue++
+    if (this.index < this.#lastIndex) {
+      this.index++
       this.#focusCurrentButton()
     }
   }
 
-  indexValueChanged() {
-    const index = this.indexValue
+  indexChanged() {
+    const index = this.index
 
-    this.buttonTargets.forEach((it, i) => {
+    this.$$.button.forEach((it, i) => {
       it.ariaSelected = String(i === index)
       it.tabIndex = i === index ? 0 : -1
     })
 
-    this.tabTargets.forEach((it, i) => {
+    this.$$.tab.forEach((it, i) => {
       it.hidden = i !== index
     })
 
-    this.dispatch("change", { detail: { index } })
+    this.dispatch("change", { index })
   }
 
   #focusCurrentButton() {
-    this.buttonTargets[this.indexValue].focus()
+    this.$$.button[this.index].focus()
   }
 
   get #lastIndex() {
-    return this.tabTargets.length - 1
+    return this.$$.tab.length - 1
   }
-}
-application.register("tabs", controller)
+})
 }
 
-// components/timezone_cookie/timezone_cookie_controller.js
+// components/timezone_cookie/timezone_cookie.js
 {
+
 // Stores the visitor's IANA time zone in a "timezone" cookie so the server can read it.
-// Put data-controller="timezone-cookie" on any element, usually <body>.
-const controller = class extends Controller {
+// Put data-timezone-cookie on any element, usually <body>.
+observe("[data-timezone-cookie]", {
   connect() {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     document.cookie = `timezone=${encodeURIComponent(timezone)}; path=/`
   }
-}
-application.register("timezone-cookie", controller)
+})
 }
 
-// components/toggle_class/toggle_class_controller.js
+// components/toggle_class/toggle_class.js
 {
-// <div data-controller="toggle-class" data-toggle-class-toggle-class="closed"> toggles the
-// "closed" class on itself.
-const controller = class extends Controller {
-  static classes = [ "toggle" ]
 
+// <div data-toggle-class="closed"> toggles the "closed" class on itself.
+define("toggle-class", class extends Controller {
   toggle() {
-    this.element.classList.toggle(this.toggleClass)
+    this.element.classList.toggle(this.#toggleClass)
   }
 
   add() {
-    this.element.classList.add(this.toggleClass)
+    this.element.classList.add(this.#toggleClass)
   }
 
   remove() {
-    this.element.classList.remove(this.toggleClass)
+    this.element.classList.remove(this.#toggleClass)
   }
-}
-application.register("toggle-class", controller)
+
+  get #toggleClass() {
+    return this.element.getAttribute("data-toggle-class")
+  }
+})
 }
 
-// components/upload_preview/upload_preview_controller.js
+// components/upload_preview/upload_preview.js
 {
-const controller = class extends Controller {
-  static targets = [ "input", "image", "removeInput" ]
-  static values = { defaultImage: String }
 
+define("upload-preview", class extends Controller {
   previewImage() {
-    const selectedFile = this.inputTarget.files[0]
+    const selectedFile = this.target("input").files[0]
 
     if (selectedFile) {
-      const image = this.imageTarget
+      const image = this.target("image")
       image.src = URL.createObjectURL(selectedFile)
       image.onload = () => { URL.revokeObjectURL(image.src) }
-      this.removeInputTarget.value = false
+      this.target("removeInput").value = false
     }
   }
 
   clear() {
-    this.imageTarget.src = this.defaultImageValue
-    this.removeInputTarget.value = true
+    this.target("image").src = this.data("default-image")
+    this.target("removeInput").value = true
   }
-}
-application.register("upload-preview", controller)
+})
 }
 
-// components/web_share/web_share_controller.js
+// components/web_share/web_share.js
 {
+
 // Prefix for the names of shared files, e.g. "my_application_x1y2z3.jpg".
 const APPLICATION_NAME = "my_application"
 
-const controller = class extends Controller {
-  static values = { title: String, text: String, url: String, file: String }
-
+define("web-share", class extends controller({ values: { title: "", text: "", url: "", file: "" } }) {
   connect() {
     this.element.hidden = !navigator.canShare
   }
@@ -1607,13 +1911,13 @@ const controller = class extends Controller {
   }
 
   async #getShareData() {
-    const data = { title: this.titleValue, text: this.textValue }
+    const data = { title: this.title, text: this.text }
 
-    if (this.urlValue) {
-      data.url = this.urlValue
+    if (this.url) {
+      data.url = this.url
     }
 
-    if (this.fileValue) {
+    if (this.file) {
       data.files = [await this.#getFileObject()]
     }
 
@@ -1621,13 +1925,12 @@ const controller = class extends Controller {
   }
 
   async #getFileObject() {
-    const response = await fetch(this.fileValue)
+    const response = await fetch(this.file)
     const blob = await response.blob()
     const randomPrefix = `${APPLICATION_NAME}_${Math.random().toString(36).slice(2)}`
     const fileName = `${randomPrefix}.${blob.type.split('/').pop()}`
 
     return new File([ blob ], fileName, { type: blob.type })
   }
-}
-application.register("web-share", controller)
+})
 }

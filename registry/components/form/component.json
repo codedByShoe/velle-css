@@ -4,24 +4,24 @@
   "category": "Forms",
   "description": "Small form helpers: submit on change, debounced submit, keyboard submit, and disabling submit until the form is valid.",
   "files": [
-    "form_controller.js"
+    "form.js"
   ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"form\"",
+      "name": "data-form",
       "element": "<form>",
       "description": "Enables the form behavior."
     },
     {
-      "name": "data-action",
+      "name": "data-form-action",
       "element": "the form or any field inside it",
-      "description": "Wires events to actions, e.g. \"change->form#submit\" or \"keydown.meta+enter->form#submit\"."
+      "description": "Wires events to actions, e.g. \"change->submit\" or \"keydown.meta+enter->submit\"."
     },
     {
-      "name": "data-form-debounce-value",
+      "name": "data-form-debounce",
       "element": "<form>",
       "description": "Delay in milliseconds for debouncedSubmit. Defaults to 300."
     },
@@ -48,7 +48,7 @@
     },
     {
       "name": "debouncedSubmit",
-      "description": "Submits after the input has been idle for data-form-debounce-value milliseconds."
+      "description": "Submits after the input has been idle for data-form-debounce milliseconds."
     },
     {
       "name": "disableSubmitWhenInvalid",

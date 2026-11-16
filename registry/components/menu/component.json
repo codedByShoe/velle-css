@@ -5,7 +5,7 @@
   "description": "A vertical list of menu items with keyboard navigation. Used inside dropdowns, context menus and other popovers.",
   "files": [
     "menu.css",
-    "menu_controller.js"
+    "menu.js"
   ],
   "dependencies": [
     "button"
@@ -39,7 +39,7 @@
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"menu\"",
+      "name": "data-menu",
       "element": ".menu",
       "description": "Enables roving keyboard focus."
     },
@@ -52,7 +52,7 @@
   "actions": [],
   "events": [],
   "notes": [
-    "Because the first item is focused whenever the menu becomes visible, put data-controller=\"menu\" only on menus that start hidden, such as inside a popover.",
+    "Because the first item is focused whenever the menu becomes visible, put data-menu only on menus that start hidden, such as inside a popover.",
     "Every time the menu becomes visible, its first item gets focus.",
     "Arrow Down/Right move to the next item, Arrow Up/Left to the previous one (mirrored in right-to-left layouts), and Home/End jump to the first/last item.",
     "Only the active item is in the tab order (tabindex=0); the rest get tabindex=-1."

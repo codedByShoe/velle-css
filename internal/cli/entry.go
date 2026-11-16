@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	"github.com/codedbyshoe/velle-css/internal/registry"
 )
 
 // An entry is a stylesheet or script that imports every installed velle file, so a page
@@ -21,13 +19,10 @@ type entry struct {
 	path  string // project-relative, e.g. assets/css/velle/main.css
 	begin string
 	end   string
-	// managed reports whether velle writes a line of the block, and the specifier it
-	// imports, if any. Other lines are the user's and are kept.
-	managed func(line string, known func(string) bool) (specifier string, ok bool)
-	// render returns the block's lines for the imported specifiers, in load order.
-	render func(specifiers []string) []string
-	rank   func(file string) int
-	isCSS  bool
+	line  func(specifier string) string
+	parse *regexp.Regexp
+	rank  func(file string) int
+	isCSS bool
 }
 
 const (
@@ -36,9 +31,8 @@ const (
 )
 
 var (
-	cssImport  = regexp.MustCompile(`^\s*@import\s+url\(\s*["']?([^"')]+?)["']?\s*\)\s*;\s*$`)
-	jsImport   = regexp.MustCompile(`^\s*import\s+(?:(?:[\w$]+|\{[^}]*\})\s+from\s+)?["']([^"']+)["']\s*;?\s*$`)
-	jsRegister = regexp.MustCompile(`^\s*application\.register\(\s*["']([a-z0-9-]+)["']\s*,\s*[\w$]+\s*\)\s*;?\s*$`)
+	cssImport = regexp.MustCompile(`^\s*@import\s+url\(\s*["']?([^"')]+?)["']?\s*\)\s*;\s*$`)
+	jsImport  = regexp.MustCompile(`^\s*import\s+["']([^"']+)["']\s*;?\s*$`)
 )
 
 func cssEntry(p string) *entry {
@@ -46,20 +40,8 @@ func cssEntry(p string) *entry {
 		path:  p,
 		begin: "/* " + beginText + " */",
 		end:   "/* " + endText + " */",
-		managed: func(line string, known func(string) bool) (string, bool) {
-			m := cssImport.FindStringSubmatch(line)
-			if m == nil || !known(path.Base(m[1])) {
-				return "", false
-			}
-			return m[1], true
-		},
-		render: func(specifiers []string) []string {
-			lines := make([]string, len(specifiers))
-			for i, s := range specifiers {
-				lines[i] = fmt.Sprintf("@import url(%q);", s)
-			}
-			return lines
-		},
+		line:  func(s string) string { return fmt.Sprintf("@import url(%q);", s) },
+		parse: cssImport,
 		isCSS: true,
 		// reset, then tokens, then base, then components alphabetically, then utilities:
 		// components override the base styles and utilities override components.
@@ -80,54 +62,15 @@ func cssEntry(p string) *entry {
 	}
 }
 
-// jsEntry imports application.js and every installed controller and registers each one
-// under its identifier; other scripts, such as extensions, are imported for their effect.
 func jsEntry(p string) *entry {
 	return &entry{
 		path:  p,
 		begin: "// " + beginText,
 		end:   "// " + endText,
-		managed: func(line string, known func(string) bool) (string, bool) {
-			if m := jsImport.FindStringSubmatch(line); m != nil && known(path.Base(m[1])) {
-				return m[1], true
-			}
-			if m := jsRegister.FindStringSubmatch(line); m != nil && known(strings.ReplaceAll(m[1], "-", "_")+registry.ControllerSuffix) {
-				return "", true
-			}
-			return "", false
-		},
-		render: func(specifiers []string) []string {
-			var imports, registrations []string
-			for _, s := range specifiers {
-				identifier, isController := registry.Identifier(s)
-				switch {
-				case path.Base(s) == path.Base(registry.ApplicationFile):
-					imports = append(imports, fmt.Sprintf("import { application } from %q", s))
-				case isController:
-					imports = append(imports, controllerImport(identifier, s))
-					registrations = append(registrations, controllerRegistration(identifier))
-				default:
-					imports = append(imports, fmt.Sprintf("import %q", s))
-				}
-			}
-			return append(imports, registrations...)
-		},
-		// application.js first, so it reads as the thing the rest is registered with.
-		rank: func(file string) int {
-			if path.Base(file) == path.Base(registry.ApplicationFile) {
-				return 0
-			}
-			return 1
-		},
+		line:  func(s string) string { return fmt.Sprintf("import %q", s) },
+		parse: jsImport,
+		rank:  func(string) int { return 0 },
 	}
-}
-
-func controllerImport(identifier, specifier string) string {
-	return fmt.Sprintf("import %s from %q", registry.ClassName(identifier), specifier)
-}
-
-func controllerRegistration(identifier string) string {
-	return fmt.Sprintf("application.register(%q, %s)", identifier, registry.ClassName(identifier))
 }
 
 // specifier returns how the entry refers to a project-relative file.
@@ -171,10 +114,10 @@ func (a *App) updateEntry(e *entry, files []string, known func(string) bool) err
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		if specifier, ok := e.managed(line, known); !ok {
+		if m := e.parse.FindStringSubmatch(line); m != nil && known(path.Base(m[1])) {
+			imports[m[1]] = true
+		} else {
 			other = append(other, line)
-		} else if specifier != "" {
-			imports[specifier] = true
 		}
 	}
 	for _, f := range files {
@@ -197,7 +140,10 @@ func (a *App) updateEntry(e *entry, files []string, known func(string) bool) err
 		return path.Base(sorted[i]) < path.Base(sorted[j])
 	})
 
-	lines := append([]string{e.begin}, e.render(sorted)...)
+	lines := []string{e.begin}
+	for _, s := range sorted {
+		lines = append(lines, e.line(s))
+	}
 	lines = append(lines, other...)
 	lines = append(lines, e.end)
 

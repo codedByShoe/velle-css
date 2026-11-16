@@ -4,14 +4,14 @@
   "category": "Forms",
   "description": "Selects the text of an autofocused field, so typing replaces the value.",
   "files": [
-    "autoselect_controller.js"
+    "autoselect.js"
   ],
   "dependencies": [],
   "classes": [],
   "variables": [],
   "attributes": [
     {
-      "name": "data-controller=\"autoselect\"",
+      "name": "data-autoselect",
       "element": "<input> or <textarea>",
       "description": "Selects the content when the element appears, if it also has autofocus."
     }
