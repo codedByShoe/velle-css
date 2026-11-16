@@ -38,8 +38,8 @@ Your layout only needs two tags:
 Use the bundles from a release through jsDelivr:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.css">
-<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.1.0/dist/velle.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.3.0/dist/velle.css">
+<script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v0.3.0/dist/velle.js"></script>
 ```
 
 Or copy individual files from `dist/css`, `dist/js` and `dist/images`. They are the same files the CLI installs.
