@@ -1,0 +1,16 @@
+.sample {
+  margin-inline: auto;
+  max-inline-size: 44rem;
+  padding: var(--size-6);
+}
+
+.sample nav {
+  border-block-end: var(--border) solid var(--color-border-light);
+  margin-block-end: var(--size-6);
+  padding-block-end: var(--size-4);
+}
+
+.sample h1 {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+}

@@ -1,0 +1,15 @@
+
+<div class="sidebar-menu">
+  <nav class="sidebar-menu__content" aria-label="Documentation">
+    {{ for group in page.Site.Nav }}
+    <div class="sidebar-menu__group">
+      <div class="sidebar-menu__group-label" aria-hidden="true">{{ escape_html group.Title }}</div>
+      <ul class="sidebar-menu__items" aria-label="{{ escape_html group.Title }}">
+        {{ for link in group.Links }}
+        <li><a class="btn sidebar-menu__button" href="{{ safe_url link.Href }}"{{ if link.Href == page.Href }} aria-current="page"{{ end }}>{{ escape_html link.Title }}</a></li>
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+  </nav>
+</div>

@@ -1,0 +1,24 @@
+<div x-data="velleDialog" x-on:velle-enhanced-load.window="refresh">
+    <button type="button" class="btn" aria-haspopup="dialog" aria-controls="@Id" x-on:click="show">
+        @TriggerText
+    </button>
+
+    <dialog id="@Id" class="dialog" aria-labelledby="@TitleId"
+            data-velle-open="@(Open ? "true" : "false")" x-on:click.self="close">
+        <div class="dialog__content flex flex-col gap">
+            <h2 id="@TitleId" class="font-semibold">@Title</h2>
+            @ChildContent
+            <button type="button" class="btn btn--plain" x-on:click="close">Close</button>
+        </div>
+    </dialog>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+    [Parameter, EditorRequired] public string Title { get; set; } = null!;
+    [Parameter, EditorRequired] public string TriggerText { get; set; } = null!;
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string TitleId => $"{Id}-title";
+}

@@ -1,0 +1,38 @@
+@page "/datepicker"
+@using System.Globalization
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Datepicker</PageTitle>
+
+<h1>Datepicker</h1>
+<EditForm Model="Input!" FormName="appointment" Enhance OnValidSubmit="Save"
+          class="flex flex-col gap">
+    <DataAnnotationsValidator />
+    <VelleDatepicker Id="appointment-date" Name="Input.Date" Label="Appointment date" Value="@Format(Input!.Date)" />
+    <ValidationMessage For="() => Input!.Date" />
+    <button type="submit" class="btn btn--primary">Save date</button>
+</EditForm>
+
+@if (savedDate is not null)
+{
+    <p role="status">Saved date: @Format(savedDate)</p>
+}
+
+@code {
+    [SupplyParameterFromForm(FormName = "appointment")]
+    private AppointmentInput? Input { get; set; }
+
+    private DateOnly? savedDate;
+
+    protected override void OnInitialized() => Input ??= new() { Date = new DateOnly(2030, 4, 12) };
+
+    private void Save() => savedDate = Input!.Date;
+
+    private static string? Format(DateOnly? date) => date?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private sealed class AppointmentInput
+    {
+        [Required(ErrorMessage = "Choose an appointment date.")]
+        public DateOnly? Date { get; set; }
+    }
+}

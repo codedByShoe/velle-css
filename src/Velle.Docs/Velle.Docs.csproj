@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../VelleVersion.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Scriban" Version="7.6.1" />
+    <Compile Include="../Shared/Registry.cs" Link="Registry.cs" />
+    <EmbeddedResource Include="../../registry/**/*"
+                      LogicalName="registry/%(RecursiveDir)%(Filename)%(Extension)"
+                      WithCulture="false" />
+    <EmbeddedResource Include="Assets/**/*"
+                      LogicalName="docs/assets/%(RecursiveDir)%(Filename)%(Extension)"
+                      WithCulture="false" />
+    <EmbeddedResource Include="Templates/*.html;Templates/*.md"
+                      LogicalName="docs/templates/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,77 @@
+name: Release Velle.Tool
+
+on:
+  push:
+    tags: ['v[0-9]*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Check the tag against the package version
+        shell: bash
+        run: |
+          version=$(dotnet msbuild src/Velle.Tool/Velle.Tool.csproj -nologo -p:Configuration=Release -getProperty:PackageVersion)
+          if [[ "$GITHUB_REF_NAME" != "v$version" ]]; then
+            printf 'Expected tag v%s for Velle.Tool, got %s\n' "$version" "$GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run test:docs
+      - run: npm run test:tool
+      - run: npx playwright install --with-deps chromium --only-shell
+      - run: npm run test:blazor
+      - name: Build and check the release bundles
+        shell: bash
+        run: |
+          dotnet run --project src/Velle.Docs -c Release
+          changes=$(git status --porcelain --untracked-files=all -- dist/)
+          if [[ -n "$changes" ]]; then
+            printf 'Regenerate and commit dist/ before tagging a release.\n%s\n' "$changes" >&2
+            exit 1
+          fi
+      - run: dotnet pack src/Velle.Tool -c Release -o bin/nuget
+      - uses: actions/upload-artifact@v4
+        with:
+          name: velle-tool
+          path: bin/nuget/Velle.Tool.*.nupkg
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: velle-tool
+          path: bin/nuget
+      - name: Sign in to NuGet.org
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Publish Velle.Tool to NuGet.org
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: dotnet nuget push 'bin/nuget/Velle.Tool.*.nupkg' --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json

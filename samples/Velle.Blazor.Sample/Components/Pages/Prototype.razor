@@ -1,0 +1,53 @@
+@page "/prototype"
+@using System.ComponentModel.DataAnnotations
+
+<PageTitle>Dialog and Tabs</PageTitle>
+
+<h1>Dialog and Tabs</h1>
+<VelleTabs Id="prototype-tabs" Label="Prototype sections" Items="Tabs" />
+
+@code {
+    [SupplyParameterFromForm(FormName = "profile")]
+    private ProfileInput? Input { get; set; }
+
+    private bool dialogOpen;
+    private string? savedName;
+
+    protected override void OnInitialized() => Input ??= new();
+
+    private IReadOnlyList<VelleTab> Tabs =>
+    [
+        new("Overview", @<p>Use the Settings tab to update your display name.</p>),
+        new("Settings", Settings)
+    ];
+
+    private RenderFragment Settings => @<div class="flex flex-col gap">
+        <VelleDialog Id="profile-dialog" Title="Edit profile" TriggerText="Edit profile" Open="dialogOpen">
+            <EditForm Model="Input!" FormName="profile" Enhance
+                      OnInvalidSubmit="KeepDialogOpen" OnValidSubmit="SaveProfile"
+                      class="flex flex-col gap">
+                <DataAnnotationsValidator />
+                <label for="display-name">Display name</label>
+                <input id="display-name" class="input" name="Input.Name" value="@Input!.Name" />
+                <ValidationMessage For="() => Input!.Name" />
+                <button type="submit" class="btn btn--primary">Save</button>
+            </EditForm>
+        </VelleDialog>
+
+        @if (savedName is not null)
+        {
+            <p role="status">Saved display name: @savedName</p>
+        }
+    </div>;
+
+    private void KeepDialogOpen() => dialogOpen = true;
+
+    private void SaveProfile() => savedName = Input!.Name;
+
+    private sealed class ProfileInput
+    {
+        [Required(ErrorMessage = "Enter a display name.")]
+        [StringLength(80, ErrorMessage = "Use 80 characters or fewer.")]
+        public string? Name { get; set; }
+    }
+}

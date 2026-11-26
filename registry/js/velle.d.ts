@@ -1,4 +1,4 @@
-// Types for velle.js. Keep the exports in step with it; a Go test checks that they match.
+// Types for velle.js. The registry tests check that these declarations match the runtime exports.
 
 type Ctor<E extends Element = Element> = abstract new (...args: any[]) => E
 type Targets = Record<string, Ctor>
