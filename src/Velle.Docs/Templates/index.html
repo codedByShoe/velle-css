@@ -13,21 +13,18 @@
 
   <h3 id="install-cli">With the .NET tool</h3>
   <p>
-    From a Velle checkout with the .NET 10 SDK, pack the tool into a local NuGet feed.
+    Use the .NET 10 SDK to install the tool from NuGet.org. Run these commands
+    from your project directory and create a tool manifest if your repository needs one.
+    <a class="text-link" href="https://www.nuget.org/packages/Velle.Tool/{{ escape_html page.Site.Version }}">Velle.Tool on NuGet.org</a>
   </p>
-  <pre class="docs-pre"><code>dotnet pack src/Velle.Tool -c Release -o bin/nuget</code></pre>
-  <p>
-    Run the next commands from your project directory. Create a tool manifest
-    with <code>dotnet new tool-manifest</code> if your repository needs one.
-    Replace the example feed path with the absolute path to the feed you built.
-  </p>
-  <pre class="docs-pre"><code>dotnet tool install Velle.Tool --version {{ escape_html page.Site.Version }} --source /path/to/velle-css/bin/nuget
+  <pre class="docs-pre"><code>dotnet new tool-manifest  # if needed
+dotnet tool install Velle.Tool --version {{ escape_html page.Site.Version }}
 dotnet tool run velle init
 dotnet tool run velle add button dialog
 dotnet tool run velle list</code></pre>
   <p>
-    Restore a committed tool manifest with
-    <code>dotnet tool restore --add-source /path/to/velle-css/bin/nuget</code>.
+    Commit the tool manifest so teammates can install the pinned version with
+    <code>dotnet tool restore</code>.
   </p>
   <p>
     Only want the JavaScript? Run <code>dotnet tool run velle init --js</code> and see

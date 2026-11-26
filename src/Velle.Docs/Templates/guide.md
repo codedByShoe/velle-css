@@ -4,22 +4,19 @@ velle-css is a set of plain CSS components with design tokens and utility classe
 
 ## Install
 
-From a Velle checkout with the .NET 10 SDK, pack the tool into a local NuGet feed.
+Use the .NET 10 SDK to install the tool from NuGet.org. Run these commands from your project directory and create a tool manifest if your repository needs one. [Velle.Tool on NuGet.org](https://www.nuget.org/packages/Velle.Tool/{{ version }})
 
 ```sh
-dotnet pack src/Velle.Tool -c Release -o bin/nuget
-```
-
-In the consuming project, create a tool manifest with `dotnet new tool-manifest` if needed. Install from the absolute path to the feed you built.
-
-```sh
-dotnet tool install Velle.Tool --version {{ version }} --source /path/to/velle-css/bin/nuget
+dotnet new tool-manifest  # if needed
+dotnet tool install Velle.Tool --version {{ version }}
 dotnet tool run velle init
 dotnet tool run velle add button dialog
 dotnet tool run velle list
 ```
 
-Restore a committed tool manifest with `dotnet tool restore --add-source /path/to/velle-css/bin/nuget`. A new Blazor or ASP.NET Core project uses `wwwroot/velle` for its assets. Other projects use `assets/css/velle`, `assets/js/velle`, and `assets/images/velle`. Use the tags printed by the tool in your layout. A Blazor project uses these URLs.
+Commit the tool manifest so teammates can install the pinned version with `dotnet tool restore`.
+
+A new Blazor or ASP.NET Core project uses `wwwroot/velle` for its assets. Other projects use `assets/css/velle`, `assets/js/velle`, and `assets/images/velle`. Use the tags printed by the tool in your layout. A Blazor project uses these URLs.
 
 ```html
 <link rel="stylesheet" href="/velle/css/main.css">

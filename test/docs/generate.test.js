@@ -80,11 +80,15 @@ test("regeneration removes retired htmx files and documentation links", () => {
   }
 })
 
-test("the generated installation instructions use the versioned .NET tool", () => {
+test("the generated installation instructions use the versioned NuGet package", () => {
   const version = source("src/VelleVersion.props").match(/<Version>([^<]+)<\/Version>/)[1]
-  const install = `dotnet tool install Velle.Tool --version ${version} --source /path/to/velle-css/bin/nuget`
+  const install = `dotnet tool install Velle.Tool --version ${version}`
+  const packageUrl = `https://www.nuget.org/packages/Velle.Tool/${version}`
   for (const path of ["index.html", "guide.md", "llms-full.txt"]) {
-    assert.ok(docs(path).includes(install), path)
+    const content = docs(path)
+    assert.ok(content.includes(install + "\n"), path)
+    assert.ok(content.includes(packageUrl), path)
+    assert.doesNotMatch(content, /bin\/nuget/, path)
   }
   assert.ok(docs("button.html").includes('value="dotnet tool run velle add button"'))
   assert.ok(docs("button.md").includes("`dotnet tool run velle add button`"))

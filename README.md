@@ -33,22 +33,16 @@ Run the browser checks with `npm ci`, `npx playwright install chromium --only-sh
 
 ## Install the .NET tool
 
-From this checkout, build the `Velle.Tool` package for a local NuGet feed.
+Use the .NET 10 SDK to install the tool from NuGet.org. Run these commands from your project directory and create a tool manifest if your repository needs one. [Velle.Tool on NuGet.org](https://www.nuget.org/packages/Velle.Tool/0.3.1)
 
 ```sh
-dotnet pack src/Velle.Tool -c Release -o bin/nuget
-```
-
-From the consuming project directory, create a tool manifest if the repository doesn't already have one. Use the absolute path to the feed you just built.
-
-```sh
-dotnet new tool-manifest
-dotnet tool install Velle.Tool --version 0.3.1 --source /path/to/velle-css/bin/nuget
+dotnet new tool-manifest  # if needed
+dotnet tool install Velle.Tool --version 0.3.1
 dotnet tool run velle init
 dotnet tool run velle add button dialog
 ```
 
-Commit the tool manifest so teammates can restore it with `dotnet tool restore --add-source /path/to/velle-css/bin/nuget`. If you use the checkout's local .NET 10 SDK, put its `.dotnet` directory on your PATH before running the tool in another repository.
+Commit the tool manifest so teammates can install the pinned version with `dotnet tool restore`.
 
 ### CLI overview
 
