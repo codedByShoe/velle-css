@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit --allowJs --checkJs --strict --target es2022 --module esnext --moduleResolution bundler --lib es2022,dom,dom.iterable dist/js/tabs.js test/types/check.js",
     "test:blazor": "playwright test --config test/blazor/playwright.config.js",
     "test:tool": "node --test test/tool/*.test.js",
-    "test:docs": "node --test test/docs/*.test.js"
+    "test:docs": "node --test test/docs/*.test.js",
+    "docs:dev": "dotnet run --project src/Velle.Docs -- --serve"
   },
   "devDependencies": {
     "@playwright/test": "1.65.1",

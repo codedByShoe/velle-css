@@ -1,0 +1,168 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="@CombinedClass"
+     x-data="velleDualRange"
+     x-on:velle-enhanced-load.window="refresh"
+     data-velle-dual-range-precision="@Precision.ToString(CultureInfo.InvariantCulture)"
+     @attributes="RootAttributes">
+    <input type="range"
+           id="@EffectiveMinId"
+           name="@MinName"
+           min="@FormatNumber(Min)"
+           max="@FormatNumber(Max)"
+           step="@FormatNumber(Step)"
+           value="@FormatNumber(EffectiveMinValue)"
+           disabled="@Disabled"
+           aria-label="@MinLabel"
+           aria-invalid="@(IsMinInvalid ? "true" : null)"
+           data-velle-dual-range-min
+           x-on:input="updateMin"
+           x-on:focus="updateMin"
+           x-on:mousedown="updateMin"
+           x-on:touchstart="updateMin" />
+    <input type="range"
+           id="@EffectiveMaxId"
+           name="@MaxName"
+           min="@FormatNumber(Min)"
+           max="@FormatNumber(Max)"
+           step="@FormatNumber(Step)"
+           value="@FormatNumber(EffectiveMaxValue)"
+           disabled="@Disabled"
+           aria-label="@MaxLabel"
+           aria-invalid="@(IsMaxInvalid ? "true" : null)"
+           data-velle-dual-range-max
+           x-on:input="updateMax"
+           x-on:focus="updateMax"
+           x-on:mousedown="updateMax"
+           x-on:touchstart="updateMax" />
+</div>
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted for the lower bound.
+    /// </summary>
+    [Parameter, EditorRequired] public string MinName { get; set; } = null!;
+
+    /// <summary>
+    /// Form field name submitted for the upper bound.
+    /// </summary>
+    [Parameter, EditorRequired] public string MaxName { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the lower-bound range input. Derived from <see cref="MinName"/> when omitted.
+    /// </summary>
+    [Parameter] public string? MinId { get; set; }
+
+    /// <summary>
+    /// Optional DOM identifier for the upper-bound range input. Derived from <see cref="MaxName"/> when omitted.
+    /// </summary>
+    [Parameter] public string? MaxId { get; set; }
+
+    /// <summary>
+    /// Minimum allowed value for the slider range (defaults to <c>0</c>).
+    /// </summary>
+    [Parameter] public double Min { get; set; }
+
+    /// <summary>
+    /// Maximum allowed value for the slider range (defaults to <c>100</c>).
+    /// </summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// Step increment between selectable values (defaults to <c>1</c>).
+    /// </summary>
+    [Parameter] public double Step { get; set; } = 1;
+
+    /// <summary>
+    /// Explicit initial value for the lower thumb. Takes precedence over <see cref="MinFor"/>.
+    /// </summary>
+    [Parameter] public double? MinValue { get; set; }
+
+    /// <summary>
+    /// Explicit initial value for the upper thumb. Takes precedence over <see cref="MaxFor"/>.
+    /// </summary>
+    [Parameter] public double? MaxValue { get; set; }
+
+    /// <summary>
+    /// Optional model expression for the lower-bound value and <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? MinFor { get; set; }
+
+    /// <summary>
+    /// Optional model expression for the upper-bound value and <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? MaxFor { get; set; }
+
+    /// <summary>
+    /// Accessible <c>aria-label</c> for the lower-bound slider (defaults to <c>"Minimum"</c>).
+    /// </summary>
+    [Parameter] public string MinLabel { get; set; } = "Minimum";
+
+    /// <summary>
+    /// Accessible <c>aria-label</c> for the upper-bound slider (defaults to <c>"Maximum"</c>).
+    /// </summary>
+    [Parameter] public string MaxLabel { get; set; } = "Maximum";
+
+    /// <summary>
+    /// Decimal precision used when calculating the split midpoint in CSS (defaults to <c>3</c>).
+    /// </summary>
+    [Parameter] public int Precision { get; set; } = 3;
+
+    /// <summary>
+    /// When <see langword="true"/>, disables both range inputs.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.dual-range</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.dual-range</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveMinId => string.IsNullOrWhiteSpace(MinId) ? AttributeUtilities.ToElementId(MinName) : MinId;
+
+    private string EffectiveMaxId => string.IsNullOrWhiteSpace(MaxId) ? AttributeUtilities.ToElementId(MaxName) : MaxId;
+
+    private FieldIdentifier? ResolvedMinField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, MinFor, MinName);
+
+    private FieldIdentifier? ResolvedMaxField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, MaxFor, MaxName);
+
+    private bool IsMinInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedMinField);
+
+    private bool IsMaxInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedMaxField);
+
+    private double EffectiveMinValue => MinValue ?? TryToDouble(FormFieldUtilities.EvaluateExpression(MinFor)) ?? Min;
+
+    private double EffectiveMaxValue => MaxValue ?? TryToDouble(FormFieldUtilities.EvaluateExpression(MaxFor)) ?? Max;
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("dual-range", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "x-on:velle-enhanced-load.window", "data-velle-dual-range-precision");
+
+    private static string FormatNumber(double value) => value.ToString(CultureInfo.InvariantCulture);
+
+    private static double? TryToDouble(object? value) => value switch
+    {
+        null => null,
+        double d => d,
+        float f => f,
+        decimal m => (double)m,
+        int i => i,
+        long l => l,
+        string s when double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) => parsed,
+        _ => null,
+    };
+}

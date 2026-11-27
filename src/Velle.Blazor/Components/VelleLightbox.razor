@@ -1,0 +1,64 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" x-data="velleLightbox" x-on:click="show" @attributes="RootAttributes">
+    @ChildContent
+
+    <dialog class="lightbox" aria-label="@Label" x-on:close="reset" x-on:click.self="close">
+        <img alt="" class="lightbox__image" data-velle-lightbox-image />
+
+        <button type="button" class="btn btn--icon lightbox__close" x-on:click="close">
+            <span class="icon icon--x" aria-hidden="true"></span>
+            <span class="sr-only">@CloseLabel</span>
+        </button>
+
+        @if (ShowDownload)
+        {
+            <a href="#" class="btn btn--icon lightbox__download" download data-velle-lightbox-download>
+                <span class="icon icon--download" aria-hidden="true"></span>
+                <span class="sr-only">@DownloadLabel</span>
+            </a>
+        }
+    </dialog>
+</div>
+
+@code {
+    /// <summary>
+    /// Accessible label for the full-screen lightbox dialog.
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Image viewer (press Escape to close)";
+
+    /// <summary>
+    /// Screen-reader label for the close button.
+    /// </summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close image viewer";
+
+    /// <summary>
+    /// Screen-reader label for the download button.
+    /// </summary>
+    [Parameter] public string DownloadLabel { get; set; } = "Download image";
+
+    /// <summary>
+    /// Controls whether the download link button is displayed (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool ShowDownload { get; set; } = true;
+
+    /// <summary>
+    /// Gallery markup containing <see cref="VelleLightboxLink"/> triggers.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

@@ -1,12 +1,16 @@
 @inherits LayoutComponentBase
 
 <div class="sample">
-    <nav aria-label="Sample pages" class="flex gap">
+    <nav aria-label="Sample pages" class="flex items-center gap">
         <a href="./">Home</a>
+        <a href="components">Components</a>
         <a href="prototype">Dialog and Tabs</a>
         <a href="datepicker">Datepicker</a>
+        <span class="mis-auto"><VelleColorScheme Id="sample-theme" /></span>
     </nav>
     <main class="flex flex-col gap">
         @Body
     </main>
+    <VelleConfirm />
+    <VelleTimezoneCookie />
 </div>

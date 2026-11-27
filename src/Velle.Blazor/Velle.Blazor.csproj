@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <Version>0.1.0-alpha.1</Version>
+    <Version>$(VelleBlazorVersion)</Version>
     <Description>Blazor Static SSR component library powered by Velle CSS and Alpine.js CSP.</Description>
     <PackageTags>blazor;ssr;css;components;alpinejs;razor-components</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -1,81 +1,123 @@
-
 <header class="docs-intro">
-  <h1>JavaScript</h1>
-  <p class="docs-lead">Interactive components use plain data attributes and a runtime of under 400 lines with no dependencies. It works on any HTML: server-rendered pages or markup rendered by a client framework.</p>
+  <p class="docs-eyebrow">Architecture · <code>Velle.Blazor</code></p>
+  <h1>Alpine &amp; Interop</h1>
+  <p class="docs-lead">
+    <code>Velle.Blazor</code> pairs Blazor Static SSR with a locally bundled <strong>Alpine.js CSP</strong> build
+    loaded automatically via Blazor's JavaScript initializer — zero <code>unsafe-eval</code>, zero manual script tags,
+    and clean synchronization across enhanced navigation and form posts.
+  </p>
 </header>
 
-<section class="docs-section" aria-labelledby="loading">
-  <h2 id="loading">Loading</h2>
-  <p>Every behavior is an ES module that imports <code>./velle.js</code> and starts working as soon as it loads. The CLI imports the behaviors you install in <code>main.js</code>, so one <code>&lt;script type="module" src="/assets/js/velle/main.js"&gt;</code> is enough. To include them yourself:</p>
-  <pre class="docs-pre"><code>&lt;script type="module" src="/assets/js/velle/dialog.js"&gt;&lt;/script&gt;
-&lt;script type="module" src="/assets/js/velle/tabs.js"&gt;&lt;/script&gt;</code></pre>
-  <p>Or load the bundle, which contains the runtime and every behavior:</p>
-  <pre class="docs-pre"><code>&lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{ escape_html page.Site.Version }}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
-  <p>The bundle leaves out the <a class="text-link" href="index.html#adapters">adapters</a>. To use one with the bundle, load it from <code>dist/adapters/</code>, next to <code>dist/velle.js</code>; those copies import <code>../velle.js</code> and share its runtime.</p>
-  <p>Elements are set up when the page loads and whenever matching markup is added later. A <code>MutationObserver</code> watches the document, so nothing needs to be re-initialized after content changes.</p>
+<section class="docs-section" aria-labelledby="initializer">
+  <h2 id="initializer">Automatic JS initializer</h2>
+  <p>
+    ASP.NET Core Blazor automatically discovers and runs
+    <code>_content/Velle.Blazor/Velle.Blazor.lib.module.js</code> whenever <code>blazor.web.js</code> starts.
+    In <code>afterWebStarted(blazor)</code>, Velle:
+  </p>
+  <ul class="docs-list">
+    <li>Uses an existing <code>window.Alpine</code> if your app loaded Alpine itself, or exposes Velle's bundled Alpine.js CSP build on <code>window.Alpine</code>.</li>
+    <li>Registers the <code>velleDialog</code>, <code>velleTabs</code>, and <code>velleDatepicker</code> Alpine data components.</li>
+    <li>Dispatches <code>velle:before-start</code> on <code>window</code> so your app can register custom Alpine components or stores before startup.</li>
+    <li>Starts Alpine once (guarded against double initialization) and wires Blazor's <code>enhancedload</code> event to dispatch <code>velle-enhanced-load</code>.</li>
+  </ul>
 </section>
 
-<section class="docs-section" aria-labelledby="headless">
-  <h2 id="headless">Using the JavaScript without the CSS</h2>
-  <p>The behaviors work on any markup and don't need velle's stylesheets. To keep styles out of a project entirely:</p>
-  <pre class="docs-pre"><code>dotnet tool run velle init --js           # writes velle.json and main.js, and no styles
+<section class="docs-section" aria-labelledby="enhanced-navigation">
+  <h2 id="enhanced-navigation">Enhanced navigation &amp; form sync</h2>
+  <p>
+    When a user navigates via an enhanced link or submits an <code>EditForm Enhance</code>, Blazor patches the DOM
+    in place without reloading the page. Alpine components rendered by Velle listen to
+    <code>x-on:velle-enhanced-load.window="refresh"</code> so client widgets stay aligned with the server:
+  </p>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Component</th><th>Sync behavior on <code>velle-enhanced-load</code></th></tr></thead>
+      <tbody>
+        <tr><td><a class="text-link" href="velle-dialog.html"><code>VelleDialog</code></a></td><td>Reads <code>data-velle-open</code> from the server response, opens or closes the native modal safely, and clears <code>data-velle-open</code> on native <code>close</code> events (Escape, backdrop click, or <code>&lt;form method="dialog"&gt;</code>).</td></tr>
+        <tr><td><a class="text-link" href="velle-tabs.html"><code>VelleTabs</code></a></td><td>Preserves client-side tab selection while still honoring updated server <code>data-velle-selected</code> values and keeping ARIA attributes consistent.</td></tr>
+        <tr><td><a class="text-link" href="velle-datepicker.html"><code>VelleDatepicker</code></a></td><td>Rebuilds the lazy-loaded Flatpickr instance from the server-rendered <code>defaultValue</code>, syncs <code>aria-invalid</code>/validation classes onto the visible display input, and destroys the calendar cleanly when navigating away.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="extending-alpine">
+  <h2 id="extending-alpine">Extending Alpine.js</h2>
+  <p>
+    Listen for <code>velle:before-start</code> to register your own CSP-safe Alpine components or stores on the
+    same Alpine instance before <code>Alpine.start()</code> runs:
+  </p>
+  <div class="docs-code" data-input-copyable>
+    <div class="docs-code__header">
+      <span class="docs-code__lang">js</span>
+      <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <textarea hidden data-input-copyable-target="input">window.addEventListener("velle:before-start", ({ detail: { Alpine } }) => {
+  Alpine.data("myCounter", () => ({
+    count: 0,
+    increment() {
+      this.count++
+    },
+  }))
+})</textarea>
+    <pre><code>window.addEventListener("velle:before-start", ({ detail: { Alpine } }) =&gt; {
+  Alpine.data("myCounter", () =&gt; ({
+    count: 0,
+    increment() {
+      this.count++
+    },
+  }))
+})</code></pre>
+  </div>
+  <p class="text-sm text-subtle">
+    Because Velle ships the Alpine.js CSP build, define methods and computed getters inside <code>Alpine.data(...)</code>
+    and bind them by name (e.g. <code>x-on:click="increment"</code>, <code>x-text="count"</code>) instead of inline JS expressions.
+  </p>
+</section>
+
+<section class="docs-section" aria-labelledby="asset-layout">
+  <h2 id="asset-layout">Static web asset paths</h2>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Asset path</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>_content/Velle.Blazor/Velle.Blazor.lib.module.js</code></td><td>Blazor JS initializer (loaded automatically by <code>blazor.web.js</code>).</td></tr>
+        <tr><td><code>_content/Velle.Blazor/css/velle.css</code></td><td>Core reset, design tokens, component CSS, and utilities.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/css/datepicker.css</code></td><td>Velle theme overrides for Flatpickr.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/js/datepicker.js</code></td><td>Alpine datepicker behavior module (lazy-loads Flatpickr).</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/alpine/alpine-csp.min.js</code></td><td>Bundled Alpine.js CSP build.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/flatpickr/flatpickr.min.css</code></td><td>Bundled Flatpickr base stylesheet.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/flatpickr/flatpickr.min.js</code></td><td>Bundled Flatpickr script (lazy-loaded on mount).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="legacy-runtime">
+  <h2 id="legacy-runtime">Legacy <code>velle.js</code> runtime</h2>
+  <p class="text-subtle">
+    The reference below applies to the legacy framework-agnostic <code>Velle.Tool</code> CLI and <code>dist/velle.js</code> bundle.
+    New Blazor apps should use <code>Velle.Blazor</code> and Alpine.js CSP above.
+  </p>
+  <details class="docs-details">
+    <summary>Show legacy <code>velle.js</code> runtime &amp; custom controller documentation</summary>
+    <div class="docs-details__body">
+      <h3 id="loading">Loading</h3>
+      <p>Every legacy behavior is an ES module that imports <code>./velle.js</code>:</p>
+      <pre class="docs-pre" data-lang="html"><code>&lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{ escape_html page.Site.Version }}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
+
+      <h3 id="headless">Using the JavaScript without the CSS</h3>
+      <pre class="docs-pre" data-lang="sh"><code>dotnet tool run velle init --js           # writes velle.json and main.js, and no styles
 dotnet tool run velle add tabs menu       # copies only their JavaScript
 dotnet tool run velle new controller cart # or start from the bare runtime</code></pre>
-  <p>Without the CLI, <code>dist/js/velle.js</code> is the runtime alone and <code>dist/velle.js</code> is the runtime with every behavior. Neither loads any CSS.</p>
-  <p>Styling is then yours. Behaviors expose their state through ARIA and standard attributes such as <code>aria-selected</code>, <code>hidden</code> and <code>open</code>. A few also use class names or need a particular layout: each of those component pages says what it expects under Notes, and <code>dotnet tool run velle add</code> prints the same note. Treat the data attributes on each component page as the behavior's public API.</p>
-</section>
 
-<section class="docs-section" aria-labelledby="attributes">
-  <h2 id="attributes">Attributes</h2>
-  <p>Each behavior has a name, such as <code>tabs</code> or <code>check-all</code>, and reads these attributes:</p>
-  <div class="overflow-i-auto">
-    <table class="table docs-table">
-      <thead><tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr></thead>
-      <tbody>
-        <tr><td><code>data-NAME</code></td><td>Marks the root element. Each root gets its own controller instance.</td><td><code>&lt;div data-tabs&gt;</code></td></tr>
-        <tr><td><code>data-NAME-target</code></td><td>Names an element inside the root that the behavior uses. Several names can be separated by spaces.</td><td><code>data-tabs-target="button"</code></td></tr>
-        <tr><td><code>data-NAME-action</code></td><td>Connects events to the behavior's actions. Can sit on the root or anything inside it.</td><td><code>data-tabs-action="select"</code></td></tr>
-        <tr><td><code>data-NAME-OPTION</code></td><td>An option read from the root.</td><td><code>data-tabs-index="2"</code></td></tr>
-        <tr><td><code>data-NAME-PARAM-param</code></td><td>A value passed to an action as <code>event.params.PARAM</code>.</td><td><code>data-form-submitter-param="save"</code></td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>Roots can be nested. A target or action always belongs to the closest root with the same name.</p>
-</section>
-
-<section class="docs-section" aria-labelledby="actions">
-  <h2 id="actions">Action syntax</h2>
-  <pre class="docs-pre"><code>[event[.keyfilter][@document|@window]-&gt;]action[:prevent][:stop][:self]</code></pre>
-  <div class="overflow-i-auto">
-    <table class="table docs-table">
-      <thead><tr><th>Part</th><th>Meaning</th></tr></thead>
-      <tbody>
-        <tr><td><code>event</code></td><td>Any DOM event name, including custom events. When omitted, the element's default event is used: <code>click</code> for buttons and links, <code>input</code> for inputs and textareas (<code>click</code> for submit inputs), <code>change</code> for selects, <code>submit</code> for forms and <code>toggle</code> for <code>&lt;details&gt;</code>.</td></tr>
-        <tr><td><code>.keyfilter</code></td><td>For <code>keydown</code>, <code>keyup</code> and <code>keypress</code>: only run for this key. Keys: any single character, such as <code>k</code> or <code>7</code>, or <code>enter</code>, <code>tab</code>, <code>esc</code>, <code>space</code>, <code>up</code>, <code>down</code>, <code>left</code>, <code>right</code>, <code>home</code>, <code>end</code>, <code>page_up</code>, <code>page_down</code>. Prefix with <code>ctrl+</code>, <code>meta+</code>, <code>alt+</code> or <code>shift+</code>; modifiers must match exactly.</td></tr>
-        <tr><td><code>@document</code>, <code>@window</code></td><td>Listen on the document or window instead of the element, e.g. for keyboard shortcuts and outside clicks.</td></tr>
-        <tr><td><code>:prevent</code></td><td>Calls <code>event.preventDefault()</code> before the action.</td></tr>
-        <tr><td><code>:stop</code></td><td>Calls <code>event.stopPropagation()</code> before the action.</td></tr>
-        <tr><td><code>:self</code></td><td>Only runs when the event's target is the element itself, not a descendant.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>Separate several actions with spaces:</p>
-  <pre class="docs-pre"><code>&lt;textarea data-form-action="keydown.ctrl+enter-&gt;submit keydown.meta+enter-&gt;submit"&gt;&lt;/textarea&gt;</code></pre>
-</section>
-
-<section class="docs-section" aria-labelledby="events">
-  <h2 id="events">Events</h2>
-  <p>Behaviors announce changes with bubbling <code>CustomEvent</code>s named <code>velle:NAME:EVENT</code>, dispatched from the root element. Each component page lists its events.</p>
-  <pre class="docs-pre"><code>document.addEventListener("velle:tabs:change", event =&gt; {
-  console.log("Selected tab", event.detail.index)
-})</code></pre>
-</section>
-
-<section class="docs-section" aria-labelledby="controllers">
-  <h2 id="controllers">Writing your own controllers</h2>
-  <p>Use <code>controller({ targets, values })</code> as the base class for behavior specific to your app. <code>dotnet tool run velle new controller cart</code> creates a file to start from and imports it in <code>main.js</code>.</p>
-  <p>This example has a counter and a cart badge that follows it:</p>
-  <pre class="docs-pre"><code>&lt;div data-counter&gt;
+      <h3 id="controllers">Writing your own controllers</h3>
+      <p>Use <code>controller({ targets, values })</code> as the base class for legacy runtime controllers:</p>
+      <pre class="docs-pre" data-lang="html"><code>&lt;div data-counter&gt;
   &lt;output data-counter-target="output"&gt;&lt;/output&gt;
   &lt;button data-counter-action="increment"&gt;Add to cart&lt;/button&gt;
 &lt;/div&gt;
@@ -84,7 +126,7 @@ dotnet tool run velle new controller cart # or start from the bare runtime</code
   &lt;span class="badge" data-cart-target="badge"&gt;&lt;/span&gt;
   &lt;span data-cart-target="total"&gt;&lt;/span&gt;
 &lt;/nav&gt;</code></pre>
-  <pre class="docs-pre"><code>// @ts-check
+      <pre class="docs-pre" data-lang="js"><code>// @ts-check
 import { define, controller } from "./velle.js"
 
 define("counter", class extends controller({
@@ -136,98 +178,6 @@ define("cart", class extends controller({
     }
   }
 })</code></pre>
-  <p><strong>Targets.</strong> <code>targets</code> maps each name to the element class you expect. <code>this.$.total</code> is the first match or <code>null</code>, <code>this.$$.total</code> is an array, and an undeclared name is a type error.</p>
-  <p><strong>Values.</strong> <code>values</code> maps each name to its default, and the default's type decides how the attribute is parsed: numbers, strings, booleans (present means true, <code>"false"</code> means false), or JSON for arrays and objects. <code>this.count</code> reads <code>data-cart-count</code> and assigning to it writes the attribute; <code>showMonths</code> maps to <code>data-NAME-show-months</code>. Names the controller already uses, such as <code>data</code>, <code>element</code>, <code>target</code> and <code>action</code>, throw an error.</p>
-  <p><strong>Callbacks.</strong> <code>countChanged(value, oldValue)</code> runs after the attribute changes, whoever changed it. It runs asynchronously and never during <code>connect()</code>, so call it from <code>connect()</code> to render the initial state.</p>
-  <p><strong>Styling.</strong> State lives in attributes, so CSS can read it directly:</p>
-  <pre class="docs-pre"><code>[data-cart-count="0"] .badge { display: none }</code></pre>
-  <p><strong>Cleanup.</strong> <code>this.on(target, type, listener, options)</code> adds a listener that is removed when the controller disconnects. <code>this.signal</code> aborts at the same moment; pass it to <code>fetch(url, { signal: this.signal })</code> or anything else that accepts one.</p>
-  <p><strong>Talking to other controllers.</strong> Actions accept any event name, so one controller can listen for another's <code>dispatch()</code> with <code>data-cart-action="velle:counter:change@window-&gt;refresh"</code>.</p>
-  <p><strong>Reaching a controller from outside.</strong> <code>controllerFor(element, name)</code> returns the connected instance or <code>null</code>, for code outside the controller. Its result is a plain <code>Controller</code> to the type checker, so annotate it to use your own properties:</p>
-  <pre class="docs-pre"><code>import { controllerFor } from "./velle.js"
-
-/** @type {any} */
-const cart = controllerFor(document.querySelector("[data-cart]"), "cart")
-if (cart) cart.count = 0</code></pre>
-  <p><strong>Saved copies of the page.</strong> A page snapshot includes any markup your controllers have added. If <code>connect()</code> builds markup that it would build again on the restored copy, define <code>beforeSnapshot()</code> to remove it and return a function that puts it back:</p>
-  <pre class="docs-pre"><code>beforeSnapshot() {
-  const widget = this.$.widget
-  widget?.remove()
-  return () =&gt; { if (widget) this.element.append(widget) }
-}</code></pre>
-  <p><strong>Several controllers on one element.</strong> Each name gets its own instance, and an action goes to the controller its attribute names:</p>
-  <pre class="docs-pre"><code>&lt;form data-form data-autosave data-form-action="keydown.ctrl+enter-&gt;submit"&gt;</code></pre>
-  <p><strong>Editor setup.</strong> <code>velle.d.ts</code> sits next to <code>velle.js</code>, and <code>dotnet tool run velle new controller</code> writes this <code>jsconfig.json</code> at the project root unless you already have one. Start a file with <code>// @ts-check</code> to see errors for that file in any editor that uses TypeScript.</p>
-  <pre class="docs-pre"><code>{
-  "compilerOptions": {
-    "checkJs": true,
-    "strict": true,
-    "module": "esnext",
-    "target": "es2022",
-    "moduleResolution": "bundler"
-  }
-}</code></pre>
-</section>
-
-<section class="docs-section" aria-labelledby="custom">
-  <h2 id="custom">Runtime API</h2>
-  <p>The runtime exports what the built-in behaviors use, so your own code can follow the same conventions:</p>
-  <pre class="docs-pre"><code>import { define, Controller } from "./velle.js"
-
-// &lt;div data-counter data-counter-start="5"&gt;
-//   &lt;output data-counter-target="count"&gt;&lt;/output&gt;
-//   &lt;button data-counter-action="increment"&gt;+1&lt;/button&gt;
-// &lt;/div&gt;
-define("counter", class extends Controller {
-  #count = 0
-
-  connect() {
-    this.#count = Number(this.data("start")) || 0
-    this.#render()
-  }
-
-  increment() {
-    this.#count++
-    this.#render()
-    this.dispatch("change", { count: this.#count })
-  }
-
-  #render() {
-    this.target("count").textContent = this.#count
-  }
-})</code></pre>
-  <div class="overflow-i-auto">
-    <table class="table docs-table">
-      <thead><tr><th>Export</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td><code>define(name, Class)</code></td><td>Registers a controller class for <code>data-NAME</code> roots.</td></tr>
-        <tr><td><code>Controller</code></td><td>Base class. Provides <code>this.element</code>, <code>connect()</code>, <code>disconnect()</code>, <code>target(name)</code>, <code>targets(name)</code>, <code>hasTarget(name)</code>, <code>data(key)</code>, <code>hasData(key)</code>, <code>dispatch(type, detail)</code>, <code>$</code>, <code>$$</code>, <code>on(target, type, listener, options)</code> and <code>signal</code>. Define <code>beforeSnapshot()</code> to take part in <code>prepareSnapshot()</code>. Actions are called with the event and the element that declared the action.</td></tr>
-        <tr><td><code>controller({ targets, values })</code></td><td>Builds a <code>Controller</code> subclass with typed targets and values stored in data attributes.</td></tr>
-        <tr><td><code>controllerFor(element, name)</code></td><td>Returns the connected controller instance on an element, or <code>null</code>.</td></tr>
-        <tr><td><code>prepareSnapshot()</code></td><td>Calls <code>beforeSnapshot()</code> on every connected controller and returns a function that undoes what they did. Call it just before saving a copy of the page.</td></tr>
-        <tr><td><code>observe(selector, { connect, disconnect })</code></td><td>Runs callbacks when elements start or stop matching a selector. Use it for behaviors that need no root.</td></tr>
-        <tr><td><code>debounce(fn, wait)</code></td><td>A trailing-edge debounce.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>When you use the bundle, import from it instead: <code>import { define, Controller } from "…/dist/velle.js"</code>.</p>
-</section>
-
-<section class="docs-section" aria-labelledby="migrating">
-  <h2 id="migrating">Migrating from css-zero</h2>
-  <div class="overflow-i-auto">
-    <table class="table docs-table">
-      <thead><tr><th>css-zero (Stimulus)</th><th>velle-css</th></tr></thead>
-      <tbody>
-        <tr><td><code>data-controller="tabs"</code></td><td><code>data-tabs</code></td></tr>
-        <tr><td><code>data-action="click-&gt;tabs#select"</code></td><td><code>data-tabs-action="click-&gt;select"</code></td></tr>
-        <tr><td><code>data-tabs-target="button"</code></td><td><code>data-tabs-target="button"</code> (unchanged)</td></tr>
-        <tr><td><code>data-tabs-index-value="1"</code></td><td><code>data-tabs-index="1"</code></td></tr>
-        <tr><td><code>data-toggle-class-toggle-class="closed"</code></td><td><code>data-toggle-class="closed"</code></td></tr>
-        <tr><td><code>data-interest-for-value="tip"</code></td><td><code>data-interest-for="tip"</code></td></tr>
-        <tr><td><code>data-local-time-target="ago"</code> (inside a <code>local-time</code> controller)</td><td><code>data-local-time="ago"</code> (no root needed)</td></tr>
-        <tr><td><code>data-turbo-confirm</code></td><td><code>data-confirm</code></td></tr>
-      </tbody>
-    </table>
-  </div>
+    </div>
+  </details>
 </section>

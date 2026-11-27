@@ -77,6 +77,17 @@ internal static class AttributeUtilities
         return char.IsAsciiDigit(result[0]) ? $"velle-{result}" : result;
     }
 
+    public static string ToPopoverPlacementClass(VellePopoverPlacement placement) => placement switch
+    {
+        VellePopoverPlacement.BlockEndCenter => "popover--block-end-center",
+        VellePopoverPlacement.BlockEndEnd => "popover--block-end-end",
+        VellePopoverPlacement.BlockStartStart => "popover--block-start-start",
+        VellePopoverPlacement.BlockStartCenter => "popover--block-start-center",
+        VellePopoverPlacement.BlockStartEnd => "popover--block-start-end",
+        VellePopoverPlacement.Unanchored => "popover--unanchored",
+        _ => "popover--block-end-start",
+    };
+
     private static void Append(StringBuilder builder, string? value)
     {
         if (string.IsNullOrWhiteSpace(value))

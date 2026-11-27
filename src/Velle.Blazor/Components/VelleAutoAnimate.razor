@@ -1,0 +1,27 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.auto-animate</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Child elements animated via CSS View Transitions when added, removed, or reordered.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the container element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("auto-animate", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

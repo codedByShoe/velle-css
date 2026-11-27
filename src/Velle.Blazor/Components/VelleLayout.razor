@@ -1,0 +1,110 @@
+@namespace Velle.Blazor
+
+@if (Variant == VelleLayoutVariant.Sidebar)
+{
+    <div class="@CombinedClass"
+         x-data="velleToggleClass"
+         data-velle-toggle-class="closed"
+         @attributes="RootAttributes">
+        @if (Header is not null)
+        {
+            <header id="header" class="@HeaderClass">
+                @Header
+            </header>
+        }
+        @if (Sidebar is not null)
+        {
+            <aside id="sidebar" class="@SidebarClass">
+                @Sidebar
+            </aside>
+        }
+        <main id="main" class="@MainClass">
+            @ChildContent
+        </main>
+    </div>
+}
+else if (Variant == VelleLayoutVariant.Header)
+{
+    <div class="@CombinedClass" @attributes="RootAttributes">
+        @if (Header is not null)
+        {
+            <header id="header" class="@HeaderClass">
+                @Header
+            </header>
+        }
+        <main id="main" class="@MainClass">
+            @ChildContent
+        </main>
+    </div>
+}
+else
+{
+    <div class="@CombinedClass" @attributes="RootAttributes">
+        @ChildContent
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Application shell layout variant (defaults to <see cref="VelleLayoutVariant.Sidebar"/>).
+    /// </summary>
+    [Parameter] public VelleLayoutVariant Variant { get; set; } = VelleLayoutVariant.Sidebar;
+
+    /// <summary>
+    /// When <see langword="true"/> and <see cref="Variant"/> is <see cref="VelleLayoutVariant.Sidebar"/>,
+    /// starts with the sidebar collapsed (<c>closed</c> class).
+    /// </summary>
+    [Parameter] public bool SidebarClosed { get; set; }
+
+    /// <summary>
+    /// Header bar content rendered inside <c>&lt;header id="header"&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>
+    /// Sidebar content rendered inside <c>&lt;aside id="sidebar"&gt;</c> when <see cref="Variant"/> is <see cref="VelleLayoutVariant.Sidebar"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? Sidebar { get; set; }
+
+    /// <summary>
+    /// Main body content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root layout wrapper.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to <c>&lt;header id="header"&gt;</c>.
+    /// </summary>
+    [Parameter] public string? HeaderClass { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to <c>&lt;aside id="sidebar"&gt;</c>.
+    /// </summary>
+    [Parameter] public string? SidebarClass { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to <c>&lt;main id="main"&gt;</c>.
+    /// </summary>
+    [Parameter] public string? MainClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root layout wrapper.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string BaseClass => Variant switch
+    {
+        VelleLayoutVariant.Header => "header-layout",
+        VelleLayoutVariant.Centered => "centered-layout",
+        _ => SidebarClosed ? "sidebar-layout closed" : "sidebar-layout",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(BaseClass, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "data-velle-toggle-class");
+}

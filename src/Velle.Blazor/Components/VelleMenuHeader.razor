@@ -1,0 +1,25 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">@ChildContent</div>
+
+@code {
+    /// <summary>
+    /// Group heading text rendered inside <see cref="VelleMenu"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.menu__header</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the header element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("menu__header", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

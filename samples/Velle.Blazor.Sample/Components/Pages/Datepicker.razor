@@ -10,7 +10,7 @@
     <DataAnnotationsValidator />
     <VelleDatepicker Id="appointment-date" Name="Input.Date" Label="Appointment date" For="() => Input!.Date" />
     <ValidationMessage For="() => Input!.Date" />
-    <button type="submit" class="btn btn--primary">Save date</button>
+    <VelleButton Type="submit" Variant="VelleButtonVariant.Primary">Save date</VelleButton>
 </EditForm>
 
 @if (savedDate is not null)

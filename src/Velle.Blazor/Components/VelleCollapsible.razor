@@ -1,0 +1,79 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" x-data="velleCollapsible" @attributes="RootAttributes">
+    @if (Trigger is not null)
+    {
+        @Trigger
+    }
+    else if (!string.IsNullOrEmpty(TriggerText))
+    {
+        <button type="button" class="@CombinedTriggerClass" x-on:click="toggle">@TriggerText</button>
+    }
+
+    <details open="@Open" class="@DetailsClass">
+        @if (!string.IsNullOrEmpty(Summary))
+        {
+            <summary class="@SummaryClass">@Summary</summary>
+        }
+        @ChildContent
+    </details>
+</div>
+
+@code {
+    /// <summary>
+    /// Optional summary heading rendered inside <c>&lt;summary&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Summary { get; set; }
+
+    /// <summary>
+    /// Optional external toggle button text rendered above the disclosure with <c>x-on:click="toggle"</c>.
+    /// </summary>
+    [Parameter] public string? TriggerText { get; set; }
+
+    /// <summary>
+    /// Optional custom trigger markup rendered inside the Alpine scope (bind <c>x-on:click="toggle"</c>, <c>open</c>, or <c>close</c>).
+    /// </summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>
+    /// Whether the disclosure starts expanded.
+    /// </summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>
+    /// Body content revealed when expanded.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the default trigger button alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to the <c>&lt;details&gt;</c> element.
+    /// </summary>
+    [Parameter] public string? DetailsClass { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to the <c>&lt;summary&gt;</c> element.
+    /// </summary>
+    [Parameter] public string? SummaryClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn", TriggerClass, null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data");
+}

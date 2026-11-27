@@ -112,35 +112,12 @@
 
     private string? EffectiveValue => Value ?? FormatExpressionValue();
 
-    private FieldIdentifier? ResolvedFieldIdentifier
-    {
-        get
-        {
-            if (For is not null)
-            {
-                return FieldIdentifier.Create(For);
-            }
+    private FieldIdentifier? ResolvedFieldIdentifier =>
+        FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
 
-            if (EditContext is not null && !string.IsNullOrWhiteSpace(Name))
-            {
-                var dotIndex = Name.LastIndexOf('.');
-                var fieldName = dotIndex >= 0 && dotIndex < Name.Length - 1
-                    ? Name[(dotIndex + 1)..]
-                    : Name;
-                return EditContext.Field(fieldName);
-            }
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedFieldIdentifier);
 
-            return null;
-        }
-    }
-
-    private bool IsInvalid => EditContext is not null
-        && ResolvedFieldIdentifier is { } fieldIdentifier
-        && EditContext.GetValidationMessages(fieldIdentifier).Any();
-
-    private string? FieldCssClass => EditContext is not null && ResolvedFieldIdentifier is { } fieldIdentifier
-        ? EditContext.FieldCssClass(fieldIdentifier)
-        : null;
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedFieldIdentifier);
 
     private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap", WrapperClass, null);
 

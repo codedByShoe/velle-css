@@ -1,0 +1,77 @@
+@namespace Velle.Blazor
+
+<div popover="manual"
+     class="@CombinedClass"
+     role="@Role"
+     x-data="velleFlash"
+     x-on:animationend="hide"
+     x-on:velle-enhanced-load.window="refresh"
+     @attributes="RootAttributes">
+    <div class="@CombinedContentClass">
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <VelleIcon Name="@Icon" />
+        }
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <span class="font-medium">@Message</span>
+        }
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Optional short notification text displayed inside the toast.
+    /// </summary>
+    [Parameter] public string? Message { get; set; }
+
+    /// <summary>
+    /// Optional Velle icon name (for example, <c>"circle-check"</c> or <c>"circle-alert"</c>).
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, uses <c>flash--extended</c> so the toast stays visible for 12 seconds instead of 5.
+    /// </summary>
+    [Parameter] public bool Extended { get; set; }
+
+    /// <summary>
+    /// ARIA live-region role applied to the toast (defaults to <c>"status"</c>; use <c>"alert"</c> for errors).
+    /// </summary>
+    [Parameter] public string Role { get; set; } = "status";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.flash</c> popover container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the inner <c>.flash__content</c> element.
+    /// </summary>
+    [Parameter] public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// Optional custom toast content rendered inside <c>.flash__content</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>.flash</c> container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(
+        "flash",
+        Class,
+        AdditionalAttributes,
+        Extended ? "flash--extended" : null);
+
+    private string? CombinedContentClass => AttributeUtilities.CombineClasses(
+        string.IsNullOrEmpty(Icon) ? "flash__content" : "flash__content flex items-center gap",
+        ContentClass,
+        null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "popover", "role");
+}

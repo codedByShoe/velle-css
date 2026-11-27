@@ -1,0 +1,20 @@
+@namespace Velle.Blazor
+
+<hr class="@CombinedClass" role="separator" @attributes="RootAttributes" />
+
+@code {
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.menu__separator</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;hr&gt;</c> separator.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("menu__separator", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role");
+}

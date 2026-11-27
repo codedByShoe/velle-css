@@ -1,0 +1,34 @@
+@namespace Velle.Blazor
+
+<kbd class="@CombinedClass" @attributes="RootAttributes">@ChildContent</kbd>
+
+@code {
+    /// <summary>
+    /// When <see langword="true"/>, applies <c>kbd--tooltip</c> colors suited for dark or inverted surfaces.
+    /// </summary>
+    [Parameter] public bool Tooltip { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;kbd&gt;</c> element alongside <c>kbd</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Key text or shortcut displayed inside the <c>&lt;kbd&gt;</c> element.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;kbd&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(
+        "kbd",
+        Class,
+        AdditionalAttributes,
+        Tooltip ? "kbd--tooltip" : null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

@@ -1,0 +1,27 @@
+@namespace Velle.Blazor
+
+<span class="@CombinedClass" aria-hidden="true" @attributes="RootAttributes"></span>
+
+@code {
+    /// <summary>
+    /// Orientation of the separator line (defaults to <see cref="VelleOrientation.Horizontal"/>).
+    /// </summary>
+    [Parameter] public VelleOrientation Orientation { get; set; } = VelleOrientation.Horizontal;
+
+    /// <summary>
+    /// Additional CSS classes merged onto the separator element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the separator element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string BaseClass => Orientation == VelleOrientation.Vertical ? "separator-vertical" : "separator";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(BaseClass, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "aria-hidden");
+}

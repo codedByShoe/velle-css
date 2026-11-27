@@ -1,0 +1,72 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedWrapperClass">
+    <table class="@CombinedClass" @attributes="TableAttributes">
+        @if (!string.IsNullOrEmpty(Caption))
+        {
+            <caption>@Caption</caption>
+        }
+        @if (Header is not null)
+        {
+            <thead>@Header</thead>
+        }
+        @if (Body is not null)
+        {
+            <tbody>@Body</tbody>
+        }
+        @if (Footer is not null)
+        {
+            <tfoot>@Footer</tfoot>
+        }
+        @ChildContent
+    </table>
+</div>
+
+@code {
+    /// <summary>
+    /// Optional <c>&lt;caption&gt;</c> text rendered inside the table.
+    /// </summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>
+    /// Optional table header rows rendered inside <c>&lt;thead&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>
+    /// Optional table body rows rendered inside <c>&lt;tbody&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Body { get; set; }
+
+    /// <summary>
+    /// Optional table footer rows rendered inside <c>&lt;tfoot&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>
+    /// Optional raw table sections when not using <see cref="Header"/>, <see cref="Body"/>, and <see cref="Footer"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;table&gt;</c> element alongside <c>table</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the horizontal scroll wrapper alongside <c>overflow-i-auto</c>.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;table&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("table", Class, AdditionalAttributes);
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("overflow-i-auto", WrapperClass, null);
+
+    private IReadOnlyDictionary<string, object>? TableAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

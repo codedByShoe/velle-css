@@ -1,0 +1,21 @@
+@namespace Velle.Blazor
+
+<span hidden
+      x-data="velleTimezoneCookie"
+      data-velle-cookie-name="@CookieName"
+      @attributes="RootAttributes"></span>
+
+@code {
+    /// <summary>
+    /// Cookie name populated with the visitor's IANA timezone identifier (defaults to <c>"timezone"</c>).
+    /// </summary>
+    [Parameter] public string CookieName { get; set; } = "timezone";
+
+    /// <summary>
+    /// Additional HTML attributes applied to the hidden marker element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "hidden", "x-data", "data-velle-cookie-name");
+}

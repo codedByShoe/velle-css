@@ -1,0 +1,84 @@
+@namespace Velle.Blazor
+@using System.Text.Json
+@using System.Text.Json.Serialization
+
+<div class="@CombinedClass"
+     x-data="velleChart"
+     x-on:velle-enhanced-load.window="refresh"
+     data-velle-chart-type="@ChartTypeName"
+     data-velle-chart-data="@SerializedData"
+     data-velle-chart-options="@SerializedOptions"
+     @attributes="RootAttributes">
+    <canvas role="img" aria-label="@Label" class="@CanvasClass"></canvas>
+</div>
+
+@code {
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
+
+    /// <summary>
+    /// Visualization type rendered by Chart.js (defaults to <see cref="VelleChartType.Line"/>).
+    /// </summary>
+    [Parameter] public VelleChartType Type { get; set; } = VelleChartType.Line;
+
+    /// <summary>
+    /// Chart.js <c>data</c> payload (serialized as camelCase JSON, for example <c>new { labels = ..., datasets = ... }</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public object Data { get; set; } = null!;
+
+    /// <summary>
+    /// Optional Chart.js <c>options</c> payload (serialized as camelCase JSON).
+    /// </summary>
+    [Parameter] public object? Options { get; set; }
+
+    /// <summary>
+    /// Accessible <c>aria-label</c> applied to the <c>&lt;canvas&gt;</c> element (defaults to <c>"Chart"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Chart";
+
+    /// <summary>
+    /// Additional CSS classes applied to the outer container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Optional CSS classes applied to the <c>&lt;canvas&gt;</c> element.
+    /// </summary>
+    [Parameter] public string? CanvasClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the outer container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ChartTypeName => Type switch
+    {
+        VelleChartType.Bar => "bar",
+        VelleChartType.Doughnut => "doughnut",
+        VelleChartType.Pie => "pie",
+        VelleChartType.Radar => "radar",
+        VelleChartType.PolarArea => "polarArea",
+        VelleChartType.Scatter => "scatter",
+        VelleChartType.Bubble => "bubble",
+        _ => "line",
+    };
+
+    private string SerializedData => JsonSerializer.Serialize(Data, SerializerOptions);
+
+    private string SerializedOptions => Options is null ? "{}" : JsonSerializer.Serialize(Options, SerializerOptions);
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "x-data",
+            "x-on:velle-enhanced-load.window",
+            "data-velle-chart-type",
+            "data-velle-chart-data",
+            "data-velle-chart-options");
+}

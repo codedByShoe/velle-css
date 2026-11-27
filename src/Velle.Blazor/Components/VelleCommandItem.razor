@@ -1,0 +1,101 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Href))
+{
+    <a href="@(Disabled ? null : Href)"
+       class="@CombinedClass"
+       role="option"
+       data-velle-command-item
+       data-command-value="@Value"
+       data-command-keywords="@Keywords"
+       aria-disabled="@(Disabled ? "true" : null)"
+       @attributes="LinkAttributes">
+        @ItemBody
+    </a>
+}
+else
+{
+    <button type="@Type"
+            class="@CombinedClass"
+            role="option"
+            data-velle-command-item
+            data-command-value="@Value"
+            data-command-keywords="@Keywords"
+            aria-disabled="@(Disabled ? "true" : null)"
+            disabled="@Disabled"
+            @attributes="ButtonAttributes">
+        @ItemBody
+    </button>
+}
+
+@code {
+    /// <summary>
+    /// When provided, renders an <c>&lt;a&gt;</c> link option instead of a <c>&lt;button&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Native button <c>type</c> attribute when rendering a <c>&lt;button&gt;</c> (defaults to <c>"button"</c>).
+    /// </summary>
+    [Parameter] public string Type { get; set; } = "button";
+
+    /// <summary>
+    /// Optional explicit value emitted by <c>velle:command:select</c> and matched during filtering.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional space-separated extra search keywords matched during filtering.
+    /// </summary>
+    [Parameter] public string? Keywords { get; set; }
+
+    /// <summary>
+    /// Optional leading Velle icon name.
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// Optional trailing keyboard shortcut hint (<c>.command__item-key</c>).
+    /// </summary>
+    [Parameter] public string? Shortcut { get; set; }
+
+    /// <summary>
+    /// Disables the option and skips it during keyboard navigation.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Option label content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.command__item</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the option element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("command__item", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? ButtonAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "type", "role", "disabled", "aria-disabled");
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href", "role", "aria-disabled");
+
+    private RenderFragment ItemBody => @<text>
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <VelleIcon Name="@Icon" />
+        }
+        <span>@ChildContent</span>
+        @if (!string.IsNullOrEmpty(Shortcut))
+        {
+            <span class="command__item-key">@Shortcut</span>
+        }
+    </text>;
+}

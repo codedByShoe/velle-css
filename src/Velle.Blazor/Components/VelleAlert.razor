@@ -1,0 +1,75 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" role="@Role" @attributes="RootAttributes">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <VelleIcon Name="@Icon" />
+    }
+    <div class="@BodyClass">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <h5 class="font-medium leading-none mbe-1">@Title</h5>
+        }
+        @if (ChildContent is not null)
+        {
+            <div class="@ContentClass">@ChildContent</div>
+        }
+    </div>
+    @if (Action is not null)
+    {
+        <div class="mis-auto">@Action</div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Semantic variant for the alert.
+    /// </summary>
+    [Parameter] public VelleAlertVariant Variant { get; set; } = VelleAlertVariant.Default;
+
+    /// <summary>
+    /// Optional heading displayed at the top of the alert.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional Velle icon name (for example, <c>"circle-check"</c> or <c>"circle-alert"</c>).
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// Optional trailing action slot (for example, a <see cref="VelleButton"/>).
+    /// </summary>
+    [Parameter] public RenderFragment? Action { get; set; }
+
+    /// <summary>
+    /// ARIA live-region role applied to the alert container (defaults to <c>"alert"</c>).
+    /// </summary>
+    [Parameter] public string Role { get; set; } = "alert";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the alert container alongside <c>alert</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Alert message content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string VariantClass => Variant == VelleAlertVariant.Negative ? "alert--negative" : "";
+
+    private string BodyClass => string.IsNullOrEmpty(Icon) ? "flex flex-col" : "flex flex-col mis-2";
+
+    private string ContentClass => Variant == VelleAlertVariant.Negative ? "text-balance" : "text-subtle text-balance";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("alert flex items-start", Class, AdditionalAttributes, VariantClass);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role");
+}

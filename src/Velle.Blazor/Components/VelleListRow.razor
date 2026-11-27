@@ -1,0 +1,128 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Href))
+{
+    <a href="@Href" class="@CombinedClass" @attributes="LinkAttributes">
+        @RowBody
+    </a>
+}
+else if (Selectable)
+{
+    <label class="@CombinedClass" @attributes="ContainerAttributes">
+        @RowBody
+    </label>
+}
+else
+{
+    <div class="@CombinedClass" @attributes="ContainerAttributes">
+        @RowBody
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Visual style variant for the list row.
+    /// </summary>
+    [Parameter] public VelleListRowVariant Variant { get; set; } = VelleListRowVariant.Default;
+
+    /// <summary>
+    /// When provided, renders the row as an interactive <c>&lt;a&gt;</c> link with <c>list-row--link</c>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, renders the row as a <c>&lt;label class="list-row list-row--check"&gt;</c>
+    /// that highlights when a nested checkbox or radio input is checked.
+    /// </summary>
+    [Parameter] public bool Selectable { get; set; }
+
+    /// <summary>
+    /// Optional row heading text.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional secondary description text displayed below <see cref="Title"/>.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Optional Velle icon name displayed at the start of the row.
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// Optional custom leading media slot wrapped in <c>.list-row__media</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Media { get; set; }
+
+    /// <summary>
+    /// Optional trailing content slot (for example, a chevron icon or action button).
+    /// </summary>
+    [Parameter] public RenderFragment? Trailing { get; set; }
+
+    /// <summary>
+    /// Main row content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the row element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the row element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private RenderFragment RowBody => @<text>
+        @if (Media is not null)
+        {
+            <div class="list-row__media">@Media</div>
+        }
+        else if (!string.IsNullOrEmpty(Icon))
+        {
+            <VelleIcon Name="@Icon" />
+        }
+        @if (!string.IsNullOrEmpty(Title) || !string.IsNullOrEmpty(Description))
+        {
+            <span class="flex flex-1 flex-col">
+                @if (!string.IsNullOrEmpty(Title))
+                {
+                    <span class="leading-none font-medium mbe-1">@Title</span>
+                }
+                @if (!string.IsNullOrEmpty(Description))
+                {
+                    <span class="text-subtle">@Description</span>
+                }
+            </span>
+        }
+        @ChildContent
+        @if (Trailing is not null)
+        {
+            @Trailing
+        }
+    </text>;
+
+    private string Modifiers => string.Join(" ", new[]
+    {
+        Variant switch
+        {
+            VelleListRowVariant.Muted => "list-row--muted",
+            VelleListRowVariant.Borderless => "list-row--borderless",
+            _ => "",
+        },
+        !string.IsNullOrEmpty(Href) ? "list-row--link" : "",
+        Selectable ? "list-row--check" : "",
+        "flex items-center gap",
+    }.Where(static s => s.Length > 0));
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("list-row", Class, AdditionalAttributes, Modifiers);
+
+    private IReadOnlyDictionary<string, object>? ContainerAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href");
+}

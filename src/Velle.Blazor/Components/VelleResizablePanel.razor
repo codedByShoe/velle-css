@@ -1,0 +1,50 @@
+@namespace Velle.Blazor
+@using System.Globalization
+
+<div class="@CombinedClass"
+     data-resizable-size="@FormatSize(InitialSize)"
+     data-resizable-min="@FormatSize(MinSize)"
+     data-resizable-max="@FormatSize(MaxSize)"
+     @attributes="PanelAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Optional initial percentage size (0 to 100) for this panel. Unsized panels share the remaining space evenly.
+    /// </summary>
+    [Parameter] public double? InitialSize { get; set; }
+
+    /// <summary>
+    /// Optional minimum percentage size (0 to 100) enforced while resizing.
+    /// </summary>
+    [Parameter] public double? MinSize { get; set; }
+
+    /// <summary>
+    /// Optional maximum percentage size (0 to 100) enforced while resizing.
+    /// </summary>
+    [Parameter] public double? MaxSize { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.resizable__panel</c> element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Content rendered inside the resizable panel.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the panel element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("resizable__panel", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? PanelAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "data-resizable-size", "data-resizable-min", "data-resizable-max");
+
+    private static string? FormatSize(double? value) =>
+        value.HasValue ? value.Value.ToString(CultureInfo.InvariantCulture) : null;
+}

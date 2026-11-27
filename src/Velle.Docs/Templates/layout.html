@@ -3,19 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ escape_html page.Title }} · velle-css</title>
+  <title>{{ escape_html page.Title }} · Velle</title>
   <script>try { document.documentElement.dataset.colorScheme = localStorage.getItem("color_scheme") || "system" } catch {}</script>
   {{ page.Site.ImportMap }}
   <link rel="stylesheet" href="assets/velle.css">
   {{ if page.Component != null }}{{ component = page.Component }}{{ for stylesheet in component.Stylesheets }}<link rel="stylesheet" href="{{ safe_url stylesheet }}">
+  {{ end }}{{ end }}{{ if page.BlazorComponent != null }}{{ blazor = page.BlazorComponent }}{{ for stylesheet in blazor.Stylesheets }}<link rel="stylesheet" href="{{ safe_url stylesheet }}">
   {{ end }}{{ end }}<link rel="stylesheet" href="assets/docs.css">
   <script type="module" src="assets/velle.js"></script>
   {{ if page.Component != null }}{{ component = page.Component }}{{ for script in component.Scripts }}<script type="module" src="{{ safe_url script }}"></script>
+  {{ end }}{{ end }}{{ if page.BlazorComponent != null }}{{ blazor = page.BlazorComponent }}{{ for script in blazor.Scripts }}<script type="module" src="{{ safe_url script }}"></script>
   {{ end }}{{ end }}
   <script src="assets/docs.js" defer></script>
 </head>
-<body class="sidebar-layout" data-toggle-class="closed">
-  <header id="header" class="justify-between">
+<body class="sidebar-layout docs-body" data-toggle-class="closed">
+  <header id="header" class="justify-between docs-header">
     <div class="flex items-center gap">
       <button type="button" class="btn btn--icon hide@md" commandfor="docs_nav" command="show-modal">
         <span class="icon icon--panel-left" aria-hidden="true"></span>
@@ -25,12 +27,18 @@
         <span class="icon icon--panel-left" aria-hidden="true"></span>
         <span class="sr-only">Toggle sidebar</span>
       </button>
-      <a class="font-bold text-lg" href="index.html">velle-css</a>
-      <span class="badge badge--secondary">v{{ escape_html page.Site.Version }}</span>
+      <a class="docs-brand" href="index.html">
+        <span class="docs-brand__mark" aria-hidden="true">V</span>
+        <span class="font-bold text-lg">Velle</span>
+      </a>
+      <span class="docs-pill docs-pill--accent show@sm">Velle.Blazor {{ escape_html page.Site.BlazorVersion }}</span>
     </div>
 
-    <div class="flex items-center gap">
-      <a class="btn btn--borderless" href="{{ safe_url page.Site.Repo }}">GitHub</a>
+    <div class="flex items-center gap-half">
+      <a class="btn btn--sm btn--borderless show@md" href="velle-button.html">Components</a>
+      <a class="btn btn--sm btn--borderless show@md" href="tokens.html">Tokens</a>
+      <a class="btn btn--sm btn--borderless show@sm" href="llms.txt">llms.txt</a>
+      <a class="btn btn--sm btn--borderless" href="{{ safe_url page.Site.Repo }}">GitHub</a>
 
       <button type="button" class="btn btn--icon btn--borderless" popovertarget="docs_color_scheme" aria-haspopup="true">
         <span class="icon icon--sun icon--color-scheme-light" aria-hidden="true"></span>
@@ -53,16 +61,42 @@
     </div>
   </dialog>
 
-  <aside id="sidebar">
+  <aside id="sidebar" class="docs-sidebar">
     {{ page.Navigation }}
   </aside>
 
-  <main id="main">
-    <article class="container docs-content">
-      {{ page.Content }}
-    </article>
+  <main id="main" class="docs-main">
+    <div class="docs-shell">
+      <article class="docs-content">
+        {{ page.Content }}
+
+        {{ if page.Previous != null || page.Next != null }}
+        <nav class="docs-pager" aria-label="Page navigation">
+          {{ if page.Previous != null }}
+          <a class="docs-pager__link" href="{{ safe_url page.Previous.Href }}">
+            <span class="docs-pager__label">← Previous</span>
+            <span class="docs-pager__title">{{ escape_html page.Previous.Title }}</span>
+          </a>
+          {{ else }}
+          <span></span>
+          {{ end }}
+          {{ if page.Next != null }}
+          <a class="docs-pager__link docs-pager__link--next" href="{{ safe_url page.Next.Href }}">
+            <span class="docs-pager__label">Next →</span>
+            <span class="docs-pager__title">{{ escape_html page.Next.Title }}</span>
+          </a>
+          {{ end }}
+        </nav>
+        {{ end }}
+      </article>
+
+      <aside class="docs-toc" aria-label="On this page" data-docs-toc hidden>
+        <div class="docs-toc__inner">
+          <p class="docs-toc__title">On this page</p>
+          <ul class="docs-toc__list" data-docs-toc-list></ul>
+        </div>
+      </aside>
+    </div>
   </main>
 </body>
 </html>
-
-

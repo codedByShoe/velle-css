@@ -82,7 +82,20 @@ No extra JavaScript `<script>` tags are required — `blazor.web.js` automatical
 
 ## Components
 
-Give each interactive component instance a unique `Id` so ARIA relationships and enhanced DOM patches stay stable across navigation and form posts. All components support `Class` and arbitrary HTML attributes via `AdditionalAttributes` (merging `class` cleanly without overwriting base Velle classes).
+All components share one unified **Razor component API** in `@namespace Velle.Blazor` with strongly-typed enums, XML doc comments, `Class`, and `[Parameter(CaptureUnmatchedValues = true)] AdditionalAttributes` (merging `class` cleanly without overwriting base Velle classes).
+
+### Available Components
+
+Every component from Velle's registry is now available through the unified Razor component API (**60 documented components**):
+
+- **Setup:** `VelleStyles` (`IncludeDatepicker`, `IncludeEditor`)
+- **Elements:** `VelleAccordion`, `VelleAlert`, `VelleAvatar`, `VelleAvatarGroup`, `VelleBadge`, `VelleBreadcrumb`, `VelleButton`, `VelleCard`, `VelleCarousel` (`VelleCarouselItem`), `VelleChart` (lazy-loaded Chart.js), `VelleCollapsible`, `VelleGroup`, `VelleIcon`, `VelleKbd`, `VelleList` (`VelleListRow`), `VellePagination`, `VelleProgress`, `VelleSeparator`, `VelleSkeleton`, `VelleSortable` (`VelleSortableItem`, `VelleSortableHandle` — `@alpinejs/sort`), `VelleTable`, `VelleTabs`
+- **Forms (EditContext + `For` ready):** `VelleAutosave`, `VelleCheckAll`, `VelleCombobox`, `VelleDatepicker`, `VelleDropzone`, `VelleDualRange`, `VelleEditor` (lazy-loaded Lexxy with Markdown shortcuts & `.NET` `VelleAttachmentResult` upload bridge), `VelleFormHelper`, `VelleInput`, `VelleInputClearable`, `VelleInputCopyable`, `VelleInputMask` (`@alpinejs/mask`), `VelleInputOtp`, `VelleInputRevealable`, `VelleSwitch`, `VelleToggle`, `VelleUploadPreview`
+- **Overlays:** `VelleCommand` (`VelleCommandGroup`, `VelleCommandItem`, `VelleCommandSeparator`), `VelleConfirm`, `VelleContextMenu`, `VelleDialog`, `VelleDropdown`, `VelleFlash`, `VelleLightbox` (`VelleLightboxLink`), `VelleMenu` (`VelleMenuHeader`, `VelleMenuItem`, `VelleMenuSeparator`), `VellePopover`, `VelleSheet`
+- **Layout:** `VelleColorScheme`, `VelleLayout` (`VelleSidebarMenu`), `VelleResizable` (`VelleResizablePanel`, `VelleResizableHandle`)
+- **Behaviors:** `VelleAutoAnimate`, `VelleAutoSelect`, `VelleFullscreen`, `VelleHotkey`, `VelleLocalTime`, `VelleTimezoneCookie`, `VelleToggleClass`, `VelleWebShare`
+
+Browse interactive previews, full parameter tables, and Razor examples locally with `npm run docs:dev` (or `dotnet run --project src/Velle.Docs -- --serve`).
 
 ### `VelleStyles`
 

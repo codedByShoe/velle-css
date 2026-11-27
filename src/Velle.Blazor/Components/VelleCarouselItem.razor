@@ -1,0 +1,32 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" role="group" aria-roledescription="slide" aria-label="@Label" @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Optional accessible label for the slide (for example, <c>"1 of 5"</c>).
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Slide content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.carousel__item</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the slide container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("carousel__item", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role", "aria-roledescription", "aria-label");
+}

@@ -1,0 +1,38 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleResizable"
+     x-on:pointerdown="onPointerDown"
+     x-on:keydown="onKeydown"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Direction along which panels are arranged and resized (defaults to <see cref="VelleOrientation.Horizontal"/>).
+    /// </summary>
+    [Parameter] public VelleOrientation Orientation { get; set; } = VelleOrientation.Horizontal;
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.resizable</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Direct child <see cref="VelleResizablePanel"/> and <see cref="VelleResizableHandle"/> components.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.resizable</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string BaseClass => Orientation == VelleOrientation.Vertical ? "resizable resizable--vertical" : "resizable";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(BaseClass, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "x-on:pointerdown", "x-on:keydown");
+}

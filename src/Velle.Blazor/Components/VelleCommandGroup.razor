@@ -1,0 +1,42 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" role="group" aria-labelledby="@HeadingId" data-velle-command-group @attributes="RootAttributes">
+    <div class="command__heading" id="@HeadingId">@Heading</div>
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Visible heading label for this group of commands.
+    /// </summary>
+    [Parameter, EditorRequired] public string Heading { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the heading element (derived from <see cref="Heading"/> when omitted).
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// <see cref="VelleCommandItem"/> items belonging to this group.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.command__group</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the group container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string HeadingId => string.IsNullOrWhiteSpace(Id)
+        ? $"cmd-group-{AttributeUtilities.ToElementId(Heading)}"
+        : Id;
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("command__group", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role", "aria-labelledby");
+}

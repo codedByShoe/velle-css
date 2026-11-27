@@ -6,12 +6,22 @@
     <link rel="stylesheet" href="@ResolveAsset("_content/Velle.Blazor/lib/flatpickr/flatpickr.min.css")" />
     <link rel="stylesheet" href="@ResolveAsset("_content/Velle.Blazor/css/datepicker.css")" />
 }
+@if (IncludeEditor)
+{
+    <link rel="stylesheet" href="@ResolveAsset("_content/Velle.Blazor/lib/lexxy/lexxy.css")" />
+    <link rel="stylesheet" href="@ResolveAsset("_content/Velle.Blazor/css/editor.css")" />
+}
 
 @code {
     /// <summary>
     /// When <see langword="true"/>, also includes the Flatpickr stylesheet and the Velle datepicker theme.
     /// </summary>
     [Parameter] public bool IncludeDatepicker { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, also includes the Lexxy rich-text editor stylesheet and the Velle editor theme.
+    /// </summary>
+    [Parameter] public bool IncludeEditor { get; set; }
 
     private string ResolveAsset(string path) => Assets?[path] ?? path;
 }

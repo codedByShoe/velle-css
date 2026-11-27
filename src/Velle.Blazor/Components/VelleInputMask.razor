@@ -1,0 +1,196 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label) || !string.IsNullOrEmpty(Description))
+{
+    <div class="@CombinedWrapperClass">
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        }
+        @Control
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="text-sm text-subtle">@Description</p>
+        }
+    </div>
+}
+else
+{
+    @Control
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST.
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the input (derived from <see cref="Name"/> when omitted).
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the input.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Optional helper text rendered below the input.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Masking mode (defaults to <see cref="VelleInputMaskMode.Pattern"/>).
+    /// </summary>
+    [Parameter] public VelleInputMaskMode Mode { get; set; } = VelleInputMaskMode.Pattern;
+
+    /// <summary>
+    /// Pattern passed to <c>@alpinejs/mask</c> when <see cref="Mode"/> is <see cref="VelleInputMaskMode.Pattern"/>
+    /// (for example, <c>"(999) 999-9999"</c> or <c>"99/99/9999"</c>). Uses <c>9</c> for digits, <c>a</c> for letters, and <c>*</c> for alphanumeric.
+    /// </summary>
+    [Parameter] public string? Mask { get; set; }
+
+    /// <summary>
+    /// Decimal separator used when <see cref="Mode"/> is <see cref="VelleInputMaskMode.Money"/> (defaults to <c>"."</c>).
+    /// </summary>
+    [Parameter] public string DecimalSeparator { get; set; } = ".";
+
+    /// <summary>
+    /// Thousands separator used when <see cref="Mode"/> is <see cref="VelleInputMaskMode.Money"/> (defaults to <c>","</c>, or <c>"."</c> when <see cref="DecimalSeparator"/> is <c>","</c>).
+    /// </summary>
+    [Parameter] public string? ThousandsSeparator { get; set; }
+
+    /// <summary>
+    /// Maximum decimal digits allowed when <see cref="Mode"/> is <see cref="VelleInputMaskMode.Money"/> (defaults to <c>2</c>).
+    /// </summary>
+    [Parameter] public int Precision { get; set; } = 2;
+
+    /// <summary>
+    /// Explicit initial value. Takes precedence over <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional model expression for initial value and <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Optional placeholder text shown when empty.
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Optional <c>inputmode</c> hint (defaults to <c>"decimal"</c> in <see cref="VelleInputMaskMode.Money"/> mode).
+    /// </summary>
+    [Parameter] public string? InputMode { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;input&gt;</c> alongside <c>input</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer field wrapper when <see cref="Label"/> or <see cref="Description"/> is rendered.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;input&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id) ? AttributeUtilities.ToElementId(Name) : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private string? EffectiveValue
+    {
+        get
+        {
+            if (Value is not null)
+            {
+                return Value;
+            }
+
+            var evaluated = FormFieldUtilities.EvaluateExpression(For);
+            return evaluated switch
+            {
+                null => null,
+                string text => text,
+                IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+                _ => evaluated.ToString(),
+            };
+        }
+    }
+
+    private string? EffectiveInputMode => InputMode ?? (Mode == VelleInputMaskMode.Money ? "decimal" : null);
+
+    private string EffectiveThousandsSeparator => ThousandsSeparator ?? (DecimalSeparator == "," ? "." : ",");
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedInputClass => AttributeUtilities.CombineClasses("input", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "id",
+            "name",
+            "type",
+            "value",
+            "placeholder",
+            "inputmode",
+            "aria-invalid",
+            "x-data",
+            "x-mask",
+            "x-mask:dynamic");
+
+    private RenderFragment Control => @<text>
+        @if (Mode == VelleInputMaskMode.Money)
+        {
+            <input type="text"
+                   id="@EffectiveId"
+                   name="@Name"
+                   value="@EffectiveValue"
+                   placeholder="@Placeholder"
+                   inputmode="@EffectiveInputMode"
+                   class="@CombinedInputClass"
+                   aria-invalid="@(IsInvalid ? "true" : null)"
+                   x-data="velleInputMask"
+                   x-mask:dynamic="moneyMask"
+                   data-velle-mask-decimal="@DecimalSeparator"
+                   data-velle-mask-thousands="@EffectiveThousandsSeparator"
+                   data-velle-mask-precision="@Precision.ToString(CultureInfo.InvariantCulture)"
+                   @attributes="InputAttributes" />
+        }
+        else
+        {
+            <input type="text"
+                   id="@EffectiveId"
+                   name="@Name"
+                   value="@EffectiveValue"
+                   placeholder="@Placeholder"
+                   inputmode="@EffectiveInputMode"
+                   class="@CombinedInputClass"
+                   aria-invalid="@(IsInvalid ? "true" : null)"
+                   x-data="velleInputMask"
+                   x-mask="@Mask"
+                   @attributes="InputAttributes" />
+        }
+    </text>;
+}

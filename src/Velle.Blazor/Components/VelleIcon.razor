@@ -1,0 +1,34 @@
+@namespace Velle.Blazor
+
+<span class="@CombinedClass"
+      role="@(string.IsNullOrEmpty(Label) ? null : "img")"
+      aria-label="@(string.IsNullOrEmpty(Label) ? null : Label)"
+      aria-hidden="@(string.IsNullOrEmpty(Label) ? "true" : null)"
+      @attributes="RootAttributes"></span>
+
+@code {
+    /// <summary>
+    /// Velle icon slug matching an <c>icon--*</c> CSS class (for example, <c>"circle-check"</c>, <c>"search"</c>, or <c>"loading"</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Optional accessible label. When omitted, the icon is marked decorative with <c>aria-hidden="true"</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the icon element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the icon element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses($"icon icon--{Name}", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role", "aria-label", "aria-hidden");
+}

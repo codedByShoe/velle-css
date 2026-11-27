@@ -1,7 +1,7 @@
-
 <header class="docs-intro">
+  <p class="docs-eyebrow">Design System · <code>velle.css</code></p>
   <h1>Tokens</h1>
-  <p class="docs-lead">Design tokens are CSS custom properties defined on <code>:root</code> by <code>variables.css</code>, which imports one file per group. Use them in your own CSS, e.g. <code>padding: var(--size-4)</code>.</p>
+  <p class="docs-lead">Design tokens are CSS custom properties defined on <code>:root</code> and included automatically by <code>&lt;VelleStyles /&gt;</code>. Click any color swatch to copy its <code>var(...)</code> reference.</p>
 </header>
 
 {{ for token_file in page.Tokens }}
@@ -12,10 +12,10 @@
   {{ if (array.size section.Tokens) > 0 && section.Tokens[0].Color }}
   <div class="docs-swatches">
     {{ for token in section.Tokens }}
-    <div class="docs-swatch">
+    <button type="button" class="docs-swatch" data-copy-token="var({{ escape_html token.Name }})" title="Copy var({{ escape_html token.Name }})">
       <span class="docs-swatch__color" style="{{ token.Swatch }}"></span>
       <code>{{ escape_html token.Name }}</code>
-    </div>
+    </button>
     {{ end }}
   </div>
   {{ else }}

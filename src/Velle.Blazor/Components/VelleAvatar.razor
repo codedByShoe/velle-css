@@ -1,0 +1,90 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">
+    @if (!string.IsNullOrEmpty(Src))
+    {
+        <img src="@Src" alt="@Alt" />
+    }
+    else if (!string.IsNullOrEmpty(Initials))
+    {
+        <span role="img" aria-label="@EffectiveInitialsLabel">@Initials</span>
+    }
+
+    @if (Badge is not null)
+    {
+        <span class="avatar__badge" style="@BadgeStyle" aria-label="@BadgeLabel" role="@(string.IsNullOrEmpty(BadgeLabel) ? null : "img")">
+            @Badge
+        </span>
+    }
+    else if (!string.IsNullOrEmpty(BadgeColor) || !string.IsNullOrEmpty(BadgeLabel))
+    {
+        <span class="avatar__badge" style="@BadgeStyle" aria-label="@BadgeLabel" role="@(string.IsNullOrEmpty(BadgeLabel) ? null : "img")"></span>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Image URL for the avatar. When omitted, <see cref="Initials"/> is displayed instead.
+    /// </summary>
+    [Parameter] public string? Src { get; set; }
+
+    /// <summary>
+    /// Accessible alternative text describing the user or avatar.
+    /// </summary>
+    [Parameter] public string Alt { get; set; } = "";
+
+    /// <summary>
+    /// Fallback initials displayed when <see cref="Src"/> is not provided.
+    /// </summary>
+    [Parameter] public string? Initials { get; set; }
+
+    /// <summary>
+    /// Size preset for the avatar.
+    /// </summary>
+    [Parameter] public VelleAvatarSize Size { get; set; } = VelleAvatarSize.Default;
+
+    /// <summary>
+    /// Optional custom content (such as a <see cref="VelleIcon"/>) rendered inside the status badge.
+    /// </summary>
+    [Parameter] public RenderFragment? Badge { get; set; }
+
+    /// <summary>
+    /// Optional CSS color value applied to <c>--avatar-badge-color</c> (for example, <c>"var(--green-600)"</c>).
+    /// </summary>
+    [Parameter] public string? BadgeColor { get; set; }
+
+    /// <summary>
+    /// Optional accessible label for the status badge (for example, <c>"Online"</c>).
+    /// </summary>
+    [Parameter] public string? BadgeLabel { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.avatar</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string SizeClass => Size switch
+    {
+        VelleAvatarSize.Small => "avatar--sm",
+        VelleAvatarSize.Large => "avatar--lg",
+        _ => "",
+    };
+
+    private string EffectiveInitialsLabel => string.IsNullOrWhiteSpace(Alt)
+        ? $"Avatar with initials {Initials}"
+        : Alt;
+
+    private string? BadgeStyle => string.IsNullOrWhiteSpace(BadgeColor)
+        ? null
+        : $"--avatar-badge-color: {BadgeColor}";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("avatar", Class, AdditionalAttributes, SizeClass);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

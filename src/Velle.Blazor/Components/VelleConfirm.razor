@@ -1,0 +1,76 @@
+@namespace Velle.Blazor
+
+<dialog id="@Id"
+        class="@CombinedClass"
+        role="alertdialog"
+        aria-labelledby="@TitleId"
+        aria-describedby="@TextId"
+        data-velle-confirm-default-text="@DefaultText"
+        x-data="velleConfirm"
+        x-on:close="onClose"
+        @attributes="DialogAttributes">
+    <div class="dialog__content flex flex-col gap">
+        <div class="flex flex-col gap-half">
+            <h2 id="@TitleId" class="font-semibold" data-velle-confirm-title></h2>
+            <p id="@TextId" class="text-sm text-subtle" data-velle-confirm-text></p>
+        </div>
+        <form method="dialog" class="flex justify-end gap-half">
+            <button type="submit" value="cancel" class="btn">@CancelText</button>
+            <button type="submit" value="confirm" class="@CombinedConfirmClass">@ConfirmText</button>
+        </form>
+    </div>
+</dialog>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the confirmation dialog (defaults to <c>"velle-confirm"</c>).
+    /// Place one <see cref="VelleConfirm"/> in your layout to intercept forms, buttons, and links carrying <c>data-confirm</c>.
+    /// </summary>
+    [Parameter] public string Id { get; set; } = "velle-confirm";
+
+    /// <summary>
+    /// Fallback body text displayed when a trigger specifies <c>data-confirm</c> without <c>data-confirm-text</c>.
+    /// </summary>
+    [Parameter] public string DefaultText { get; set; } = "This action cannot be undone and may have permanent consequences.";
+
+    /// <summary>
+    /// Label for the cancel button (defaults to <c>"Cancel"</c>).
+    /// </summary>
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    /// <summary>
+    /// Label for the confirm button (defaults to <c>"Continue"</c>).
+    /// </summary>
+    [Parameter] public string ConfirmText { get; set; } = "Continue";
+
+    /// <summary>
+    /// Visual variant for the confirm button (defaults to <see cref="VelleButtonVariant.Negative"/>).
+    /// </summary>
+    [Parameter] public VelleButtonVariant ConfirmVariant { get; set; } = VelleButtonVariant.Negative;
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.dialog</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;dialog&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string TitleId => $"{Id}-title";
+    private string TextId => $"{Id}-text";
+
+    private string CombinedConfirmClass => ConfirmVariant switch
+    {
+        VelleButtonVariant.Primary => "btn btn--primary",
+        VelleButtonVariant.Secondary => "btn btn--secondary",
+        VelleButtonVariant.Default => "btn",
+        _ => "btn btn--negative",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("dialog", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? DialogAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "role", "aria-labelledby", "aria-describedby");
+}

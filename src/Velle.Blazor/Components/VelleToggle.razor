@@ -1,0 +1,92 @@
+@namespace Velle.Blazor
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+<label class="@CombinedClass" @attributes="LabelAttributes">
+    <input type="checkbox"
+           id="@EffectiveId"
+           name="@Name"
+           value="@Value"
+           checked="@EffectiveChecked"
+           disabled="@Disabled"
+           aria-invalid="@(IsInvalid ? "true" : null)" />
+    @if (IncludeHiddenFalse)
+    {
+        <input type="hidden" name="@Name" value="false" />
+    }
+    @ChildContent
+</label>
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Bookmark</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the underlying checkbox. When omitted, a stable identifier is derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Explicit pressed/checked state. Takes precedence over a boolean evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public bool? Checked { get; set; }
+
+    /// <summary>
+    /// Value submitted when toggled on (defaults to <c>"true"</c>).
+    /// </summary>
+    [Parameter] public string Value { get; set; } = "true";
+
+    /// <summary>
+    /// When <see langword="true"/> (default), emits a hidden <c>false</c> fallback input so an unchecked toggle submits <c>false</c> on POST.
+    /// </summary>
+    [Parameter] public bool IncludeHiddenFalse { get; set; } = true;
+
+    /// <summary>
+    /// Disables the underlying checkbox control.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound boolean model property (for example, <c>() =&gt; Input!.Bold</c>).
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Toggle label content (icons, text, etc.).
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;label&gt;</c> element alongside <c>btn btn--toggle</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the outer <c>&lt;label&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private bool EffectiveChecked => Checked ?? (FormFieldUtilities.EvaluateExpression(For) is true);
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("btn btn--toggle", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? LabelAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

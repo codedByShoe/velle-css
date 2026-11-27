@@ -1,0 +1,54 @@
+@namespace Velle.Blazor
+
+<nav class="@CombinedClass" aria-label="@Label" @attributes="RootAttributes">
+    @for (var index = 0; index < Items.Count; index++)
+    {
+        var item = Items[index];
+        var isLast = index == Items.Count - 1;
+        @if (index > 0)
+        {
+            <span class="icon icon--chevron-right" aria-hidden="true"></span>
+        }
+        @if (!isLast && !string.IsNullOrEmpty(item.Href))
+        {
+            <a @key="index" href="@item.Href">@item.Label</a>
+        }
+        else
+        {
+            <span @key="index" class="text-primary" aria-current="@(isLast ? "page" : null)">@item.Label</span>
+        }
+    }
+    @ChildContent
+</nav>
+
+@code {
+    /// <summary>
+    /// Ordered breadcrumb trail items from root to current page.
+    /// </summary>
+    [Parameter] public IReadOnlyList<VelleBreadcrumbItem> Items { get; set; } = [];
+
+    /// <summary>
+    /// Accessible label applied to the <c>&lt;nav&gt;</c> element (defaults to <c>"Breadcrumb"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Breadcrumb";
+
+    /// <summary>
+    /// Optional custom breadcrumb markup rendered inside the <c>&lt;nav&gt;</c> element.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;nav&gt;</c> element alongside <c>breadcrumb</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;nav&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("breadcrumb", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "aria-label");
+}

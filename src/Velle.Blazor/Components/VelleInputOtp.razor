@@ -1,0 +1,193 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label))
+{
+    <div class="@CombinedWrapperClass">
+        <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        @OtpField
+    </div>
+}
+else
+{
+    @OtpField
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Code</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the overlay input. Defaults to a stable slug derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the OTP field and associated via <c>for</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Number of character slots (defaults to <c>6</c>, clamped to at least <c>1</c>).
+    /// </summary>
+    [Parameter] public int Length { get; set; } = 6;
+
+    /// <summary>
+    /// Optional group size used to insert visual <c>.input-otp__separator</c> dividers between slot groups (for example, <c>3</c> for a 6-digit code renders <c>3 - 3</c>).
+    /// </summary>
+    [Parameter] public int? GroupSize { get; set; }
+
+    /// <summary>
+    /// Allowed character pattern (defaults to <see cref="VelleOtpPattern.Digits"/>).
+    /// </summary>
+    [Parameter] public VelleOtpPattern Pattern { get; set; } = VelleOtpPattern.Digits;
+
+    /// <summary>
+    /// When <see langword="true"/>, applies <c>input-otp--lg</c> for larger slots and text.
+    /// </summary>
+    [Parameter] public bool Large { get; set; }
+
+    /// <summary>
+    /// Explicit initial code value. Takes precedence over a value evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound model property.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.input-otp</c> root container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the label/field wrapper when <see cref="Label"/> is set.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the overlay <c>&lt;input&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private int SafeLength => Math.Max(1, Length);
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private string? EffectiveValue
+    {
+        get
+        {
+            if (Value is not null) return Value;
+            var evaluated = FormFieldUtilities.EvaluateExpression(For);
+            return evaluated is null ? null : Convert.ToString(evaluated, CultureInfo.InvariantCulture);
+        }
+    }
+
+    private string PatternValue => Pattern switch
+    {
+        VelleOtpPattern.Chars => "chars",
+        VelleOtpPattern.DigitsAndChars => "digits-and-chars",
+        _ => "digits",
+    };
+
+    private string InputMode => Pattern == VelleOtpPattern.Digits ? "numeric" : "text";
+
+    private IReadOnlyList<int> SlotGroups
+    {
+        get
+        {
+            if (GroupSize is not > 0 || GroupSize.Value >= SafeLength)
+            {
+                return [SafeLength];
+            }
+
+            var groups = new List<int>();
+            var remaining = SafeLength;
+            while (remaining > 0)
+            {
+                var count = Math.Min(GroupSize.Value, remaining);
+                groups.Add(count);
+                remaining -= count;
+            }
+            return groups;
+        }
+    }
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedRootClass => AttributeUtilities.CombineClasses(
+        "input-otp",
+        Class,
+        AdditionalAttributes,
+        string.Join(" ", new[] { Large ? "input-otp--lg" : "", FieldCssClass }.Where(static s => !string.IsNullOrWhiteSpace(s))));
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "value", "maxlength", "autocomplete", "inputmode", "spellcheck", "aria-invalid");
+
+    private RenderFragment OtpField => @<div class="@CombinedRootClass"
+                                            x-data="velleInputOtp"
+                                            x-on:velle-enhanced-load.window="refresh"
+                                            data-velle-otp-pattern="@PatternValue">
+        @{
+            var groups = SlotGroups;
+            var slotOffset = 0;
+        }
+        @for (var groupIndex = 0; groupIndex < groups.Count; groupIndex++)
+        {
+            var groupCount = groups[groupIndex];
+            @if (groupIndex > 0)
+            {
+                <div class="input-otp__separator" role="separator">
+                    <span class="icon icon--minus" aria-hidden="true"></span>
+                </div>
+            }
+            <div @key="groupIndex" class="input-otp__group">
+                @for (var i = 0; i < groupCount; i++)
+                {
+                    var charIndex = slotOffset + i;
+                    var initialChar = EffectiveValue is not null && charIndex < EffectiveValue.Length
+                        ? EffectiveValue[charIndex].ToString()
+                        : "";
+                    <div @key="charIndex" class="input-otp__slot" data-velle-otp-slot>@initialChar</div>
+                }
+            </div>
+            slotOffset += groupCount;
+        }
+        <input id="@EffectiveId"
+               name="@Name"
+               class="input-otp__input"
+               value="@EffectiveValue"
+               maxlength="@SafeLength"
+               autocomplete="one-time-code"
+               inputmode="@InputMode"
+               spellcheck="false"
+               aria-invalid="@(IsInvalid ? "true" : null)"
+               x-on:input="onInput"
+               x-on:focus="onFocus"
+               x-on:blur="onBlur"
+               x-on:select="moveCaret"
+               x-on:click="moveCaret"
+               x-on:keyup="moveCaret"
+               @attributes="InputAttributes" />
+    </div>;
+}

@@ -44,18 +44,47 @@ test("the .NET generator reproduces the committed distribution", () => {
   compareTrees(join(generated, "dist"), join(repo, "dist"))
 })
 
-test("the documentation publishes every registry page, asset and LLM reference", () => {
-  const names = ["guide", "tokens", "utilities", ...readdirSync(join(repo, "registry", "components"), { withFileTypes: true })
-    .filter(entry => entry.isDirectory()).map(({ name }) => name)]
+test("the documentation publishes every Blazor component, roadmap CSS page, asset and LLM reference", () => {
+  const blazorPages = [
+    "velle-styles",
+    "velle-accordion", "velle-alert", "velle-avatar", "velle-badge", "velle-breadcrumb",
+    "velle-button", "velle-card", "velle-carousel", "velle-chart", "velle-collapsible", "velle-group",
+    "velle-icon", "velle-kbd", "velle-list", "velle-pagination", "velle-progress", "velle-separator",
+    "velle-skeleton", "velle-sortable", "velle-table", "velle-tabs",
+    "velle-autosave", "velle-check-all", "velle-combobox", "velle-datepicker", "velle-dropzone",
+    "velle-dual-range", "velle-editor", "velle-form-helper", "velle-input", "velle-input-clearable",
+    "velle-input-copyable", "velle-input-mask", "velle-input-otp", "velle-input-revealable",
+    "velle-switch", "velle-toggle", "velle-upload-preview",
+    "velle-command", "velle-confirm", "velle-context-menu", "velle-dialog", "velle-dropdown",
+    "velle-flash", "velle-lightbox", "velle-menu", "velle-popover", "velle-sheet",
+    "velle-color-scheme", "velle-layout", "velle-resizable",
+    "velle-auto-animate", "velle-auto-select", "velle-fullscreen", "velle-hotkey",
+    "velle-local-time", "velle-timezone-cookie", "velle-toggle-class", "velle-web-share",
+  ]
+  const portedCss = new Set([
+    "accordion", "alert", "avatar", "badge", "breadcrumb", "button", "card", "carousel", "chart", "collapsible", "group",
+    "icons", "keyboard", "list", "pagination", "progress", "separator", "skeleton", "sortable",
+    "table", "tabs", "autosave", "check_all", "combobox", "datepicker", "dropzone", "dual_range", "editor", "form",
+    "input", "input_clearable", "input_copyable", "inputmask", "input_otp", "input_revealable", "switch", "toggle",
+    "upload_preview", "command", "confirm", "context_menu", "dialog", "dropdown", "flash", "lightbox",
+    "menu", "popover", "sheet", "color_scheme", "layouts", "resizable", "autoanimate", "autoselect",
+    "fullscreen", "hotkey", "local_time", "timezone_cookie", "toggle_class", "web_share",
+  ])
+  const cssComponents = readdirSync(join(repo, "registry", "components"), { withFileTypes: true })
+    .filter(entry => entry.isDirectory()).map(({ name }) => name)
+  const names = ["guide", "tokens", "utilities", ...blazorPages, ...cssComponents]
 
   const llms = docs("llms.txt")
   const full = docs("llms-full.txt")
-  assert.match(llms, /^# velle-css\n\n> /)
+  assert.match(llms, /^# Velle\n\n> /)
   for (const name of names) {
     assert.ok(llms.includes(`https://codedbyshoe.github.io/velle-css/${name}.md)`), name)
     assert.ok(full.includes(docs(name + ".md")), name)
   }
-  for (const page of ["index", "javascript", ...names.filter(name => name !== "guide")]) {
+
+  const sidebarPages = ["index", "javascript", "tokens", "utilities", ...blazorPages,
+    ...cssComponents.filter(name => !portedCss.has(name))]
+  for (const page of sidebarPages) {
     const html = docs(page + ".html")
     assert.ok(html.includes(`href="${page}.html" aria-current="page"`), page)
   }
@@ -70,6 +99,12 @@ test("the documentation publishes every registry page, asset and LLM reference",
   assert.match(docs("layouts.html"), /<iframe class="docs-frame-preview" srcdoc="&lt;!doctype html&gt;/)
   assert.match(docs("datepicker.html"), /assets\/adapters\/datepicker\.js/)
   assert.match(docs("assets/adapters/datepicker.js"), /from "\.\.\/velle\.js"/)
+  assert.match(docs("dialog.html"), /href="velle-dialog\.html"/)
+  assert.match(docs("velle-button.html"), /VelleButtonVariant/)
+  assert.match(docs("velle-input.html"), /EditContext/)
+  assert.match(docs("velle-datepicker.html"), /VelleDatepickerType/)
+  assert.match(docs("velle-styles.html"), /IncludeDatepicker/)
+  assert.match(docs("index.html"), /data-docs-search/)
 })
 
 test("regeneration removes retired htmx files and documentation links", () => {
@@ -80,16 +115,23 @@ test("regeneration removes retired htmx files and documentation links", () => {
   }
 })
 
-test("the generated installation instructions use the versioned NuGet package", () => {
-  const version = source("src/VelleVersion.props").match(/<Version>([^<]+)<\/Version>/)[1]
-  const install = `dotnet tool install Velle.Tool --version ${version}`
-  const packageUrl = `https://www.nuget.org/packages/Velle.Tool/${version}`
+test("the generated installation instructions match Velle.Blazor and legacy Velle.Tool versions", () => {
+  const blazorVersion = source("Directory.Build.props").match(/<VelleBlazorVersion>([^<]+)<\/VelleBlazorVersion>/)[1]
+  const toolVersion = source("src/VelleVersion.props").match(/<Version>([^<]+)<\/Version>/)[1]
+
+  const blazorInstall = `dotnet add package Velle.Blazor --version ${blazorVersion}`
+  const toolInstall = `dotnet tool install Velle.Tool --version ${toolVersion}`
+  const packageUrl = `https://www.nuget.org/packages/Velle.Tool/${toolVersion}`
+
   for (const path of ["index.html", "guide.md", "llms-full.txt"]) {
     const content = docs(path)
-    assert.ok(content.includes(install + "\n"), path)
+    assert.ok(content.includes(blazorInstall), path)
+    assert.ok(content.includes(toolInstall), path)
     assert.ok(content.includes(packageUrl), path)
     assert.doesNotMatch(content, /bin\/nuget/, path)
   }
+
+  assert.ok(docs("index.html").includes("VelleStyles"))
   assert.ok(docs("button.html").includes('value="dotnet tool run velle add button"'))
-  assert.ok(docs("button.md").includes("`dotnet tool run velle add button`"))
+  assert.ok(docs("button.md").includes("`<VelleStyles />`"))
 })

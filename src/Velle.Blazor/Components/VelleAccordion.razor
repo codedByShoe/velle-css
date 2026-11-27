@@ -1,0 +1,50 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">
+    @if (Items is { Count: > 0 })
+    {
+        @for (var index = 0; index < Items.Count; index++)
+        {
+            var item = Items[index];
+            <details @key="index" name="@GroupName" open="@item.Open">
+                <summary aria-disabled="@(item.Disabled ? "true" : null)" tabindex="@(item.Disabled ? -1 : null)">
+                    @item.Title
+                </summary>
+                <div class="pbe-4">@item.Content</div>
+            </details>
+        }
+    }
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Collapsible sections rendered as native <c>&lt;details&gt;</c> elements.
+    /// </summary>
+    [Parameter] public IReadOnlyList<VelleAccordionItem> Items { get; set; } = [];
+
+    /// <summary>
+    /// Optional shared <c>name</c> attribute applied to each <c>&lt;details&gt;</c> element so only one section opens at a time.
+    /// </summary>
+    [Parameter] public string? GroupName { get; set; }
+
+    /// <summary>
+    /// Optional custom <c>&lt;details&gt;</c> markup rendered inside the accordion container.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.accordion</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("accordion", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

@@ -1,0 +1,31 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleCheckAll"
+     x-on:change="onChange"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper <c>&lt;div&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Checkboxes coordinated by this group. Mark the master checkbox with <c>data-velle-check-all-dependee</c>
+    /// and each item checkbox with <c>data-velle-check-all-dependant</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "x-on:change");
+}

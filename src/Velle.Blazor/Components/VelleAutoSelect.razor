@@ -1,0 +1,36 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleAutoSelect"
+     x-on:velle-enhanced-load.window="refresh"
+     data-velle-autoselect-always="@(Always ? "true" : null)"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// When <see langword="true"/>, selects the inner input's text on mount even without the <c>autofocus</c> attribute.
+    /// </summary>
+    [Parameter] public bool Always { get; set; }
+
+    /// <summary>
+    /// Input or textarea content whose text should be automatically selected.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "x-on:velle-enhanced-load.window", "data-velle-autoselect-always");
+}

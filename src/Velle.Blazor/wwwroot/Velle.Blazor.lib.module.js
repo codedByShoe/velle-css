@@ -1,5 +1,26 @@
 import BundledAlpine from "./lib/alpine/alpine-csp.min.js"
+import maskPlugin from "./lib/alpine/alpine-mask.min.js"
+import sortPlugin from "./lib/alpine/alpine-sort.min.js"
 import { datepicker } from "./js/datepicker.js"
+import { colorScheme, flash, hoverPopover, initColorSchemeRoot, menu } from "./js/overlays.js"
+import { inputClearable, inputCopyable, inputOtp, inputRevealable } from "./js/inputs.js"
+import { carousel, command, confirmDialog, contextMenu, lightbox, resizable } from "./js/advanced.js"
+import { checkAll, dropzone, dualRange, localTime, timezoneCookie } from "./js/forms_advanced.js"
+import {
+  autoSelect,
+  autosave,
+  collapsible,
+  formHelper,
+  fullscreen,
+  hotkey,
+  inputMask,
+  sortable,
+  toggleClass,
+  uploadPreview,
+  webShare,
+} from "./js/behaviors.js"
+import { chart } from "./js/chart.js"
+import { editor } from "./js/editor.js"
 
 let enhancedLoadWired = false
 let alpineInitialized = false
@@ -135,9 +156,46 @@ export function afterWebStarted(blazor) {
     window.Alpine = alpine
   }
 
+  alpine.plugin(maskPlugin)
+  alpine.plugin(sortPlugin)
+
   alpine.data("velleDialog", dialog)
   alpine.data("velleTabs", tabs)
   alpine.data("velleDatepicker", datepicker)
+  alpine.data("velleMenu", menu)
+  alpine.data("velleHoverPopover", hoverPopover)
+  alpine.data("velleFlash", flash)
+  alpine.data("velleColorScheme", colorScheme)
+  alpine.data("velleInputClearable", inputClearable)
+  alpine.data("velleInputCopyable", inputCopyable)
+  alpine.data("velleInputRevealable", inputRevealable)
+  alpine.data("velleInputOtp", inputOtp)
+  alpine.data("velleCommand", command)
+  alpine.data("velleConfirm", confirmDialog)
+  alpine.data("velleContextMenu", contextMenu)
+  alpine.data("velleLightbox", lightbox)
+  alpine.data("velleCarousel", carousel)
+  alpine.data("velleResizable", resizable)
+  alpine.data("velleDualRange", dualRange)
+  alpine.data("velleDropzone", dropzone)
+  alpine.data("velleCheckAll", checkAll)
+  alpine.data("velleLocalTime", localTime)
+  alpine.data("velleTimezoneCookie", timezoneCookie)
+  alpine.data("velleCollapsible", collapsible)
+  alpine.data("velleUploadPreview", uploadPreview)
+  alpine.data("velleWebShare", webShare)
+  alpine.data("velleFullscreen", fullscreen)
+  alpine.data("velleAutosave", autosave)
+  alpine.data("velleFormHelper", formHelper)
+  alpine.data("velleAutoSelect", autoSelect)
+  alpine.data("velleHotkey", hotkey)
+  alpine.data("velleToggleClass", toggleClass)
+  alpine.data("velleInputMask", inputMask)
+  alpine.data("velleSortable", sortable)
+  alpine.data("velleChart", chart)
+  alpine.data("velleEditor", editor)
+
+  initColorSchemeRoot()
 
   if (!isAlpineStarted() && !hadAlpine) {
     window.dispatchEvent(new CustomEvent("velle:before-start", { detail: { Alpine: alpine } }))
