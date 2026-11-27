@@ -1,0 +1,110 @@
+@namespace Velle.Blazor
+
+<div x-data="velleDialog" x-on:velle-enhanced-load.window="refresh">
+    @if (Trigger is not null)
+    {
+        @Trigger
+    }
+    else if (!string.IsNullOrEmpty(TriggerText))
+    {
+        <button type="button" class="@CombinedTriggerClass" aria-haspopup="dialog" aria-controls="@Id" x-on:click="show">
+            @TriggerText
+        </button>
+    }
+
+    <dialog id="@Id"
+            class="@CombinedDialogClass"
+            aria-labelledby="@TitleId"
+            data-velle-open="@(Open ? "true" : "false")"
+            x-on:click.self="close"
+            x-on:close="onClose"
+            @attributes="DialogAttributes">
+        <div class="dialog__content flex flex-col gap">
+            <h2 id="@TitleId" class="font-semibold">@Title</h2>
+            @ChildContent
+            @if (Footer is not null)
+            {
+                @Footer
+            }
+            else if (ShowCloseButton)
+            {
+                <button type="button" class="btn btn--plain" x-on:click="close">@CloseText</button>
+            }
+        </div>
+    </dialog>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the <c>&lt;dialog&gt;</c> element.
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Heading text rendered inside the dialog and referenced by <c>aria-labelledby</c>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = null!;
+
+    /// <summary>
+    /// Text for the default trigger button. Ignored when <see cref="Trigger"/> is provided.
+    /// Omit both <see cref="TriggerText"/> and <see cref="Trigger"/> to control the dialog solely through <see cref="Open"/>.
+    /// </summary>
+    [Parameter] public string? TriggerText { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the default trigger button alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// Optional custom trigger markup rendered inside the dialog's Alpine scope.
+    /// Add <c>x-on:click="show"</c> to an interactive element to open the dialog.
+    /// </summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>
+    /// Controls whether the dialog should be open when rendered or patched by an enhanced form post.
+    /// </summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>
+    /// Controls whether the default close button is rendered when <see cref="Footer"/> is not provided.
+    /// </summary>
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>
+    /// Label for the default close button.
+    /// </summary>
+    [Parameter] public string CloseText { get; set; } = "Close";
+
+    /// <summary>
+    /// Optional custom footer markup rendered instead of the default close button.
+    /// Elements can close the dialog via <c>x-on:click="close"</c> or <c>&lt;form method="dialog"&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;dialog&gt;</c> element alongside <c>dialog</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Body content rendered inside the dialog.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;dialog&gt;</c> element.
+    /// Any <c>class</c> attribute is merged with <c>dialog</c> and <see cref="Class"/>.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string TitleId => $"{Id}-title";
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn", TriggerClass, null);
+
+    private string? CombinedDialogClass => AttributeUtilities.CombineClasses("dialog", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? DialogAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id");
+}

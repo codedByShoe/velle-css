@@ -15,6 +15,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Build solution
+        run: dotnet build Velle.slnx -c Release
+      - name: Run .NET component tests
+        run: dotnet test Velle.slnx -c Release --no-build
       - run: npm ci
       - run: npm test
       - run: npm run typecheck
@@ -22,3 +26,7 @@ jobs:
         run: npm run test:docs
       - name: Verify the .NET tool
         run: npm run test:tool
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium --only-shell
+      - name: Run Blazor SSR browser tests
+        run: npm run test:blazor

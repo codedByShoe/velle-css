@@ -1,0 +1,205 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using System.Text.Json
+@using Microsoft.AspNetCore.Components.Forms
+
+<div x-data="velleDatepicker"
+     x-on:velle-enhanced-load.window="refresh"
+     data-velle-datepicker-options="@Options"
+     class="@CombinedWrapperClass">
+    <label for="@EffectiveId">@Label</label>
+    <input type="text"
+           id="@EffectiveId"
+           name="@Name"
+           value="@EffectiveValue"
+           placeholder="@Placeholder"
+           class="@CombinedInputClass"
+           aria-invalid="@(IsInvalid ? "true" : null)"
+           @attributes="InputAttributes" />
+</div>
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Unique DOM identifier for the input element. When omitted, a stable identifier is derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Date</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Visible label text associated with the picker input.
+    /// </summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = null!;
+
+    /// <summary>
+    /// Initial value in the submitted wire format (<c>yyyy-MM-dd</c>, <c>yyyy-MM-dd HH:mm</c>, or <c>HH:mm</c>).
+    /// Takes precedence over a value formatted from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound model property (for example, <c>() =&gt; Input!.Date</c>).
+    /// Enables automatic wire-format formatting for <see cref="DateOnly"/>, <see cref="DateTime"/>,
+    /// <see cref="DateTimeOffset"/>, <see cref="TimeOnly"/>, and <see cref="string"/> values when <see cref="Value"/>
+    /// is not specified, and links the input to <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Optional placeholder text shown when no date is selected.
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Picker kind controlling calendar/time UI and submitted wire format.
+    /// </summary>
+    [Parameter] public VelleDatepickerType Type { get; set; } = VelleDatepickerType.Date;
+
+    /// <summary>
+    /// Calendar selection mode (<see cref="VelleDatepickerMode.Single"/>, <see cref="VelleDatepickerMode.Range"/>,
+    /// or <see cref="VelleDatepickerMode.Multiple"/>).
+    /// </summary>
+    [Parameter] public VelleDatepickerMode Mode { get; set; } = VelleDatepickerMode.Single;
+
+    /// <summary>
+    /// ISO date strings (<c>yyyy-MM-dd</c>) disabled in the calendar.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string> DisabledDates { get; set; } = [];
+
+    /// <summary>
+    /// Number of calendar months displayed side by side.
+    /// </summary>
+    [Parameter] public int ShowMonths { get; set; } = 1;
+
+    /// <summary>
+    /// Human-readable display format used when <see cref="Type"/> is <see cref="VelleDatepickerType.Date"/> (Flatpickr tokens).
+    /// </summary>
+    [Parameter] public string DateFormat { get; set; } = "F d, Y";
+
+    /// <summary>
+    /// Human-readable display format used when <see cref="Type"/> is <see cref="VelleDatepickerType.DateTime"/> (Flatpickr tokens).
+    /// </summary>
+    [Parameter] public string DateTimeFormat { get; set; } = "F d, Y H:i";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;input&gt;</c> element alongside <c>input</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer wrapper <c>&lt;div&gt;</c> alongside <c>flex flex-col gap</c>.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;input&gt;</c> element (such as <c>required</c>, <c>disabled</c>,
+    /// or <c>aria-describedby</c>). Any <c>class</c> attribute is merged with <c>input</c> and <see cref="Class"/>.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private string? EffectiveValue => Value ?? FormatExpressionValue();
+
+    private FieldIdentifier? ResolvedFieldIdentifier
+    {
+        get
+        {
+            if (For is not null)
+            {
+                return FieldIdentifier.Create(For);
+            }
+
+            if (EditContext is not null && !string.IsNullOrWhiteSpace(Name))
+            {
+                var dotIndex = Name.LastIndexOf('.');
+                var fieldName = dotIndex >= 0 && dotIndex < Name.Length - 1
+                    ? Name[(dotIndex + 1)..]
+                    : Name;
+                return EditContext.Field(fieldName);
+            }
+
+            return null;
+        }
+    }
+
+    private bool IsInvalid => EditContext is not null
+        && ResolvedFieldIdentifier is { } fieldIdentifier
+        && EditContext.GetValidationMessages(fieldIdentifier).Any();
+
+    private string? FieldCssClass => EditContext is not null && ResolvedFieldIdentifier is { } fieldIdentifier
+        ? EditContext.FieldCssClass(fieldIdentifier)
+        : null;
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap", WrapperClass, null);
+
+    private string? CombinedInputClass => AttributeUtilities.CombineClasses("input", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "type", "value", "placeholder", "aria-invalid");
+
+    private string Options => JsonSerializer.Serialize(new
+    {
+        type = Type switch
+        {
+            VelleDatepickerType.DateTime => "datetime",
+            VelleDatepickerType.Time => "time",
+            _ => "date",
+        },
+        mode = Mode switch
+        {
+            VelleDatepickerMode.Range => "range",
+            VelleDatepickerMode.Multiple => "multiple",
+            _ => "single",
+        },
+        disable = DisabledDates,
+        showMonths = ShowMonths,
+        dateFormat = DateFormat,
+        dateTimeFormat = DateTimeFormat,
+    });
+
+    private string? FormatExpressionValue()
+    {
+        if (For is null)
+        {
+            return null;
+        }
+
+        var value = For.Compile().Invoke();
+        return value switch
+        {
+            null => null,
+            string text => text,
+            DateOnly date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            TimeOnly time => time.ToString("HH:mm", CultureInfo.InvariantCulture),
+            DateTime dateTime => dateTime.ToString(
+                Type switch
+                {
+                    VelleDatepickerType.Time => "HH:mm",
+                    VelleDatepickerType.DateTime => "yyyy-MM-dd HH:mm",
+                    _ => "yyyy-MM-dd",
+                },
+                CultureInfo.InvariantCulture),
+            DateTimeOffset dateTimeOffset => dateTimeOffset.ToString(
+                Type switch
+                {
+                    VelleDatepickerType.Time => "HH:mm",
+                    VelleDatepickerType.DateTime => "yyyy-MM-dd HH:mm",
+                    _ => "yyyy-MM-dd",
+                },
+                CultureInfo.InvariantCulture),
+            _ => Convert.ToString(value, CultureInfo.InvariantCulture),
+        };
+    }
+}

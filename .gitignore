@@ -11,4 +11,6 @@ node_modules/
 /src/**/obj/
 /samples/**/bin/
 /samples/**/obj/
+/test/**/bin/
+/test/**/obj/
 /test/blazor/test-results/

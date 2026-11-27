@@ -1,5 +1,14 @@
-import Alpine from "./vendor/alpine-csp-3.15.12.min.js"
-import { datepicker } from "./datepicker.js"
+import BundledAlpine from "./lib/alpine/alpine-csp.min.js"
+import { datepicker } from "./js/datepicker.js"
+
+let enhancedLoadWired = false
+let alpineInitialized = false
+
+if (typeof document !== "undefined") {
+  document.addEventListener("alpine:initialized", () => {
+    alpineInitialized = true
+  })
+}
 
 function dialog() {
   return {
@@ -13,6 +22,8 @@ function dialog() {
 
     refresh() {
       const dialog = this.dialog
+      if (!dialog) return
+
       // Blazor can remove the open attribute while the dialog is still modal.
       // Restore it so the native close() can remove the dialog from the top layer.
       if (dialog.matches(":modal") && !dialog.open) {
@@ -27,11 +38,18 @@ function dialog() {
     },
 
     show() {
-      if (!this.dialog.open) this.dialog.showModal()
+      const dialog = this.dialog
+      if (dialog && !dialog.open) dialog.showModal()
     },
 
     close() {
-      if (this.dialog.open) this.dialog.close()
+      const dialog = this.dialog
+      if (dialog && dialog.open) dialog.close()
+    },
+
+    onClose() {
+      const dialog = this.dialog
+      if (dialog) dialog.dataset.velleOpen = "false"
     },
   }
 }
@@ -104,14 +122,33 @@ function tabs() {
   }
 }
 
-export function afterWebStarted(blazor) {
-  Alpine.data("velleDialog", dialog)
-  Alpine.data("velleTabs", tabs)
-  Alpine.data("velleDatepicker", datepicker)
-  Alpine.start()
+function isAlpineStarted() {
+  if (alpineInitialized) return true
+  const existing = document.querySelector("[x-data]")
+  return Boolean(existing && existing._x_dataStack)
+}
 
-  // Blazor can patch attributes on elements that Alpine has already initialized.
-  blazor.addEventListener("enhancedload", () => {
-    window.dispatchEvent(new Event("velle-enhanced-load"))
-  })
+export function afterWebStarted(blazor) {
+  const hadAlpine = Boolean(window.Alpine)
+  const alpine = window.Alpine ?? BundledAlpine
+  if (!hadAlpine) {
+    window.Alpine = alpine
+  }
+
+  alpine.data("velleDialog", dialog)
+  alpine.data("velleTabs", tabs)
+  alpine.data("velleDatepicker", datepicker)
+
+  if (!isAlpineStarted() && !hadAlpine) {
+    window.dispatchEvent(new CustomEvent("velle:before-start", { detail: { Alpine: alpine } }))
+    alpine.start()
+  }
+
+  if (!enhancedLoadWired) {
+    enhancedLoadWired = true
+    // Blazor can patch attributes on elements that Alpine has already initialized.
+    blazor.addEventListener("enhancedload", () => {
+      window.dispatchEvent(new Event("velle-enhanced-load"))
+    })
+  }
 }

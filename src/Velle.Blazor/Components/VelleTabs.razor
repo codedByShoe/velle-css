@@ -1,0 +1,82 @@
+@namespace Velle.Blazor
+
+<div id="@Id"
+     class="@CombinedClass"
+     data-velle-selected="@InitialIndex"
+     x-data="velleTabs"
+     x-on:velle-enhanced-load.window="refresh"
+     @attributes="RootAttributes">
+    <div class="tabs__list" role="tablist" aria-label="@Label" x-on:keydown="onKeydown">
+        @for (var index = 0; index < Items.Count; index++)
+        {
+            var selected = index == InitialIndex;
+            <button @key="TabId(index)"
+                    id="@TabId(index)"
+                    class="btn tabs__button"
+                    type="button"
+                    role="tab"
+                    aria-selected="@(selected ? "true" : "false")"
+                    aria-controls="@PanelId(index)"
+                    tabindex="@(selected ? 0 : -1)"
+                    x-on:click="select">
+                @Items[index].Label
+            </button>
+        }
+    </div>
+
+    @for (var index = 0; index < Items.Count; index++)
+    {
+        <div @key="PanelId(index)"
+             id="@PanelId(index)"
+             role="tabpanel"
+             aria-labelledby="@TabId(index)"
+             tabindex="0"
+             hidden="@(index != InitialIndex)">
+            @Items[index].Content
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the tab container, also used as a prefix for tab and panel IDs.
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Accessible name applied to the <c>role="tablist"</c> container via <c>aria-label</c>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = null!;
+
+    /// <summary>
+    /// Ordered collection of tab definitions. Accepting <see cref="VelleTab"/> items directly allows
+    /// the tablist buttons and tabpanels to render in a single deterministic Static SSR pass.
+    /// </summary>
+    [Parameter, EditorRequired] public IReadOnlyList<VelleTab> Items { get; set; } = [];
+
+    /// <summary>
+    /// Zero-based index of the initially selected tab. Clamped to the valid range of <see cref="Items"/>.
+    /// </summary>
+    [Parameter] public int SelectedIndex { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root container alongside <c>tabs</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container element.
+    /// Any <c>class</c> attribute is merged with <c>tabs</c> and <see cref="Class"/>.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private int InitialIndex => Math.Clamp(SelectedIndex, 0, Math.Max(0, Items.Count - 1));
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("tabs", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id");
+
+    private string TabId(int index) => $"{Id}-tab-{index}";
+    private string PanelId(int index) => $"{Id}-panel-{index}";
+}

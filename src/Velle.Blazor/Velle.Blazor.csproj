@@ -1,19 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.1.0-alpha.1</Version>
-    <Description>Velle CSS components for Blazor with Alpine.js browser behavior.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/codedbyshoe/velle-css</RepositoryUrl>
+    <Description>Blazor Static SSR component library powered by Velle CSS and Alpine.js CSP.</Description>
+    <PackageTags>blazor;ssr;css;components;alpinejs;razor-components</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.15" />
-    <Content Include="../../dist/velle.css" Link="wwwroot/velle.css"
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <Content Remove="wwwroot/lib/README.md" />
+    <None Include="wwwroot/lib/README.md" />
+    <Content Include="../../dist/velle.css" Link="wwwroot/css/velle.css"
              ContentRoot="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '../../dist'))" />
-    <Content Include="../../dist/adapters/datepicker.css" Link="wwwroot/datepicker.css"
+    <Content Include="../../dist/adapters/datepicker.css" Link="wwwroot/css/datepicker.css"
              ContentRoot="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '../../dist/adapters'))" />
   </ItemGroup>
 </Project>
