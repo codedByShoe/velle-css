@@ -11,12 +11,14 @@
 
 <section class="docs-section" aria-labelledby="usage">
   <h2 id="usage">Usage</h2>
-  {{ for example in meta.Examples }}
+  {{ for example in component.Examples }}
   <div class="docs-example">
     <h3 id="{{ escape_html example.Id }}"><a href="#{{ escape_html example.Id }}">{{ escape_html example.Title }}</a></h3>
     {{ if example.Description != "" }}<p class="text-sm text-subtle">{{ escape_html example.Description }}</p>{{ end }}
 
-    {{ if example.PreviewHtml != "" }}
+    {{ if example.FrameDoc != "" }}
+    <iframe class="docs-frame-preview" srcdoc="{{ escape_html example.FrameDoc }}" title="{{ escape_html example.Title }} preview"{{ if example.FrameHeight != "" }} style="block-size: {{ example.FrameHeight }}"{{ end }}></iframe>
+    {{ else if example.PreviewHtml != "" }}
     <div class="docs-preview">
       {{ example.PreviewHtml }}
     </div>

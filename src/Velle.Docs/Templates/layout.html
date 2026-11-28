@@ -10,8 +10,8 @@
   {{ if page.Component != null }}{{ component = page.Component }}{{ for stylesheet in component.Stylesheets }}<link rel="stylesheet" href="{{ safe_url stylesheet }}">
   {{ end }}{{ end }}{{ if page.BlazorComponent != null }}{{ blazor = page.BlazorComponent }}{{ for stylesheet in blazor.Stylesheets }}<link rel="stylesheet" href="{{ safe_url stylesheet }}">
   {{ end }}{{ end }}<link rel="stylesheet" href="assets/docs.css">
-  <script type="module" src="assets/velle.js"></script>
-  {{ if page.Component != null }}{{ component = page.Component }}{{ for script in component.Scripts }}<script type="module" src="{{ safe_url script }}"></script>
+  {{ if page.BlazorComponent == null }}<script type="module" src="assets/velle.js"></script>
+  {{ end }}{{ if page.Component != null }}{{ component = page.Component }}{{ for script in component.Scripts }}<script type="module" src="{{ safe_url script }}"></script>
   {{ end }}{{ end }}{{ if page.BlazorComponent != null }}{{ blazor = page.BlazorComponent }}{{ for script in blazor.Scripts }}<script type="module" src="{{ safe_url script }}"></script>
   {{ end }}{{ end }}
   <script src="assets/docs.js" defer></script>

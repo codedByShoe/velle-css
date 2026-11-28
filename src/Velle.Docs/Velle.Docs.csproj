@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
   <Import Project="../VelleVersion.props" />
 
   <PropertyGroup>
@@ -9,6 +9,7 @@
   <ItemGroup>
     <AssemblyMetadata Include="BlazorVersion" Value="$(VelleBlazorVersion)" />
     <PackageReference Include="Scriban" Version="7.6.1" />
+    <ProjectReference Include="../Velle.Blazor/Velle.Blazor.csproj" />
     <Compile Include="../Shared/Registry.cs" Link="Registry.cs" />
     <EmbeddedResource Include="../../registry/**/*"
                       LogicalName="registry/%(RecursiveDir)%(Filename)%(Extension)"
@@ -18,5 +19,9 @@
                       WithCulture="false" />
     <EmbeddedResource Include="Templates/*.html;Templates/*.md"
                       LogicalName="docs/templates/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../Velle.Blazor/wwwroot/**/*"
+                      Exclude="../Velle.Blazor/wwwroot/lib/README.md"
+                      LogicalName="blazor-assets/%(RecursiveDir)%(Filename)%(Extension)"
+                      WithCulture="false" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Scriban;
 using Scriban.Runtime;
+using Velle.Docs.Examples;
 
 namespace Velle.Docs;
 
@@ -15,8 +16,10 @@ internal sealed class Documentation(Registry registry, Bundles bundles, string v
     private static readonly Regex DemoAttribute = new(" data-demo-[a-z-]+=\"[^\"]*\"");
     private static readonly Regex SafeHeight = new(@"\A(?:[0-9]+(?:\.[0-9]+)?(?:rem|em|px|vh|vw|%)?|auto)\z");
     private static readonly JsonSerializerOptions ImportJson = new(JsonText.Relaxed) { WriteIndented = true };
+    private static readonly HashSet<string> FramedBlazorExamples = new(StringComparer.Ordinal) { "layout-sidebar" };
 
     private readonly ResourceFiles inputs = new("docs/");
+    private readonly ResourceFiles blazorAssets = new("blazor-assets/");
     private readonly Dictionary<string, Template> templates = new(StringComparer.Ordinal);
 
     public GeneratedFiles Build(string css, string js)
@@ -48,23 +51,36 @@ internal sealed class Documentation(Registry registry, Bundles bundles, string v
         Render("tokens", new Page(site, "Tokens", "tokens.html") { Tokens = tokens });
         Render("utilities", new Page(site, "Utilities", "utilities.html") { Utilities = utilities });
 
-        foreach (var blazorComponent in BlazorComponents.All)
+        var previews = new BlazorPreviewRenderer();
+        try
         {
-            var extraStyles = new List<string>();
-            var extraScripts = new List<string>();
-            if (blazorComponent.CssComponent is { } cssName && registry[cssName].Library is { } library)
+            foreach (var blazorComponent in BlazorComponents.All)
             {
-                if (library.StylesheetUrl.Length > 0)
-                    extraStyles.Add(library.StylesheetUrl);
-                extraStyles.AddRange(registry[cssName].Files.Where(file => Path.GetExtension(file) == ".css").Select(file => "assets/adapters/" + file));
-                extraScripts.AddRange(registry[cssName].Files.Where(file => Path.GetExtension(file) == ".js").Select(file => "assets/adapters/" + file));
-            }
+                var extraStyles = new List<string>();
+                if (blazorComponent.Slug == "velle-datepicker")
+                {
+                    extraStyles.Add("assets/blazor/lib/flatpickr/flatpickr.min.css");
+                    extraStyles.Add("assets/adapters/datepicker.css");
+                }
+                else if (blazorComponent.Slug == "velle-editor")
+                {
+                    extraStyles.Add("assets/blazor/lib/lexxy/lexxy.css");
+                    extraStyles.Add("assets/blazor/css/editor.css");
+                }
 
-            var cssLink = blazorComponent.CssComponent is { } cssRef ? Link(cssRef) : null;
-            Render("blazor_component", new Page(site, blazorComponent.Name, blazorComponent.Slug + ".html")
-            {
-                BlazorComponent = new BlazorComponentPage(blazorComponent, cssLink, extraStyles, extraScripts),
-            });
+                string[] extraScripts = blazorComponent.Slug == "velle-styles" ? [] : ["assets/blazor-boot.js"];
+                var examples = blazorComponent.Examples.Select(example => RenderBlazorExample(previews, example)).ToArray();
+
+                var cssLink = blazorComponent.CssComponent is { } cssRef ? Link(cssRef) : null;
+                Render("blazor_component", new Page(site, blazorComponent.Name, blazorComponent.Slug + ".html")
+                {
+                    BlazorComponent = new BlazorComponentPage(blazorComponent, examples, cssLink, extraStyles, extraScripts),
+                });
+            }
+        }
+        finally
+        {
+            previews.DisposeAsync().AsTask().GetAwaiter().GetResult();
         }
 
         foreach (var component in registry.Components)
@@ -79,6 +95,8 @@ internal sealed class Documentation(Registry registry, Bundles bundles, string v
 
         foreach (var path in inputs.Paths.Where(path => path.StartsWith("assets/", StringComparison.Ordinal)))
             outputs.Add(path, inputs.Read(path));
+        foreach (var path in blazorAssets.Paths)
+            outputs.Add("assets/blazor/" + path, blazorAssets.Read(path));
         foreach (var path in bundles.Adapters(".css").Concat(bundles.Adapters(".js")))
             outputs.Add("assets/adapters/" + Path.GetFileName(path), bundles.Adapter(path));
 
@@ -200,6 +218,22 @@ internal sealed class Documentation(Registry registry, Bundles bundles, string v
             examples, stylesheets, scripts, importMap, blazorLink);
     }
 
+    private RenderedBlazorExample RenderBlazorExample(BlazorPreviewRenderer previews, BlazorExampleDoc example)
+    {
+        var html = previews.Render<ElementExamples>(example.Id);
+        if (html.Length == 0) html = previews.Render<FormExamples>(example.Id);
+        if (html.Length == 0) html = previews.Render<OverlayLayoutBehaviorExamples>(example.Id);
+        if (html.Length == 0) html = example.PreviewHtml;
+
+        if (FramedBlazorExamples.Contains(example.Id) && html.Length > 0)
+        {
+            var frameDoc = RenderTemplate("blazor_frame.html", new ScriptObject { ["example"] = html });
+            return new RenderedBlazorExample(example.Id, example.Title, example.Description, "", frameDoc, "22rem", example.RazorCode);
+        }
+
+        return new RenderedBlazorExample(example.Id, example.Title, example.Description, html, "", "", example.RazorCode);
+    }
+
     private NavLink Link(string name) => new(registry[name].Title, name + ".html");
 
     private string SiteImportMap()
@@ -297,9 +331,19 @@ internal sealed record Page(Site Site, string Title, string Href)
 
 internal sealed record BlazorComponentPage(
     BlazorComponentDoc Metadata,
+    IReadOnlyList<RenderedBlazorExample> Examples,
     NavLink? CssReference,
     IReadOnlyList<string> Stylesheets,
     IReadOnlyList<string> Scripts);
+
+internal sealed record RenderedBlazorExample(
+    string Id,
+    string Title,
+    string Description,
+    string PreviewHtml,
+    string FrameDoc,
+    string FrameHeight,
+    string RazorCode);
 
 internal sealed record ComponentPage(Component Metadata, IReadOnlyList<NavLink> Dependencies, bool HasCss, bool HasJs,
     IReadOnlyList<ExamplePage> Examples, IReadOnlyList<string> Stylesheets, IReadOnlyList<string> Scripts,

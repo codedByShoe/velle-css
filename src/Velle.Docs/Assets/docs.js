@@ -2,14 +2,16 @@
 (() => {
   const demoArea = ".docs-preview, .docs-frame"
 
-  // Shows a short message using the flash component.
+  // Shows a short message using the flash component (works with or without legacy velle.js).
   function toast(message) {
     const flash = document.createElement("div")
     flash.setAttribute("popover", "manual")
     flash.setAttribute("role", "status")
-    flash.setAttribute("data-flash", "")
-    flash.setAttribute("data-flash-action", "animationend->hide")
     flash.className = "flash"
+    flash.addEventListener("animationend", () => {
+      try { flash.hidePopover() } catch {}
+      flash.remove()
+    })
     flash.addEventListener("toggle", event => event.newState === "closed" && flash.remove())
 
     const content = document.createElement("div")
@@ -18,10 +20,33 @@
 
     flash.append(content)
     document.body.append(flash)
+    try { flash.showPopover() } catch {}
   }
 
+  // Docs shell chrome helpers (sidebar toggle, header theme menu, mobile drawer backdrop)
+  // so Blazor component pages do not need to load legacy velle.js alongside Alpine.js.
   document.addEventListener("click", event => {
     if (!(event.target instanceof Element)) return
+
+    if (event.target.closest("[data-toggle-class-action='toggle']")) {
+      if (!document.querySelector("script[src='assets/velle.js']")) {
+        document.body.classList.toggle("closed")
+      }
+    }
+
+    const schemeBtn = event.target.closest("[data-color-scheme-action]")
+    if (schemeBtn && !document.querySelector("script[src='assets/velle.js']")) {
+      const action = schemeBtn.getAttribute("data-color-scheme-action")
+      const value = action === "setLight" ? "light" : action === "setDark" ? "dark" : "system"
+      try { localStorage.setItem("color_scheme", value) } catch {}
+      document.documentElement.dataset.colorScheme = value
+      document.dispatchEvent(new CustomEvent("velle:color-scheme:change", { detail: { colorScheme: value } }))
+    }
+
+    const navDialog = event.target === document.getElementById("docs_nav") ? event.target : null
+    if (navDialog && navDialog.open && !document.querySelector("script[src='assets/velle.js']")) {
+      navDialog.close()
+    }
 
     const flashTrigger = event.target.closest("[data-demo-flash]")
     if (flashTrigger) {
@@ -34,6 +59,11 @@
 
     const copyBtn = event.target.closest("[data-copy-button]")
     if (copyBtn) {
+      const codeBox = copyBtn.closest(".docs-code")
+      const hiddenInput = codeBox?.querySelector("textarea[data-input-copyable-target='input']")
+      if (hiddenInput && navigator.clipboard && !document.querySelector("script[src='assets/velle.js']")) {
+        navigator.clipboard.writeText(hiddenInput.value).catch(() => {})
+      }
       const label = copyBtn.querySelector("span:not(.icon):not(.sr-only)")
       if (label) {
         const original = label.dataset.originalText || label.textContent

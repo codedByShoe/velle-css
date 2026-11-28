@@ -1,0 +1,211 @@
+@namespace Velle.Docs.Examples
+
+@switch (Id)
+{
+    case "autosave-basic":
+        <VelleAutosave IntervalMs="1500" Mode="VelleAutosaveMode.Submit" style="inline-size: 100%; max-inline-size: 24rem">
+            <form method="post" action="/drafts/autosave" class="flex flex-col gap-half">
+                <VelleInput Name="Draft.Title" Label="Draft title" Value="Q4 Launch Plan" Description="Edits trigger an automatic save after 1.5 seconds of inactivity." />
+                <VelleInput Name="Draft.Notes" Label="Notes" Multiline="true" Rows="3" Value="Change any text and blur to trigger the demo save toast." />
+            </form>
+        </VelleAutosave>
+        break;
+
+    case "check-all-basic":
+        <VelleCheckAll Class="flex flex-col gap-half">
+            <label class="flex items-center gap-half text-sm font-medium">
+                <input type="checkbox" class="input" data-velle-check-all-dependee />
+                <span>Select all environments</span>
+            </label>
+            <div class="flex items-center flex-wrap gap pis-5">
+                <label class="flex items-center gap-half text-sm">
+                    <input type="checkbox" class="input" name="Envs" value="dev" data-velle-check-all-dependant checked />
+                    <span>Development</span>
+                </label>
+                <label class="flex items-center gap-half text-sm">
+                    <input type="checkbox" class="input" name="Envs" value="staging" data-velle-check-all-dependant checked />
+                    <span>Staging</span>
+                </label>
+                <label class="flex items-center gap-half text-sm">
+                    <input type="checkbox" class="input" name="Envs" value="prod" data-velle-check-all-dependant />
+                    <span>Production</span>
+                </label>
+            </div>
+        </VelleCheckAll>
+        break;
+
+    case "combobox-basic":
+        <div style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleCombobox Name="Docs.Framework"
+                           Label="Framework"
+                           Description="Grouped options rendered as native HTML <optgroup>."
+                           Value="blazor"
+                           Options="FrameworkOptions" />
+        </div>
+        break;
+
+    case "datepicker-editform":
+        <div style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleDatepicker Id="docs-appointment-date"
+                             Name="Docs.AppointmentDate"
+                             Label="Appointment date"
+                             Value="2030-04-12" />
+        </div>
+        break;
+
+    case "datepicker-range":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleDatepicker Id="docs-date-range"
+                             Name="Docs.Range"
+                             Label="Booking window"
+                             Mode="VelleDatepickerMode.Range"
+                             ShowMonths="2"
+                             Placeholder="Pick check-in and check-out" />
+            <VelleDatepicker Id="docs-meeting-time"
+                             Name="Docs.Time"
+                             Label="Meeting time"
+                             Type="VelleDatepickerType.Time"
+                             Value="09:30" />
+        </div>
+        break;
+
+    case "dropzone-basic":
+        <div style="inline-size: 100%; max-inline-size: 26rem">
+            <VelleDropzone Name="Docs.Attachments"
+                           Label="Drop files here or click to upload."
+                           Description="Images or PDFs up to 5 MB (max 3 files)."
+                           Accept="image/*,.pdf"
+                           MaxFileSizeMb="5"
+                           MaxFiles="3" />
+        </div>
+        break;
+
+    case "dual-range-basic":
+        <div class="flex flex-col gap-half" style="inline-size: 100%; max-inline-size: 24rem">
+            <span class="text-sm font-medium">Price range ($0 – $500)</span>
+            <VelleDualRange MinName="Docs.MinPrice"
+                            MaxName="Docs.MaxPrice"
+                            Min="0"
+                            Max="500"
+                            Step="10"
+                            MinValue="120"
+                            MaxValue="380" />
+        </div>
+        break;
+
+    case "editor-basic":
+        <div style="inline-size: 100%; max-inline-size: 36rem">
+            <VelleEditor Name="Docs.ArticleBody"
+                         Label="Article content"
+                         Description="Try live Markdown shortcuts like # Heading, **bold**, *italic*, or - list items."
+                         Placeholder="Write with Markdown shortcuts…"
+                         Value="<p>Welcome to <strong>Lexxy</strong> inside <code>Velle.Blazor</code>! Try typing <code>**bold**</code> or <code># Heading</code> on a new line.</p>" />
+        </div>
+        break;
+
+    case "form-helper-basic":
+        <VelleFormHelper DebounceMs="400" style="inline-size: 100%; max-inline-size: 24rem">
+            <form method="get" action="/search" class="flex flex-col gap-half">
+                <VelleInput Name="q"
+                            Label="Debounced search"
+                            Placeholder="Type to submit after 400ms…"
+                            x-on:input="debouncedSubmit" />
+                <div class="flex gap-half">
+                    <VelleButton Type="button" Size="VelleButtonSize.Small" x-on:click="reset">Reset</VelleButton>
+                </div>
+            </form>
+        </VelleFormHelper>
+        break;
+
+    case "input-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 24rem">
+            <VelleInput Name="Docs.Email" Type="email" Label="Work email" Placeholder="ada@example.com" Description="We'll never share your email." />
+            <VelleInput Name="Docs.Bio" Multiline="true" Rows="3" Label="Bio" Placeholder="Tell us about your team..." />
+            <CascadingValue Value="InvalidContext">
+                <VelleInput Name="Docs.InvalidEmail" Type="email" Label="Validation error state" For="() => invalidModel.InvalidEmail" />
+            </CascadingValue>
+        </div>
+        break;
+
+    case "clearable-basic":
+        <div style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleInputClearable Name="Docs.Search" Label="Search components" Value="Blazor Static SSR" Placeholder="Filter..." />
+        </div>
+        break;
+
+    case "copyable-basic":
+        <div style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleInputCopyable Name="Docs.ApiKey" Label="Publishable API key" Value="velle_live_9876543210" />
+        </div>
+        break;
+
+    case "input-mask-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleInputMask Name="Docs.Phone" Label="Phone number" Mask="(999) 999-9999" Placeholder="(555) 123-4567" />
+            <VelleInputMask Name="Docs.Amount" Label="Invoice amount" Mode="VelleInputMaskMode.Money" Placeholder="1,234.56" />
+        </div>
+        break;
+
+    case "otp-basic":
+        <VelleInputOtp Name="Docs.Otp" Label="Verification code" Length="6" GroupSize="3" Large="true" />
+        break;
+
+    case "revealable-basic":
+        <div style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleInputRevealable Name="Docs.Password" Label="Password" Value="super-secret-password" />
+        </div>
+        break;
+
+    case "switch-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 24rem">
+            <VelleSwitch Name="Docs.Alerts" Label="Email alerts" Description="Receive daily deployment summaries." Checked="true" />
+            <VelleSwitch Name="Docs.Beta" Label="Compact switch" Size="VelleSwitchSize.Small" />
+        </div>
+        break;
+
+    case "toggle-basic":
+        <div class="flex items-center flex-wrap gap">
+            <VelleToggle Name="Docs.Pin" Checked="true">Pinned</VelleToggle>
+            <VelleGroup Label="Formatting">
+                <VelleToggle Name="Docs.Bold" Checked="true">Bold</VelleToggle>
+                <VelleToggle Name="Docs.Italic">Italic</VelleToggle>
+                <VelleToggle Name="Docs.Underline">Underline</VelleToggle>
+            </VelleGroup>
+        </div>
+        break;
+
+    case "upload-preview-basic":
+        <VelleUploadPreview Name="Docs.Avatar"
+                            RemoveName="Docs.RemoveAvatar"
+                            DefaultImage="assets/images/avatar.svg"
+                            Alt="Profile avatar" />
+        break;
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private static readonly IReadOnlyList<VelleSelectOption> FrameworkOptions =
+    [
+        new("blazor", "Blazor Static SSR", Group: ".NET"),
+        new("razor-pages", "Razor Pages", Group: ".NET"),
+        new("mvc", "ASP.NET Core MVC", Group: ".NET"),
+    ];
+
+    private sealed class InvalidSample
+    {
+        public string? InvalidEmail { get; set; } = "not-an-email";
+    }
+
+    private readonly InvalidSample invalidModel = new();
+    private EditContext InvalidContext
+    {
+        get
+        {
+            var context = new EditContext(invalidModel);
+            var messages = new ValidationMessageStore(context);
+            messages.Add(context.Field(nameof(InvalidSample.InvalidEmail)), "Enter a valid email address.");
+            return context;
+        }
+    }
+}
