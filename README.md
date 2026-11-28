@@ -23,18 +23,12 @@ A **Blazor Static SSR** component library built on plain CSS design tokens and [
 
 - **.NET 10 SDK** (Blazor Web App with Static SSR, `app.MapStaticAssets()`, and `blazor.web.js`).
 
-### 1. Install the package (local preview)
+### 1. Install the package
 
-`Velle.Blazor` is currently in alpha (`0.1.0-alpha.1`) and can be packed locally from this repository:
-
-```sh
-dotnet pack src/Velle.Blazor -o /tmp/velle-packages
-```
-
-Add the package to a Blazor Web App using that directory as a local NuGet source:
+Install `Velle.Blazor` (`0.1.0-alpha.1`) from [NuGet.org](https://www.nuget.org/packages/Velle.Blazor/0.1.0-alpha.1):
 
 ```sh
-dotnet add package Velle.Blazor --version 0.1.0-alpha.1 --source /tmp/velle-packages
+dotnet add package Velle.Blazor --version 0.1.0-alpha.1
 ```
 
 ### 2. Import the namespace
@@ -47,12 +41,12 @@ Add `Velle.Blazor` to `Components/_Imports.razor`:
 
 ### 3. Add stylesheets in `Components/App.razor`
 
-Drop `<VelleStyles />` into `<head>` (set `IncludeDatepicker="true"` if you use `VelleDatepicker`). It uses ASP.NET Core's `@Assets[...]` automatically for fingerprinted URLs:
+Drop `<VelleStyles />` into `<head>` (set `IncludeDatepicker="true"` if you use `VelleDatepicker` and `IncludeEditor="true"` if you use `VelleEditor`). It uses ASP.NET Core's `@Assets[...]` automatically for fingerprinted URLs:
 
 ```razor
 <head>
     ...
-    <VelleStyles IncludeDatepicker="true" />
+    <VelleStyles IncludeDatepicker="true" IncludeEditor="true" />
     <HeadOutlet />
 </head>
 <body>
@@ -67,6 +61,8 @@ If you prefer explicit `<link>` tags instead of `<VelleStyles />`:
 <link rel="stylesheet" href="@Assets["_content/Velle.Blazor/css/velle.css"]" />
 <link rel="stylesheet" href="@Assets["_content/Velle.Blazor/lib/flatpickr/flatpickr.min.css"]" />
 <link rel="stylesheet" href="@Assets["_content/Velle.Blazor/css/datepicker.css"]" />
+<link rel="stylesheet" href="@Assets["_content/Velle.Blazor/lib/lexxy/lexxy.css"]" />
+<link rel="stylesheet" href="@Assets["_content/Velle.Blazor/css/editor.css"]" />
 ```
 
 Make sure `Program.cs` maps static assets:

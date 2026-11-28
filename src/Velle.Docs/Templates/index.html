@@ -43,7 +43,8 @@
 
   <h3 id="step-install">1. Install <code>Velle.Blazor</code></h3>
   <p>
-    <code>Velle.Blazor</code> is currently in alpha (<code>{{ escape_html page.Site.BlazorVersion }}</code>). Pack it locally from the repository and add it to your Blazor Web App:
+    Install <code>Velle.Blazor</code> (<code>{{ escape_html page.Site.BlazorVersion }}</code>) from
+    <a href="https://www.nuget.org/packages/Velle.Blazor/{{ safe_url page.Site.BlazorVersion }}">NuGet.org</a>:
   </p>
   <div class="docs-code" data-input-copyable>
     <div class="docs-code__header">
@@ -53,10 +54,8 @@
         <span>Copy</span>
       </button>
     </div>
-    <textarea hidden data-input-copyable-target="input">dotnet pack src/Velle.Blazor -o /tmp/velle-packages
-dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }} --source /tmp/velle-packages</textarea>
-    <pre><code>dotnet pack src/Velle.Blazor -o /tmp/velle-packages
-dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }} --source /tmp/velle-packages</code></pre>
+    <textarea hidden data-input-copyable-target="input">dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }}</textarea>
+    <pre><code>dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }}</code></pre>
   </div>
 
   <h3 id="step-imports">2. Import the namespace</h3>

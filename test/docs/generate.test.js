@@ -130,15 +130,17 @@ test("the generated installation instructions match Velle.Blazor and legacy Vell
   const toolVersion = source("src/VelleVersion.props").match(/<Version>([^<]+)<\/Version>/)[1]
 
   const blazorInstall = `dotnet add package Velle.Blazor --version ${blazorVersion}`
+  const blazorPackageUrl = `https://www.nuget.org/packages/Velle.Blazor/${blazorVersion}`
   const toolInstall = `dotnet tool install Velle.Tool --version ${toolVersion}`
   const packageUrl = `https://www.nuget.org/packages/Velle.Tool/${toolVersion}`
 
   for (const path of ["index.html", "guide.md", "llms-full.txt"]) {
     const content = docs(path)
     assert.ok(content.includes(blazorInstall), path)
+    assert.ok(content.includes(blazorPackageUrl), path)
     assert.ok(content.includes(toolInstall), path)
     assert.ok(content.includes(packageUrl), path)
-    assert.doesNotMatch(content, /bin\/nuget/, path)
+    assert.doesNotMatch(content, /bin\/nuget|\/tmp\/velle-packages/, path)
   }
 
   assert.ok(docs("index.html").includes("VelleStyles"))

@@ -4,11 +4,10 @@
 
 ## Install `Velle.Blazor`
 
-Pack locally from the repository (current alpha version `{{ blazor_version }}`):
+Install `Velle.Blazor` v{{ blazor_version }} from [NuGet.org](https://www.nuget.org/packages/Velle.Blazor/{{ blazor_version }}):
 
 ```sh
-dotnet pack src/Velle.Blazor -o /tmp/velle-packages
-dotnet add package Velle.Blazor --version {{ blazor_version }} --source /tmp/velle-packages
+dotnet add package Velle.Blazor --version {{ blazor_version }}
 ```
 
 Import the namespace in `Components/_Imports.razor`:
@@ -17,12 +16,12 @@ Import the namespace in `Components/_Imports.razor`:
 @using Velle.Blazor
 ```
 
-Add `<VelleStyles />` in `Components/App.razor` (set `IncludeDatepicker="true"` when using `VelleDatepicker`) and ensure `Program.cs` calls `app.MapStaticAssets()`:
+Add `<VelleStyles />` in `Components/App.razor` (set `IncludeDatepicker="true"` when using `VelleDatepicker` and `IncludeEditor="true"` when using `VelleEditor`) and ensure `Program.cs` calls `app.MapStaticAssets()`:
 
 ```razor
 <head>
     ...
-    <VelleStyles IncludeDatepicker="true" />
+    <VelleStyles IncludeDatepicker="true" IncludeEditor="true" />
     <HeadOutlet />
 </head>
 <body>
