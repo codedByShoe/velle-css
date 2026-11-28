@@ -1,0 +1,179 @@
+@namespace Velle.Blazor
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label) || !string.IsNullOrEmpty(Description))
+{
+    <div class="@CombinedWrapperClass">
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        }
+        @EditorMarkup
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="text-sm text-subtle">@Description</p>
+        }
+    </div>
+}
+else
+{
+    @EditorMarkup
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (synchronized via a hidden input for Blazor Static SSR <c>EditForm</c> compatibility).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the <c>&lt;lexxy-editor&gt;</c> element (derived from <see cref="Name"/> when omitted).
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the editor.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Optional helper text rendered below the editor.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Explicit initial HTML content. Takes precedence over <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional model expression for initial HTML content and <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Optional placeholder text shown when the editor is empty.
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Enables Lexxy's native inline Markdown shortcuts and Markdown paste auto-formatting (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool Markdown { get; set; } = true;
+
+    /// <summary>
+    /// Enables native table editing inside the editor (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool Tables { get; set; } = true;
+
+    /// <summary>
+    /// Enables syntax-highlighted fenced code blocks (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool CodeBlocks { get; set; } = true;
+
+    /// <summary>
+    /// Displays Lexxy's formatting toolbar (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool Toolbar { get; set; } = true;
+
+    /// <summary>
+    /// Optional ASP.NET Core upload endpoint URL accepting <c>multipart/form-data</c> and returning JSON matching <see cref="VelleAttachmentResult"/>.
+    /// When provided, file and image attachments are enabled automatically without requiring Rails Active Storage.
+    /// </summary>
+    [Parameter] public string? UploadUrl { get; set; }
+
+    /// <summary>
+    /// Multipart form field name used when posting attachments to <see cref="UploadUrl"/> (defaults to <c>"file"</c>).
+    /// </summary>
+    [Parameter] public string UploadFieldName { get; set; } = "file";
+
+    /// <summary>
+    /// Optional space-separated MIME types permitted for attachments (for example, <c>"image/png image/jpeg application/pdf"</c>).
+    /// </summary>
+    [Parameter] public string? PermittedAttachmentTypes { get; set; }
+
+    /// <summary>
+    /// Marks the editor as required.
+    /// </summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>
+    /// Disables editing when <see langword="true"/>.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.velle-editor</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer field wrapper when <see cref="Label"/> or <see cref="Description"/> is rendered.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.velle-editor</c> container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id) ? AttributeUtilities.ToElementId(Name) : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private bool SupportsAttachments => !string.IsNullOrWhiteSpace(UploadUrl);
+
+    private string EffectiveValue => Value ?? (FormFieldUtilities.EvaluateExpression(For)?.ToString() ?? string.Empty);
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedEditorClass => AttributeUtilities.CombineClasses("velle-editor", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "x-data",
+            "x-on:velle-enhanced-load.window",
+            "data-invalid",
+            "data-velle-editor-upload-url",
+            "data-velle-editor-upload-field");
+
+    private RenderFragment EditorMarkup => @<div class="@CombinedEditorClass"
+                                                 data-invalid="@(IsInvalid ? "true" : null)"
+                                                 x-data="velleEditor"
+                                                 x-on:velle-enhanced-load.window="refresh"
+                                                 data-velle-editor-upload-url="@UploadUrl"
+                                                 data-velle-editor-upload-field="@UploadFieldName"
+                                                 @attributes="RootAttributes">
+        <input type="hidden"
+               id="@($"{EffectiveId}-value")"
+               name="@Name"
+               value="@EffectiveValue"
+               data-velle-editor-input />
+        <div data-velle-editor-host data-permanent>
+            <lexxy-editor id="@EffectiveId"
+                          value="@EffectiveValue"
+                          placeholder="@Placeholder"
+                          markdown="@(Markdown ? "true" : "false")"
+                          tables="@(Tables ? "true" : "false")"
+                          code-blocks="@(CodeBlocks ? "true" : "false")"
+                          attachments="@(SupportsAttachments ? "true" : "false")"
+                          toolbar="@(Toolbar ? null : "false")"
+                          permitted-attachment-types="@PermittedAttachmentTypes"
+                          required="@Required"
+                          disabled="@Disabled"
+                          aria-invalid="@(IsInvalid ? "true" : null)"></lexxy-editor>
+        </div>
+    </div>;
+}

@@ -1,0 +1,77 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">
+    @if (Header is not null)
+    {
+        @Header
+    }
+    else if (!string.IsNullOrEmpty(Title) || !string.IsNullOrEmpty(Description))
+    {
+        <div class="flex flex-col">
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <h3 class="font-medium leading-none mbe-1">@Title</h3>
+            }
+            @if (!string.IsNullOrEmpty(Description))
+            {
+                <p class="text-sm text-subtle">@Description</p>
+            }
+        </div>
+    }
+
+    @ChildContent
+
+    @if (Footer is not null)
+    {
+        <div class="@CombinedFooterClass">@Footer</div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Optional card heading rendered when <see cref="Header"/> is not provided.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional card subtitle rendered below <see cref="Title"/> when <see cref="Header"/> is not provided.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Optional custom header content rendered instead of <see cref="Title"/> and <see cref="Description"/>.
+    /// </summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>
+    /// Main card body content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Optional shaded footer content rendered inside <c>.card__footer</c> as the last child.
+    /// </summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.card__footer</c> element.
+    /// </summary>
+    [Parameter] public string? FooterClass { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.card</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("card flex flex-col gap", Class, AdditionalAttributes);
+
+    private string? CombinedFooterClass => AttributeUtilities.CombineClasses("card__footer", FooterClass, null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

@@ -1,0 +1,109 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Href))
+{
+    <a href="@Href" class="@CombinedClass" aria-disabled="@(Disabled ? "true" : null)" @attributes="LinkAttributes">
+        @ChildContent
+    </a>
+}
+else
+{
+    <button type="@Type" class="@CombinedClass" disabled="@Disabled" @attributes="ButtonAttributes">
+        @ChildContent
+    </button>
+}
+
+@code {
+    /// <summary>
+    /// Visual style variant for the button.
+    /// </summary>
+    [Parameter] public VelleButtonVariant Variant { get; set; } = VelleButtonVariant.Default;
+
+    /// <summary>
+    /// Size preset for the button.
+    /// </summary>
+    [Parameter] public VelleButtonSize Size { get; set; } = VelleButtonSize.Default;
+
+    /// <summary>
+    /// When <see langword="true"/>, applies square icon-only button padding (<c>btn--icon</c> / <c>btn--icon-*</c>).
+    /// </summary>
+    [Parameter] public bool IconOnly { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, adds subtle press scale feedback (<c>btn--feedback</c>).
+    /// </summary>
+    [Parameter] public bool Feedback { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, enables busy spinner styling when disabled inside an <c>aria-busy</c> ancestor (<c>btn--busy</c>).
+    /// </summary>
+    [Parameter] public bool Busy { get; set; }
+
+    /// <summary>
+    /// When provided, renders a styled <c>&lt;a&gt;</c> link instead of a <c>&lt;button&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Native button <c>type</c> attribute when rendering a <c>&lt;button&gt;</c> (defaults to <c>"button"</c>).
+    /// </summary>
+    [Parameter] public string Type { get; set; } = "button";
+
+    /// <summary>
+    /// Disables the button (or sets <c>aria-disabled="true"</c> when rendering as a link).
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the element alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Button content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the rendered element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string VariantClass => Variant switch
+    {
+        VelleButtonVariant.Primary => "btn--primary",
+        VelleButtonVariant.Secondary => "btn--secondary",
+        VelleButtonVariant.Borderless => "btn--borderless",
+        VelleButtonVariant.Negative => "btn--negative",
+        VelleButtonVariant.Plain => "btn--plain",
+        _ => "",
+    };
+
+    private string SizeClass => (IconOnly, Size) switch
+    {
+        (true, VelleButtonSize.ExtraSmall) => "btn--icon-xs",
+        (true, VelleButtonSize.Small) => "btn--icon-sm",
+        (true, VelleButtonSize.Large) => "btn--icon-lg",
+        (true, _) => "btn--icon",
+        (false, VelleButtonSize.ExtraSmall) => "btn--xs",
+        (false, VelleButtonSize.Small) => "btn--sm",
+        (false, VelleButtonSize.Large) => "btn--lg",
+        _ => "",
+    };
+
+    private string Modifiers => string.Join(" ", new[]
+    {
+        VariantClass,
+        SizeClass,
+        Feedback ? "btn--feedback" : "",
+        Busy ? "btn--busy" : "",
+    }.Where(static s => s.Length > 0));
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("btn", Class, AdditionalAttributes, Modifiers);
+
+    private IReadOnlyDictionary<string, object>? ButtonAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "type", "disabled");
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href", "aria-disabled");
+}

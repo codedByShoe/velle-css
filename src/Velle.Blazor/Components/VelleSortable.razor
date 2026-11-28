@@ -1,0 +1,96 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleSortable"
+     data-velle-sort-url="@Url"
+     data-velle-sort-method="@Method"
+     data-velle-sort-parent-id="@ParentId"
+     @attributes="RootAttributes">
+    @if (!string.IsNullOrEmpty(OrderName))
+    {
+        <input type="hidden" name="@OrderName" value="" data-velle-sortable-order />
+    }
+    @if (ShowGhost)
+    {
+        <div class="@CombinedListClass"
+             data-velle-sortable-list
+             x-sort.ghost="onSort"
+             x-sort:group="@Group">
+            @ChildContent
+        </div>
+    }
+    else
+    {
+        <div class="@CombinedListClass"
+             data-velle-sortable-list
+             x-sort="onSort"
+             x-sort:group="@Group">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Optional group name shared across multiple <see cref="VelleSortable"/> lists to enable dragging items between them.
+    /// </summary>
+    [Parameter] public string? Group { get; set; }
+
+    /// <summary>
+    /// Optional hidden form field name kept synchronized with the comma-separated order of <see cref="VelleSortableItem.Key"/> values.
+    /// </summary>
+    [Parameter] public string? OrderName { get; set; }
+
+    /// <summary>
+    /// Optional endpoint URL sent a background request when an item is reordered (overridden by <see cref="VelleSortableItem.Url"/>).
+    /// </summary>
+    [Parameter] public string? Url { get; set; }
+
+    /// <summary>
+    /// HTTP method used when persisting order to <see cref="Url"/> (defaults to <c>"PATCH"</c>).
+    /// </summary>
+    [Parameter] public string Method { get; set; } = "PATCH";
+
+    /// <summary>
+    /// Optional parent identifier submitted as <c>parent_id</c> when moving items across grouped lists.
+    /// </summary>
+    [Parameter] public string? ParentId { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/> (default), keeps the <c>.sortable-ghost</c> placeholder visible while dragging (<c>x-sort.ghost</c>).
+    /// </summary>
+    [Parameter] public bool ShowGhost { get; set; } = true;
+
+    /// <summary>
+    /// <see cref="VelleSortableItem"/> children rendered inside the sortable container.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the outer wrapper.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// CSS classes applied to the inner sortable list element (defaults to <c>"flex flex-col gap-half"</c>).
+    /// </summary>
+    [Parameter] public string ListClass { get; set; } = "flex flex-col gap-half";
+
+    /// <summary>
+    /// Additional HTML attributes applied to the outer wrapper.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private string? CombinedListClass => AttributeUtilities.CombineClasses(ListClass, null, null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "x-data",
+            "data-velle-sort-url",
+            "data-velle-sort-method",
+            "data-velle-sort-parent-id");
+}

@@ -1,0 +1,147 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label))
+{
+    <div class="@CombinedWrapperClass">
+        <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        @SelectElement
+    </div>
+}
+else
+{
+    @SelectElement
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Framework</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the <c>&lt;select&gt;</c> element. When omitted, a stable identifier is derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the combobox and associated via <c>for</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Optional empty placeholder option rendered at the top of the list (value <c>""</c>).
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Selected option value. Takes precedence over a value evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound model property (for example, <c>() =&gt; Input!.Framework</c>).
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Structured list of selectable options. Options sharing a non-empty <see cref="VelleSelectOption.Group"/>
+    /// are automatically wrapped in <c>&lt;optgroup&gt;</c> elements.
+    /// </summary>
+    [Parameter] public IReadOnlyList<VelleSelectOption>? Options { get; set; }
+
+    /// <summary>
+    /// Optional custom <c>&lt;option&gt;</c> or <c>&lt;optgroup&gt;</c> markup rendered inside the <c>&lt;select&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;select&gt;</c> element alongside <c>input combobox</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the wrapper container when <see cref="Label"/> is set.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;select&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private string? EffectiveValue
+    {
+        get
+        {
+            if (Value is not null)
+            {
+                return Value;
+            }
+
+            var evaluated = FormFieldUtilities.EvaluateExpression(For);
+            return evaluated is null ? null : Convert.ToString(evaluated, CultureInfo.InvariantCulture);
+        }
+    }
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedSelectClass => AttributeUtilities.CombineClasses("input combobox", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? SelectAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "aria-invalid");
+
+    private bool IsSelected(string optionValue) =>
+        EffectiveValue is not null && string.Equals(optionValue, EffectiveValue, StringComparison.Ordinal);
+
+    private RenderFragment SelectElement => @<select id="@EffectiveId"
+                                                     name="@Name"
+                                                     class="@CombinedSelectClass"
+                                                     aria-invalid="@(IsInvalid ? "true" : null)"
+                                                     @attributes="SelectAttributes">
+        @if (!string.IsNullOrEmpty(Placeholder))
+        {
+            <option value="" selected="@string.IsNullOrEmpty(EffectiveValue)">@Placeholder</option>
+        }
+        @if (Options is { Count: > 0 })
+        {
+            @foreach (var group in Options.GroupBy(static option => option.Group ?? ""))
+            {
+                @if (group.Key.Length > 0)
+                {
+                    <optgroup @key="group.Key" label="@group.Key">
+                        @foreach (var option in group)
+                        {
+                            <option @key="option.Value" value="@option.Value" disabled="@option.Disabled" selected="@IsSelected(option.Value)">@option.Label</option>
+                        }
+                    </optgroup>
+                }
+                else
+                {
+                    @foreach (var option in group)
+                    {
+                        <option @key="option.Value" value="@option.Value" disabled="@option.Disabled" selected="@IsSelected(option.Value)">@option.Label</option>
+                    }
+                }
+            }
+        }
+        @ChildContent
+    </select>;
+}

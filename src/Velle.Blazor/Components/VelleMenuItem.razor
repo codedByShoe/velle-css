@@ -1,0 +1,107 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Href))
+{
+    <a href="@(Disabled ? null : Href)"
+       class="@CombinedClass"
+       role="menuitem"
+       data-velle-menu-item="@(Disabled ? null : "")"
+       aria-disabled="@(Disabled ? "true" : null)"
+       tabindex="@(Disabled ? -1 : null)"
+       @attributes="LinkAttributes">
+        @ItemContent
+    </a>
+}
+else
+{
+    <button type="@Type"
+            class="@CombinedClass"
+            role="menuitem"
+            popovertarget="@EffectivePopoverTarget"
+            data-velle-menu-item="@(Disabled ? null : "")"
+            aria-disabled="@(Disabled ? "true" : null)"
+            tabindex="@(Disabled ? -1 : null)"
+            @attributes="ButtonAttributes">
+        @ItemContent
+    </button>
+}
+
+@code {
+    /// <summary>
+    /// Optional parent dropdown popover ID cascaded by <see cref="VelleDropdown"/>.
+    /// </summary>
+    [CascadingParameter(Name = "VelleDropdownId")] private string? CascadedPopoverId { get; set; }
+
+    /// <summary>
+    /// When provided, renders an <c>&lt;a&gt;</c> menu item instead of a <c>&lt;button&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Native button <c>type</c> attribute when rendering a <c>&lt;button&gt;</c> (defaults to <c>"button"</c>).
+    /// </summary>
+    [Parameter] public string Type { get; set; } = "button";
+
+    /// <summary>
+    /// Optional Velle icon name rendered at the start of the menu item.
+    /// </summary>
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// Optional keyboard shortcut hint aligned to the end of the item (<c>.menu__item-key</c>).
+    /// </summary>
+    [Parameter] public string? Shortcut { get; set; }
+
+    /// <summary>
+    /// Disables the menu item and excludes it from keyboard roving focus.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Optional explicit <c>popovertarget</c> ID. Inside a <see cref="VelleDropdown"/>, button items automatically
+    /// target the enclosing dropdown popover when <see cref="CloseOnClick"/> is <see langword="true"/>.
+    /// </summary>
+    [Parameter] public string? PopoverTarget { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/> (default), button items inside a <see cref="VelleDropdown"/> automatically close the dropdown on click.
+    /// </summary>
+    [Parameter] public bool CloseOnClick { get; set; } = true;
+
+    /// <summary>
+    /// Menu item label content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>btn menu__item</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the menu item element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? EffectivePopoverTarget => PopoverTarget ?? (CloseOnClick && !Disabled ? CascadedPopoverId : null);
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("btn menu__item", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? ButtonAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "type", "role", "popovertarget", "aria-disabled", "tabindex");
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href", "role", "aria-disabled", "tabindex");
+
+    private RenderFragment ItemContent => @<text>
+        @if (!string.IsNullOrEmpty(Icon))
+        {
+            <VelleIcon Name="@Icon" />
+        }
+        <span>@ChildContent</span>
+        @if (!string.IsNullOrEmpty(Shortcut))
+        {
+            <span class="menu__item-key">@Shortcut</span>
+        }
+    </text>;
+}

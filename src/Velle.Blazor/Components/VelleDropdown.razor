@@ -1,0 +1,78 @@
+@namespace Velle.Blazor
+
+@if (Trigger is not null)
+{
+    @Trigger
+}
+else if (!string.IsNullOrEmpty(TriggerText))
+{
+    <button type="button" class="@CombinedTriggerClass" popovertarget="@Id" aria-haspopup="true">
+        @TriggerText
+    </button>
+}
+
+<div popover id="@Id" class="@CombinedPopoverClass" role="menu" aria-label="@Label" @attributes="PopoverAttributes">
+    <CascadingValue Name="VelleDropdownId" Value="Id" IsFixed="true">
+        <VelleMenu>
+            @ChildContent
+        </VelleMenu>
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the dropdown popover surface.
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Accessible label applied to the <c>role="menu"</c> popover container.
+    /// </summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = null!;
+
+    /// <summary>
+    /// Anchor placement relative to the trigger (defaults to <see cref="VellePopoverPlacement.BlockEndStart"/>).
+    /// </summary>
+    [Parameter] public VellePopoverPlacement Placement { get; set; } = VellePopoverPlacement.BlockEndStart;
+
+    /// <summary>
+    /// Text for the default trigger button. Ignored when <see cref="Trigger"/> is provided.
+    /// </summary>
+    [Parameter] public string? TriggerText { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the default trigger button alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// Optional custom trigger markup. Include <c>popovertarget="@Id"</c> and <c>aria-haspopup="true"</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>
+    /// Menu items (<see cref="VelleMenuItem"/>, <see cref="VelleMenuHeader"/>, and <see cref="VelleMenuSeparator"/>).
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the popover container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the popover container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn", TriggerClass, null);
+
+    private string? CombinedPopoverClass => AttributeUtilities.CombineClasses(
+        "popover",
+        Class,
+        AdditionalAttributes,
+        AttributeUtilities.ToPopoverPlacementClass(Placement));
+
+    private IReadOnlyDictionary<string, object>? PopoverAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "popover", "role", "aria-label");
+}

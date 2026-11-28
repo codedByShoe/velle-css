@@ -1,0 +1,260 @@
+@namespace Velle.Docs.Examples
+
+@switch (Id)
+{
+    case "dialog-form":
+        <VelleDialog Id="docs-profile-dialog" Title="Edit profile" TriggerText="Edit profile" TriggerClass="btn--primary">
+            <form method="post" action="/profile" class="flex flex-col gap">
+                <VelleInput Name="Docs.DisplayName" Label="Display name" Value="Ada Lovelace" />
+                <div class="flex justify-end gap-half">
+                    <VelleButton Type="button" Variant="VelleButtonVariant.Borderless" x-on:click="close">Cancel</VelleButton>
+                    <VelleButton Type="submit" Variant="VelleButtonVariant.Primary">Save</VelleButton>
+                </div>
+            </form>
+        </VelleDialog>
+        break;
+
+    case "dialog-custom-chrome":
+        <VelleDialog Id="docs-custom-dialog" Title="Delete project">
+            <Trigger>
+                <VelleButton Variant="VelleButtonVariant.Negative" x-on:click="show">
+                    <VelleIcon Name="trash-2" />
+                    <span>Delete project</span>
+                </VelleButton>
+            </Trigger>
+            <ChildContent>
+                <p class="text-sm text-subtle">This permanently removes all deployments and environment variables.</p>
+            </ChildContent>
+            <Footer>
+                <div class="flex justify-end gap-half">
+                    <VelleButton Type="button" x-on:click="close">Keep project</VelleButton>
+                    <VelleButton Type="button" Variant="VelleButtonVariant.Negative" x-on:click="close">Confirm delete</VelleButton>
+                </div>
+            </Footer>
+        </VelleDialog>
+        break;
+
+    case "sheet-basic":
+        <div class="flex items-center flex-wrap gap">
+            <VelleSheet Id="docs-sheet-right" Side="VelleSheetSide.Right" Title="Inspector" Description="Slides in from the right edge." TriggerText="Open right sheet">
+                <p class="text-sm text-subtle">Sheets reuse native <code>&lt;dialog&gt;</code> modal focus trapping and close on Escape or backdrop click.</p>
+            </VelleSheet>
+            <VelleSheet Id="docs-sheet-left" Side="VelleSheetSide.Left" Title="Navigation" Description="Slides in from the left edge." TriggerText="Open left sheet">
+                <VelleList>
+                    <VelleListRow Title="Dashboard" Href="#" LeadingIcon="home" />
+                    <VelleListRow Title="Settings" Href="#" LeadingIcon="settings" />
+                </VelleList>
+            </VelleSheet>
+        </div>
+        break;
+
+    case "popover-basic":
+        <div class="flex items-center flex-wrap gap">
+            <VellePopover Id="docs-click-popover" TriggerText="Click popover" Label="Dimensions">
+                <div class="flex flex-col gap-half p-3 text-sm" style="inline-size: 16rem">
+                    <h4 class="font-medium leading-none">Dimensions</h4>
+                    <p class="text-subtle">Native popover with CSS anchor positioning.</p>
+                </div>
+            </VellePopover>
+            <VellePopover Id="docs-hover-popover" TriggerText="Hover tooltip" TriggerMode="VellePopoverTrigger.Hover" PopoverMode="hint" Role="tooltip">
+                <div class="p-2 text-xs">Appears on hover via Alpine.js CSP</div>
+            </VellePopover>
+        </div>
+        break;
+
+    case "dropdown-basic":
+        <VelleDropdown Id="docs-dropdown" Label="Quick actions" TriggerText="Actions">
+            <VelleMenuHeader>Actions</VelleMenuHeader>
+            <VelleMenuItem Icon="copy" Shortcut="⌘C">Copy link</VelleMenuItem>
+            <VelleMenuItem Icon="download" Shortcut="⌘D">Download</VelleMenuItem>
+            <VelleMenuSeparator />
+            <VelleMenuItem Href="#" Icon="settings">Settings</VelleMenuItem>
+            <VelleMenuItem Disabled="true">Archive</VelleMenuItem>
+        </VelleDropdown>
+        break;
+
+    case "menu-basic":
+        <div class="border rounded-lg p-1" style="inline-size: 15rem">
+            <VelleMenu>
+                <VelleMenuHeader>Workspace</VelleMenuHeader>
+                <VelleMenuItem Icon="user" Shortcut="⌘P">Profile</VelleMenuItem>
+                <VelleMenuItem Icon="settings" Shortcut="⌘,">Preferences</VelleMenuItem>
+                <VelleMenuSeparator />
+                <VelleMenuItem Icon="log-out">Sign out</VelleMenuItem>
+            </VelleMenu>
+        </div>
+        break;
+
+    case "flash-basic":
+        <div>
+            <button type="button" class="btn btn--primary" data-demo-flash="docs-flash-template">Show flash message</button>
+            <template id="docs-flash-template">
+                <VelleFlash Message="Settings saved successfully." Icon="circle-check" />
+            </template>
+        </div>
+        break;
+
+    case "command-basic":
+        <VelleCommand Id="docs-command" Label="Quick actions" Placeholder="Type a command or search…" style="inline-size: 100%; max-inline-size: 26rem">
+            <VelleCommandGroup Heading="Actions">
+                <VelleCommandItem Value="Open settings" Icon="settings" Shortcut="⌘,">Open settings</VelleCommandItem>
+                <VelleCommandItem Value="Deploy release" Keywords="ship publish" Icon="upload" Shortcut="⌘⇧D">Deploy release</VelleCommandItem>
+            </VelleCommandGroup>
+            <VelleCommandSeparator />
+            <VelleCommandGroup Heading="Help">
+                <VelleCommandItem Value="Read documentation" Icon="book-open" Href="#">Read documentation</VelleCommandItem>
+            </VelleCommandGroup>
+        </VelleCommand>
+        break;
+
+    case "confirm-basic":
+        <div class="flex items-center flex-wrap gap">
+            <VelleConfirm CancelText="Keep" ConfirmText="Delete" />
+            <form method="post" action="/workspace/delete">
+                <VelleButton Type="submit"
+                             Variant="VelleButtonVariant.Negative"
+                             data-confirm="Delete this workspace?"
+                             data-confirm-text="All projects and API keys will be permanently removed.">
+                    Delete workspace
+                </VelleButton>
+            </form>
+        </div>
+        break;
+
+    case "context-menu-basic":
+        <VelleContextMenu Id="docs-context-menu" Label="File actions">
+            <ChildContent>
+                <div class="card p-6 text-center text-sm text-subtle" style="border-style: dashed; inline-size: 20rem">
+                    Right-click anywhere in this box
+                </div>
+            </ChildContent>
+            <MenuContent>
+                <VelleMenuItem Icon="copy" Shortcut="⌘C">Copy</VelleMenuItem>
+                <VelleMenuItem Icon="pencil">Rename</VelleMenuItem>
+                <VelleMenuSeparator />
+                <VelleMenuItem Icon="trash-2">Delete</VelleMenuItem>
+            </MenuContent>
+        </VelleContextMenu>
+        break;
+
+    case "lightbox-basic":
+        <VelleLightbox Label="Gallery preview" ShowDownload="true">
+            <VelleLightboxLink Href="assets/images/avatar.svg" Class="border rounded-lg p-2">
+                <img src="assets/images/avatar.svg" alt="Sample vector illustration" width="84" height="84" class="rounded-md" />
+            </VelleLightboxLink>
+        </VelleLightbox>
+        break;
+
+    case "color-scheme-basic":
+        <div class="flex items-center gap">
+            <VelleColorScheme Id="docs-inline-theme" Placement="VellePopoverPlacement.BlockEndStart" />
+            <span class="text-sm text-subtle">Switches Light, Dark, and System live across the page.</span>
+        </div>
+        break;
+
+    case "layout-sidebar":
+        <VelleLayout Variant="VelleLayoutVariant.Sidebar">
+            <Header>
+                <button type="button" class="btn btn--icon btn--borderless" x-on:click="toggle">
+                    <VelleIcon Name="panel-left" />
+                    <span class="sr-only">Toggle sidebar</span>
+                </button>
+                <span class="font-bold">Acme</span>
+            </Header>
+            <Sidebar>
+                <VelleSidebarMenu Label="Demo navigation">
+                    <div class="sidebar-menu__group">
+                        <div class="sidebar-menu__group-label">Platform</div>
+                        <ul class="sidebar-menu__items">
+                            <li><a class="btn sidebar-menu__button" href="#" aria-current="page">Dashboard</a></li>
+                            <li><a class="btn sidebar-menu__button" href="#">Deployments</a></li>
+                            <li><a class="btn sidebar-menu__button" href="#">Settings</a></li>
+                        </ul>
+                    </div>
+                </VelleSidebarMenu>
+            </Sidebar>
+            <ChildContent>
+                <VelleCard Title="Workspace overview" Description="Click the sidebar toggle button in the header to collapse or expand the sidebar.">
+                    <p class="text-sm text-subtle">Rendered directly from <code>&lt;VelleLayout Variant=&quot;VelleLayoutVariant.Sidebar&quot;&gt;</code> and <code>&lt;VelleSidebarMenu&gt;</code>.</p>
+                </VelleCard>
+            </ChildContent>
+        </VelleLayout>
+        break;
+
+    case "resizable-basic":
+        <VelleResizable Class="border rounded-lg" style="inline-size: 100%; max-inline-size: 30rem; min-block-size: 8rem">
+            <VelleResizablePanel InitialSize="38" MinSize="20" MaxSize="75" Class="p-4 text-sm">
+                <strong>Sidebar</strong>
+                <p class="text-subtle mbs-1">Drag the divider or press Arrow keys.</p>
+            </VelleResizablePanel>
+            <VelleResizableHandle Label="Resize preview panels" />
+            <VelleResizablePanel Class="p-4 text-sm text-subtle">
+                <strong>Main content</strong>
+                <p class="mbs-1">Resizes smoothly with pointer or keyboard.</p>
+            </VelleResizablePanel>
+        </VelleResizable>
+        break;
+
+    case "auto-animate-basic":
+        <VelleAutoAnimate Class="flex items-center flex-wrap gap-half">
+            <VelleBadge>Item A</VelleBadge>
+            <VelleBadge Variant="VelleBadgeVariant.Primary">Item B</VelleBadge>
+            <VelleBadge Variant="VelleBadgeVariant.Secondary">Item C</VelleBadge>
+        </VelleAutoAnimate>
+        break;
+
+    case "auto-select-basic":
+        <VelleAutoSelect Always="true" style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleInput Name="Docs.ShareUrl" Label="Share link" Value="https://codedbyshoe.github.io/velle-css/" />
+        </VelleAutoSelect>
+        break;
+
+    case "fullscreen-basic":
+        <VelleFullscreen Label="Toggle fullscreen" />
+        break;
+
+    case "hotkey-basic":
+        <div class="flex items-center gap-half" style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleHotkey Keys="g" Action="VelleHotkeyAction.Focus" Class="flex-1">
+                <VelleInput Name="Docs.QuickJump" Placeholder="Press g to focus this input" />
+            </VelleHotkey>
+            <VelleKbd>G</VelleKbd>
+        </div>
+        break;
+
+    case "local-time-basic":
+        <div class="flex flex-col gap-half text-sm">
+            <span>Date &amp; time: <strong><VelleLocalTime Value="SampleTimestamp" Format="VelleLocalTimeFormat.DateTime" /></strong></span>
+            <span>Long date: <strong><VelleLocalTime Value="SampleTimestamp" Format="VelleLocalTimeFormat.Date" /></strong></span>
+            <span>Relative: <strong><VelleLocalTime Value="RecentTimestamp" Format="VelleLocalTimeFormat.Ago" /></strong></span>
+        </div>
+        break;
+
+    case "timezone-cookie-basic":
+        <div class="flex items-center gap-half text-sm text-subtle">
+            <VelleTimezoneCookie CookieName="timezone" />
+            <span>Hidden marker mounted — writes your browser's IANA timezone to the <code>timezone</code> cookie on load.</span>
+        </div>
+        break;
+
+    case "toggle-class-basic":
+        <VelleToggleClass ClassName="bg-shade" TargetSelector="#docs-toggle-box" Class="flex items-center gap">
+            <button type="button" class="btn" x-on:click="toggle">Toggle highlight</button>
+            <div id="docs-toggle-box" class="border rounded-md pi-3 pb-2 text-sm">Target element</div>
+        </VelleToggleClass>
+        break;
+
+    case "web-share-basic":
+        <VelleWebShare Title="Velle.Blazor"
+                       Text="Plain CSS + Alpine.js CSP components for Blazor Static SSR."
+                       Url="https://codedbyshoe.github.io/velle-css/"
+                       AlwaysShow="true" />
+        break;
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private static readonly DateTimeOffset SampleTimestamp = new(2030, 4, 12, 15, 30, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset RecentTimestamp = DateTimeOffset.UtcNow.AddMinutes(-12);
+}

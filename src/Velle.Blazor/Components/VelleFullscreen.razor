@@ -1,0 +1,66 @@
+@namespace Velle.Blazor
+
+<button type="button"
+        class="@CombinedClass"
+        x-data="velleFullscreen"
+        x-on:click="toggle"
+        data-velle-fullscreen-trigger
+        data-velle-fullscreen-target="@TargetSelector"
+        @attributes="ButtonAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <span class="icon icon--maximize" aria-hidden="true"></span>
+        <span>@Label</span>
+    }
+</button>
+
+@code {
+    /// <summary>
+    /// Optional CSS selector of the element to expand into fullscreen (defaults to <c>document.documentElement</c>).
+    /// </summary>
+    [Parameter] public string? TargetSelector { get; set; }
+
+    /// <summary>
+    /// Default button text when <see cref="ChildContent"/> is omitted (defaults to <c>"Fullscreen"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Fullscreen";
+
+    /// <summary>
+    /// Visual style variant for the fullscreen toggle button.
+    /// </summary>
+    [Parameter] public VelleButtonVariant Variant { get; set; } = VelleButtonVariant.Default;
+
+    /// <summary>
+    /// Optional custom button content replacing the default icon and label.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the button.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the button.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string BaseClass => Variant switch
+    {
+        VelleButtonVariant.Primary => "btn btn--primary",
+        VelleButtonVariant.Secondary => "btn btn--secondary",
+        VelleButtonVariant.Borderless => "btn btn--borderless",
+        VelleButtonVariant.Negative => "btn btn--negative",
+        VelleButtonVariant.Plain => "btn btn--plain",
+        _ => "btn",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(BaseClass, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? ButtonAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "type", "x-data", "x-on:click", "data-velle-fullscreen-trigger", "data-velle-fullscreen-target");
+}

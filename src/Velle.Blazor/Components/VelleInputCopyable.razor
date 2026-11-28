@@ -1,0 +1,82 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Label))
+{
+    <div class="@CombinedWrapperClass">
+        <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        @FieldBox
+    </div>
+}
+else
+{
+    @FieldBox
+}
+
+@code {
+    /// <summary>
+    /// Text value displayed in the read-only input and copied to the clipboard.
+    /// </summary>
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>
+    /// Optional form field name for the read-only input.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>
+    /// Unique DOM identifier for the input. Defaults to a stable slug derived from <see cref="Name"/> or <see cref="Label"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the field and associated via <c>for</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Screen-reader label for the copy button (defaults to <c>"Copy to clipboard"</c>).
+    /// </summary>
+    [Parameter] public string CopyLabel { get; set; } = "Copy to clipboard";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer input actor box.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the label/field wrapper when <see cref="Label"/> is set.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the inner <c>&lt;input&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name ?? Label ?? "copyable")
+        : Id;
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedActorClass => AttributeUtilities.CombineClasses(
+        "input input--actor flex items-center gap",
+        Class,
+        AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "type", "value", "readonly");
+
+    private RenderFragment FieldBox => @<div class="@CombinedActorClass" x-data="velleInputCopyable">
+        <input type="text"
+               id="@EffectiveId"
+               name="@Name"
+               value="@Value"
+               readonly
+               @attributes="InputAttributes" />
+        <button type="button" class="btn btn--plain" x-on:click="copy">
+            <span class="icon icon--copy" aria-hidden="true"></span>
+            <span class="sr-only">@CopyLabel</span>
+        </button>
+    </div>;
+}

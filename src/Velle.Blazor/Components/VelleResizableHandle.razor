@@ -1,0 +1,29 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     role="separator"
+     tabindex="0"
+     aria-label="@Label"
+     @attributes="HandleAttributes"></div>
+
+@code {
+    /// <summary>
+    /// Accessible label for the resize separator handle (defaults to <c>"Resize"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Resize";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.resizable__handle</c> element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the handle element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("resizable__handle", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? HandleAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role", "tabindex", "aria-label");
+}

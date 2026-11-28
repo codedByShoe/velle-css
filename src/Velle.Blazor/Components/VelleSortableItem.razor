@@ -1,0 +1,41 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-sort:item
+     data-velle-sort-key="@Key"
+     data-velle-sort-url="@Url"
+     @attributes="ItemAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Stable identifier for this item included in <c>velle:sortable:move</c> events and the optional hidden order input.
+    /// </summary>
+    [Parameter, EditorRequired] public string Key { get; set; } = null!;
+
+    /// <summary>
+    /// Optional per-item endpoint URL called when this item is reordered.
+    /// </summary>
+    [Parameter] public string? Url { get; set; }
+
+    /// <summary>
+    /// Content rendered inside the sortable item (optionally containing a <see cref="VelleSortableHandle"/>).
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the item container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the item container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? ItemAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-sort:item", "data-velle-sort-key", "data-velle-sort-url");
+}

@@ -1,0 +1,31 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleMenu"
+     x-on:keydown="onKeydown"
+     x-on:focusin="onFocusin"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Menu content (<see cref="VelleMenuItem"/>, <see cref="VelleMenuHeader"/>, and <see cref="VelleMenuSeparator"/>).
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>.menu</c> container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>.menu</c> container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("menu", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

@@ -1,0 +1,322 @@
+@page "/components"
+
+<PageTitle>Components</PageTitle>
+
+<VelleBreadcrumb Items="Crumbs" />
+
+<h1>Components</h1>
+
+<VelleAlert Title="Unified Razor API" Icon="circle-check">
+    Every element and form control below renders as a Static SSR Razor component in <code>Velle.Blazor</code>.
+</VelleAlert>
+
+<VelleCard Title="Buttons, Badges &amp; Avatars" Description="Consistent variants, sizes, and slots.">
+    <div class="flex items-center flex-wrap gap">
+        <VelleButton>Default</VelleButton>
+        <VelleButton Variant="VelleButtonVariant.Primary">Primary</VelleButton>
+        <VelleButton Variant="VelleButtonVariant.Secondary">Secondary</VelleButton>
+        <VelleButton Variant="VelleButtonVariant.Negative">Delete</VelleButton>
+        <VelleButton Size="VelleButtonSize.Small" IconOnly="true" aria-label="Search">
+            <VelleIcon Name="search" />
+        </VelleButton>
+    </div>
+
+    <div class="flex items-center flex-wrap gap-half">
+        <VelleBadge>Default</VelleBadge>
+        <VelleBadge Variant="VelleBadgeVariant.Primary">Primary</VelleBadge>
+        <VelleBadge Variant="VelleBadgeVariant.Secondary">
+            <VelleIcon Name="circle-check" />
+            <span>Verified</span>
+        </VelleBadge>
+        <VelleKbd>⌘ K</VelleKbd>
+    </div>
+
+    <VelleAvatarGroup>
+        <VelleAvatar Initials="AL" BadgeColor="var(--green-600)" BadgeLabel="Online" />
+        <VelleAvatar Initials="GH" />
+        <VelleAvatar Initials="AT" />
+    </VelleAvatarGroup>
+</VelleCard>
+
+<VelleCard Title="Static SSR Form Controls" Description="Integrated with EditForm, For expressions, and EditContext.">
+    <EditForm Model="Input!" FormName="preferences" Enhance OnValidSubmit="SavePreferences" class="flex flex-col gap">
+        <VelleInput Name="Input.Workspace" Label="Workspace name" For="() => Input!.Workspace" Placeholder="Acme Corp" />
+        <VelleCombobox Name="Input.Framework" Label="Stack" For="() => Input!.Framework" Options="FrameworkOptions" />
+        <VelleSwitch Name="Input.EmailAlerts" Label="Email alerts" Description="Send daily deployment summaries." For="() => Input!.EmailAlerts" />
+        <VelleGroup Label="Formatting">
+            <VelleToggle Name="Input.Compact" For="() => Input!.Compact">Compact density</VelleToggle>
+        </VelleGroup>
+        <div>
+            <VelleButton Type="submit" Variant="VelleButtonVariant.Primary">Save preferences</VelleButton>
+        </div>
+    </EditForm>
+
+    @if (savedSummary is not null)
+    {
+        <VelleAlert Title="Preferences saved" Icon="circle-check">@savedSummary</VelleAlert>
+        <VelleFlash Message="@savedSummary" Icon="circle-check" />
+    }
+</VelleCard>
+
+<VelleCard Title="Interactive Overlays &amp; Inputs" Description="Alpine.js CSP overlays, theme switcher, and enhanced inputs.">
+    <div class="flex items-center flex-wrap gap">
+        <VelleSheet Id="demo-sheet" Title="Quick details" Description="Slides in from the right edge." TriggerText="Open sheet">
+            <p class="text-sm text-subtle">Sheets reuse native &lt;dialog&gt; modal behavior and close with Escape or backdrop click.</p>
+        </VelleSheet>
+
+        <VellePopover Id="demo-popover" TriggerText="Open popover" Label="Dimensions">
+            <div class="flex flex-col text-sm p-3">
+                <h3 class="font-medium leading-none mbe-1">Dimensions</h3>
+                <p class="text-subtle">Native popover with CSS anchor positioning.</p>
+            </div>
+        </VellePopover>
+
+        <VelleDropdown Id="demo-dropdown" Label="Quick actions" TriggerText="Actions">
+            <VelleMenuHeader>Actions</VelleMenuHeader>
+            <VelleMenuItem Icon="copy" Shortcut="⌘C">Copy link</VelleMenuItem>
+            <VelleMenuItem Icon="download" Shortcut="⌘D">Download</VelleMenuItem>
+            <VelleMenuSeparator />
+            <VelleMenuItem Disabled="true">Archive</VelleMenuItem>
+        </VelleDropdown>
+    </div>
+
+    <div class="flex flex-col gap" style="max-inline-size: 22rem">
+        <VelleInputClearable Name="Demo.Search" Label="Clearable search" Value="Blazor Static SSR" Placeholder="Search..." />
+        <VelleInputCopyable Name="Demo.Token" Label="API token" Value="velle_live_987654321" />
+        <VelleInputRevealable Name="Demo.Password" Label="Password" Value="super-secret" />
+        <VelleInputOtp Name="Demo.Code" Label="Verification code" Length="6" GroupSize="3" />
+    </div>
+</VelleCard>
+
+<VelleCard Title="Phase 4 Advanced Components" Description="Command palette, confirmation dialog, check-all, dual range, resizable panels, carousel, dropzone, and local time.">
+    <VelleCommand Id="demo-command" Label="Demo commands" Placeholder="Filter commands…">
+        <VelleCommandGroup Heading="Actions">
+            <VelleCommandItem Value="Open settings" Icon="settings" Shortcut="⌘,">Open settings</VelleCommandItem>
+            <VelleCommandItem Value="Deploy release" Keywords="ship publish" Icon="upload" Shortcut="⌘⇧D">Deploy release</VelleCommandItem>
+        </VelleCommandGroup>
+        <VelleCommandSeparator />
+        <VelleCommandGroup Heading="Help">
+            <VelleCommandItem Value="Read docs" Icon="book-open">Read docs</VelleCommandItem>
+        </VelleCommandGroup>
+    </VelleCommand>
+
+    <VelleCheckAll Class="flex flex-col gap-half">
+        <label class="flex items-center gap-half text-sm font-medium">
+            <input type="checkbox" class="input" data-velle-check-all-dependee />
+            <span>Select all environments</span>
+        </label>
+        <div class="flex items-center gap pis-4">
+            <label class="flex items-center gap-half text-sm">
+                <input type="checkbox" class="input" data-velle-check-all-dependant checked />
+                <span>Staging</span>
+            </label>
+            <label class="flex items-center gap-half text-sm">
+                <input type="checkbox" class="input" data-velle-check-all-dependant />
+                <span>Production</span>
+            </label>
+        </div>
+    </VelleCheckAll>
+
+    <div class="flex flex-col gap-half" style="max-inline-size: 22rem">
+        <span class="text-sm font-medium">Budget range</span>
+        <VelleDualRange MinName="Demo.MinBudget" MaxName="Demo.MaxBudget" Min="0" Max="100" Step="5" MinValue="20" MaxValue="75" />
+    </div>
+
+    <VelleResizable Class="border rounded-lg" style="min-block-size: 6rem">
+        <VelleResizablePanel InitialSize="40" MinSize="20" Class="p-3 text-sm">Sidebar panel</VelleResizablePanel>
+        <VelleResizableHandle Label="Resize preview panels" />
+        <VelleResizablePanel Class="p-3 text-sm text-subtle">Main content panel</VelleResizablePanel>
+    </VelleResizable>
+
+    <VelleDropzone Name="Demo.Attachments" Label="Drop files here or click to upload." Description="Images or PDFs up to 5 MB." Accept="image/*,.pdf" MaxFileSizeMb="5" MaxFiles="3" />
+
+    <div class="flex items-center justify-between flex-wrap gap">
+        <span class="text-sm text-subtle">
+            Scheduled window: <VelleLocalTime id="demo-local-time" Value="ScheduledAt" Format="VelleLocalTimeFormat.DateTime" />
+        </span>
+
+        <EditForm Model="ResetModel" FormName="confirm-reset" Enhance OnValidSubmit="ResetDemoData">
+            <VelleButton Type="submit"
+                         Variant="VelleButtonVariant.Negative"
+                         data-confirm="Reset demo data?"
+                         data-confirm-text="This clears the demo confirmation counter.">
+                Reset demo data
+            </VelleButton>
+        </EditForm>
+    </div>
+
+    @if (confirmResult is not null)
+    {
+        <VelleAlert id="confirm-result" Title="Confirmed" Icon="circle-check">@confirmResult</VelleAlert>
+    }
+</VelleCard>
+
+<VelleCard Title="Phase 5 Alpine Plugins &amp; Behaviors" Description="Alpine mask, Alpine sort, collapsible, toggle class, hotkey, and fullscreen.">
+    <div class="flex flex-col gap" style="max-inline-size: 22rem">
+        <VelleInputMask Name="Demo.Phone" Label="Phone mask" Mask="(999) 999-9999" Placeholder="(555) 123-4567" />
+        <VelleInputMask Name="Demo.Amount" Label="Amount mask" Mode="VelleInputMaskMode.Money" Placeholder="1,234.56" />
+    </div>
+
+    <div class="flex flex-col gap-half" style="max-inline-size: 22rem">
+        <span class="text-sm font-medium">Sortable list (@@alpinejs/sort)</span>
+        <VelleSortable OrderName="Demo.Order">
+            <VelleSortableItem Key="alpha" Class="border rounded-md pi-3 pb-2 flex items-center gap-half">
+                <VelleSortableHandle />
+                <span>Alpha</span>
+            </VelleSortableItem>
+            <VelleSortableItem Key="beta" Class="border rounded-md pi-3 pb-2 flex items-center gap-half">
+                <VelleSortableHandle />
+                <span>Beta</span>
+            </VelleSortableItem>
+            <VelleSortableItem Key="gamma" Class="border rounded-md pi-3 pb-2 flex items-center gap-half">
+                <VelleSortableHandle />
+                <span>Gamma</span>
+            </VelleSortableItem>
+        </VelleSortable>
+    </div>
+
+    <VelleCollapsible id="demo-collapsible" TriggerText="Toggle details" Summary="More information" Class="flex flex-col gap-half">
+        <p class="text-sm text-subtle">Controlled both by the native summary and the external Alpine button.</p>
+    </VelleCollapsible>
+
+    <VelleToggleClass ClassName="bg-shade" TargetSelector="#demo-toggle-target" Class="flex items-center gap">
+        <button type="button" class="btn" x-on:click="toggle">Toggle highlight</button>
+        <span id="demo-toggle-target" class="border rounded-md pi-3 pb-1 text-sm">Target box</span>
+    </VelleToggleClass>
+
+    <div class="flex items-center gap flex-wrap">
+        <VelleHotkey Keys="/" Action="VelleHotkeyAction.Focus">
+            <input id="demo-hotkey-input" type="search" class="input" placeholder="Press / to focus" aria-label="Quick jump" />
+        </VelleHotkey>
+        <VelleFullscreen Label="Fullscreen" />
+    </div>
+</VelleCard>
+
+<VelleCard Title="Phase 6 Chart.js &amp; Lexxy Rich Text Editor" Description="Lazy-loaded Chart.js visualizations and Lexxy editor with native Markdown shortcuts and .NET attachment uploads.">
+    <div style="max-inline-size: 32rem; block-size: 14rem">
+        <VelleChart id="demo-chart"
+                    Type="VelleChartType.Bar"
+                    Label="Quarterly adoption"
+                    Data="ChartData"
+                    Options="ChartOptions" />
+    </div>
+
+    <EditForm Model="Article!" FormName="article-editor" Enhance OnValidSubmit="SaveArticle" class="flex flex-col gap">
+        <VelleEditor Name="Article.Body"
+                     Label="Article content"
+                     Description="Try Markdown shortcuts like # Heading or **bold**."
+                     Placeholder="Write with Markdown shortcuts…"
+                     UploadUrl="/api/demo-upload"
+                     For="() => Article!.Body" />
+        <div>
+            <VelleButton Type="submit" Variant="VelleButtonVariant.Primary">Save article</VelleButton>
+        </div>
+    </EditForm>
+
+    @if (savedArticle is not null)
+    {
+        <div id="saved-article" class="border rounded-md p-3 text-sm">@savedArticle</div>
+    }
+</VelleCard>
+
+<VelleProgress Value="68" Max="100" Label="Migration progress" ShowValue="true" />
+
+<VelleAccordion GroupName="sample-faq" Items="FaqItems" />
+
+<VelleTable Caption="Sample invoices">
+    <Header>
+        <tr><th>Invoice</th><th>Status</th><th class="text-end">Amount</th></tr>
+    </Header>
+    <Body>
+        <tr><th>INV001</th><td><VelleBadge Variant="VelleBadgeVariant.Secondary">Paid</VelleBadge></td><td class="text-end">$250.00</td></tr>
+        <tr><th>INV002</th><td><VelleBadge>Pending</VelleBadge></td><td class="text-end">$150.00</td></tr>
+    </Body>
+</VelleTable>
+
+<VellePagination CurrentPage="2" TotalPages="8" PageUrl="@(p => $"components?page={p}")" />
+
+@code {
+    [SupplyParameterFromForm(FormName = "preferences")]
+    private PreferencesInput? Input { get; set; }
+
+    [SupplyParameterFromForm(FormName = "article-editor")]
+    private ArticleInput? Article { get; set; }
+
+    private string? savedSummary;
+    private string? savedArticle;
+    private string? confirmResult;
+    private readonly object ResetModel = new();
+    private static readonly DateTimeOffset ScheduledAt = new(2030, 4, 12, 15, 30, 0, TimeSpan.Zero);
+
+    protected override void OnInitialized()
+    {
+        Input ??= new()
+        {
+            Workspace = "Velle",
+            Framework = "blazor",
+            EmailAlerts = true,
+        };
+        Article ??= new()
+        {
+            Body = "<p>Welcome to <strong>Lexxy</strong> in Blazor Static SSR.</p>",
+        };
+    }
+
+    private void SavePreferences() =>
+        savedSummary = $"{Input!.Workspace} ({Input.Framework}) — alerts: {(Input.EmailAlerts ? "on" : "off")}, compact: {(Input.Compact ? "on" : "off")}";
+
+    private void SaveArticle() => savedArticle = Article!.Body ?? string.Empty;
+
+    private void ResetDemoData() => confirmResult = "Demo data reset.";
+
+    private static readonly object ChartData = new
+    {
+        Labels = new[] { "Q1", "Q2", "Q3", "Q4" },
+        Datasets = new[]
+        {
+            new
+            {
+                Label = "Components",
+                Data = new[] { 4, 24, 34, 60 },
+                BackgroundColor = "#2563eb",
+            },
+        },
+    };
+
+    private static readonly object ChartOptions = new
+    {
+        Responsive = true,
+        MaintainAspectRatio = false,
+    };
+
+    private static readonly IReadOnlyList<VelleBreadcrumbItem> Crumbs =
+    [
+        new("Home", "./"),
+        new("Components"),
+    ];
+
+    private static readonly IReadOnlyList<VelleSelectOption> FrameworkOptions =
+    [
+        new("blazor", "Blazor Static SSR", Group: ".NET"),
+        new("razor-pages", "Razor Pages", Group: ".NET"),
+    ];
+
+    private IReadOnlyList<VelleAccordionItem> FaqItems =>
+    [
+        new("How do Static SSR forms work?", @<p>Use EditForm with FormName, Enhance, and [SupplyParameterFromForm].</p>, Open: true),
+        new("Are third-party assets bundled?", @<p>Alpine.js CSP and Flatpickr are bundled locally under wwwroot/lib/.</p>),
+    ];
+
+    private sealed class PreferencesInput
+    {
+        public string? Workspace { get; set; }
+        public string? Framework { get; set; }
+        public bool EmailAlerts { get; set; }
+        public bool Compact { get; set; }
+    }
+
+    private sealed class ArticleInput
+    {
+        public string? Body { get; set; }
+    }
+}

@@ -1,0 +1,57 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" style="@CombinedStyle" aria-hidden="true" @attributes="RootAttributes"></div>
+
+@code {
+    /// <summary>
+    /// Optional CSS inline-size (for example, <c>"10rem"</c> or <c>"75%"</c>).
+    /// </summary>
+    [Parameter] public string? Width { get; set; }
+
+    /// <summary>
+    /// Optional CSS block-size (for example, <c>"var(--size-4)"</c> or <c>"2.5rem"</c>).
+    /// </summary>
+    [Parameter] public string? Height { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/>, applies <c>rounded-full</c> for circular avatar or pill skeletons.
+    /// </summary>
+    [Parameter] public bool Rounded { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the skeleton element alongside <c>skeleton</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the skeleton element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(
+        "skeleton",
+        Class,
+        AdditionalAttributes,
+        Rounded ? "rounded-full" : null);
+
+    private string? CombinedStyle
+    {
+        get
+        {
+            var parts = new List<string>(3);
+            if (!string.IsNullOrWhiteSpace(Width)) parts.Add($"inline-size: {Width}");
+            if (!string.IsNullOrWhiteSpace(Height)) parts.Add($"block-size: {Height}");
+            if (AdditionalAttributes is not null
+                && AdditionalAttributes.TryGetValue("style", out var userStyle)
+                && !string.IsNullOrWhiteSpace(userStyle?.ToString()))
+            {
+                parts.Add(userStyle.ToString()!.Trim().TrimEnd(';'));
+            }
+
+            return parts.Count == 0 ? null : string.Join("; ", parts);
+        }
+    }
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "style", "aria-hidden");
+}

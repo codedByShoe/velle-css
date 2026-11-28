@@ -1,0 +1,37 @@
+@namespace Velle.Blazor
+@using System.Globalization
+
+<div class="@CombinedClass"
+     x-data="velleFormHelper"
+     data-velle-form-debounce="@DebounceMs.ToString(CultureInfo.InvariantCulture)"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Delay in milliseconds used by <c>debouncedSubmit</c> (defaults to <c>300</c>).
+    /// </summary>
+    [Parameter] public int DebounceMs { get; set; } = 300;
+
+    /// <summary>
+    /// Form markup that can bind Alpine actions such as <c>x-on:input="debouncedSubmit"</c>,
+    /// <c>x-on:input="validate"</c>, <c>x-on:click="reset"</c>, or <c>x-on:click="cancel"</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "data-velle-form-debounce");
+}

@@ -1,0 +1,67 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     role="region"
+     aria-roledescription="carousel"
+     aria-label="@Label"
+     x-data="velleCarousel"
+     x-on:keydown="onKeydown"
+     @attributes="RootAttributes">
+    <button type="button" class="btn btn--icon" x-on:click="prev">
+        <span class="icon icon--chevron-left" aria-hidden="true"></span>
+        <span class="sr-only">@PreviousLabel</span>
+    </button>
+
+    <div class="@CombinedContentClass" tabindex="-1">
+        @ChildContent
+    </div>
+
+    <button type="button" class="btn btn--icon" x-on:click="next">
+        <span class="icon icon--chevron-right" aria-hidden="true"></span>
+        <span class="sr-only">@NextLabel</span>
+    </button>
+</div>
+
+@code {
+    /// <summary>
+    /// Accessible label describing the carousel region (defaults to <c>"Carousel"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Carousel";
+
+    /// <summary>
+    /// Screen-reader label for the previous slide button.
+    /// </summary>
+    [Parameter] public string PreviousLabel { get; set; } = "Previous slide";
+
+    /// <summary>
+    /// Screen-reader label for the next slide button.
+    /// </summary>
+    [Parameter] public string NextLabel { get; set; } = "Next slide";
+
+    /// <summary>
+    /// <see cref="VelleCarouselItem"/> slides rendered inside the horizontal scroll-snap track.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.carousel</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.carousel__content</c>.
+    /// </summary>
+    [Parameter] public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.carousel</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("carousel", Class, AdditionalAttributes);
+
+    private string? CombinedContentClass => AttributeUtilities.CombineClasses("carousel__content", ContentClass, null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "role", "aria-roledescription", "aria-label");
+}

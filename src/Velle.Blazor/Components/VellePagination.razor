@@ -1,0 +1,146 @@
+@namespace Velle.Blazor
+
+<nav class="@CombinedClass" aria-label="@Label" @attributes="RootAttributes">
+    @if (SafeCurrentPage > 1)
+    {
+        <a class="@NavButtonClass" aria-label="Previous page" href="@PageUrl(SafeCurrentPage - 1)">
+            <span class="icon icon--chevron-left" aria-hidden="true"></span>
+            @if (!IconsOnly)
+            {
+                <span>@PreviousText</span>
+            }
+        </a>
+    }
+    else
+    {
+        <span class="@NavButtonClass" aria-disabled="true" aria-label="Previous page">
+            <span class="icon icon--chevron-left" aria-hidden="true"></span>
+            @if (!IconsOnly)
+            {
+                <span>@PreviousText</span>
+            }
+        </span>
+    }
+
+    @foreach (var token in PageTokens)
+    {
+        @if (token is null)
+        {
+            <div class="inline-flex items-center pi-2" aria-hidden="true">
+                <span class="icon icon--ellipsis"></span>
+            </div>
+        }
+        else
+        {
+            var pageNumber = token.Value;
+            <a @key="pageNumber"
+               class="btn pagination__button"
+               aria-current="@(pageNumber == SafeCurrentPage ? "page" : null)"
+               href="@PageUrl(pageNumber)">
+                @pageNumber
+            </a>
+        }
+    }
+
+    @if (SafeCurrentPage < SafeTotalPages)
+    {
+        <a class="@NavButtonClass" aria-label="Next page" href="@PageUrl(SafeCurrentPage + 1)">
+            @if (!IconsOnly)
+            {
+                <span>@NextText</span>
+            }
+            <span class="icon icon--chevron-right" aria-hidden="true"></span>
+        </a>
+    }
+    else
+    {
+        <span class="@NavButtonClass" aria-disabled="true" aria-label="Next page">
+            @if (!IconsOnly)
+            {
+                <span>@NextText</span>
+            }
+            <span class="icon icon--chevron-right" aria-hidden="true"></span>
+        </span>
+    }
+</nav>
+
+@code {
+    /// <summary>
+    /// One-based active page number. Clamped between <c>1</c> and <see cref="TotalPages"/>.
+    /// </summary>
+    [Parameter, EditorRequired] public int CurrentPage { get; set; } = 1;
+
+    /// <summary>
+    /// Total number of available pages.
+    /// </summary>
+    [Parameter, EditorRequired] public int TotalPages { get; set; } = 1;
+
+    /// <summary>
+    /// Function returning the URL for a given one-based page number (for example, <c>p =&gt; $"?page={p}"</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public Func<int, string> PageUrl { get; set; } = null!;
+
+    /// <summary>
+    /// Accessible label applied to the <c>&lt;nav&gt;</c> container (defaults to <c>"Pagination"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Pagination";
+
+    /// <summary>
+    /// When <see langword="true"/>, renders Previous and Next buttons as icon-only controls.
+    /// </summary>
+    [Parameter] public bool IconsOnly { get; set; }
+
+    /// <summary>
+    /// Text label for the previous-page link when <see cref="IconsOnly"/> is <see langword="false"/>.
+    /// </summary>
+    [Parameter] public string PreviousText { get; set; } = "Previous";
+
+    /// <summary>
+    /// Text label for the next-page link when <see cref="IconsOnly"/> is <see langword="false"/>.
+    /// </summary>
+    [Parameter] public string NextText { get; set; } = "Next";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;nav&gt;</c> element alongside <c>pagination</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;nav&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private int SafeTotalPages => Math.Max(1, TotalPages);
+
+    private int SafeCurrentPage => Math.Clamp(CurrentPage, 1, SafeTotalPages);
+
+    private string NavButtonClass => IconsOnly ? "btn btn--icon pagination__button" : "btn pagination__button";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("pagination", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "aria-label");
+
+    private IReadOnlyList<int?> PageTokens
+    {
+        get
+        {
+            var total = SafeTotalPages;
+            var current = SafeCurrentPage;
+            if (total <= 7)
+            {
+                return Enumerable.Range(1, total).Select(static p => (int?)p).ToArray();
+            }
+
+            var tokens = new List<int?> { 1 };
+            var start = Math.Max(2, current - 1);
+            var end = Math.Min(total - 1, current + 1);
+
+            if (start > 2) tokens.Add(null);
+            for (var p = start; p <= end; p++) tokens.Add(p);
+            if (end < total - 1) tokens.Add(null);
+            tokens.Add(total);
+            return tokens;
+        }
+    }
+}

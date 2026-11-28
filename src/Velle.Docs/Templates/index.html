@@ -1,0 +1,168 @@
+<header class="docs-hero">
+  <div class="docs-hero__eyebrow">
+    <span class="docs-pill docs-pill--accent">Blazor Static SSR</span>
+    <span class="docs-pill">.NET 10</span>
+    <span class="docs-pill">Alpine.js CSP</span>
+  </div>
+  <h1>Velle</h1>
+  <p class="docs-lead">
+    A unified <strong>Blazor Static SSR</strong> component library built on plain CSS design tokens and
+    Alpine.js CSP — write Razor components across your entire UI with zero SignalR circuit or WebAssembly payload.
+  </p>
+  <div class="docs-hero__actions">
+    <a class="btn btn--primary" href="#quick-start">Get started</a>
+    <a class="btn" href="#components">Browse components</a>
+    <a class="btn btn--borderless" href="llms.txt">llms.txt</a>
+  </div>
+</header>
+
+<section class="docs-section" aria-labelledby="why-velle">
+  <h2 id="why-velle">Built for Static SSR</h2>
+  <div class="docs-feature-grid">
+    <div class="docs-feature-card">
+      <h3>One Razor API</h3>
+      <p>Use consistent <code>&lt;Velle*&gt;</code> Razor components for buttons, alerts, cards, inputs, switches, tabs, dialogs, and datepickers — all sharing <code>Class</code>, <code>AdditionalAttributes</code>, and strongly-typed enums.</p>
+    </div>
+    <div class="docs-feature-card">
+      <h3>EditForm &amp; Enhanced Sync</h3>
+      <p>Form controls integrate with cascading <code>EditContext</code> and <code>For</code> expressions for automatic validation styling, while Alpine.js CSP re-syncs interactive state on every Blazor <code>enhancedload</code>.</p>
+    </div>
+    <div class="docs-feature-card">
+      <h3>Plain CSS tokens &amp; utilities</h3>
+      <p>One <code>&lt;VelleStyles /&gt;</code> tag ships light/dark semantic tokens, component CSS, and logical layout utilities with automatic .NET 10 asset fingerprinting.</p>
+    </div>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="quick-start">
+  <h2 id="quick-start">Quick start</h2>
+  <p>
+    Requires the <strong>.NET 10 SDK</strong> and a Blazor Web App using Static SSR with
+    <code>app.MapStaticAssets()</code> and <code>blazor.web.js</code>.
+  </p>
+
+  <h3 id="step-install">1. Install <code>Velle.Blazor</code></h3>
+  <p>
+    <code>Velle.Blazor</code> is currently in alpha (<code>{{ escape_html page.Site.BlazorVersion }}</code>). Pack it locally from the repository and add it to your Blazor Web App:
+  </p>
+  <div class="docs-code" data-input-copyable>
+    <div class="docs-code__header">
+      <span class="docs-code__lang">sh</span>
+      <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <textarea hidden data-input-copyable-target="input">dotnet pack src/Velle.Blazor -o /tmp/velle-packages
+dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }} --source /tmp/velle-packages</textarea>
+    <pre><code>dotnet pack src/Velle.Blazor -o /tmp/velle-packages
+dotnet add package Velle.Blazor --version {{ escape_html page.Site.BlazorVersion }} --source /tmp/velle-packages</code></pre>
+  </div>
+
+  <h3 id="step-imports">2. Import the namespace</h3>
+  <p>Add <code>Velle.Blazor</code> to <code>Components/_Imports.razor</code>:</p>
+  <div class="docs-code" data-input-copyable>
+    <div class="docs-code__header">
+      <span class="docs-code__lang">razor</span>
+      <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <textarea hidden data-input-copyable-target="input">@using Velle.Blazor</textarea>
+    <pre><code>@using Velle.Blazor</code></pre>
+  </div>
+
+  <h3 id="step-styles">3. Add <code>&lt;VelleStyles /&gt;</code> in <code>Components/App.razor</code></h3>
+  <p>
+    <code>&lt;VelleStyles /&gt;</code> renders fingerprinted stylesheet links using ASP.NET Core's <code>@Assets[...]</code> collection.
+    JavaScript loads automatically through Blazor's JS initializer — no manual script tag is needed.
+  </p>
+  <div class="docs-code" data-input-copyable>
+    <div class="docs-code__header">
+      <span class="docs-code__lang">razor</span>
+      <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <textarea hidden data-input-copyable-target="input">&lt;head&gt;
+    ...
+    &lt;VelleStyles IncludeDatepicker="true" /&gt;
+    &lt;HeadOutlet /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;Routes /&gt;
+    &lt;script src="@Assets["_framework/blazor.web.js"]"&gt;&lt;/script&gt;
+&lt;/body&gt;</textarea>
+    <pre><code>&lt;head&gt;
+    ...
+    &lt;VelleStyles IncludeDatepicker="true" /&gt;
+    &lt;HeadOutlet /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;Routes /&gt;
+    &lt;script src="@Assets["_framework/blazor.web.js"]"&gt;&lt;/script&gt;
+&lt;/body&gt;</code></pre>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="components">
+  <h2 id="components">Components</h2>
+  <p>Every component below shares the same Razor API: strongly-typed parameters, <code>Class</code> + <code>AdditionalAttributes</code>, XML docs, and Static SSR support.</p>
+  {{ for group in page.Site.BlazorGroups }}
+  <h3 id="{{ slug group.Title }}">{{ escape_html group.Title }}</h3>
+  <div class="docs-card-grid">
+    {{ for item in group.Components }}
+    <a class="docs-component-card" href="{{ safe_url item.Slug }}.html">
+      <div class="flex items-center justify-between gap-half">
+        <strong>{{ escape_html item.Name }}</strong>
+        <span class="docs-pill docs-pill--accent">Razor</span>
+      </div>
+      <p>{{ escape_html item.Summary }}</p>
+    </a>
+    {{ end }}
+  </div>
+  {{ end }}
+</section>
+
+{{ if (page.Site.RoadmapComponents | array.size) > 0 }}
+<section class="docs-section" aria-labelledby="roadmap">
+  <h2 id="roadmap">Roadmap (CSS-only components)</h2>
+  <p>
+    These remaining components from Velle's CSS registry are not yet wrapped as dedicated <code>&lt;Velle*&gt;</code> Razor components.
+    Their CSS classes are still available in <code>velle.css</code> while Razor wrappers are ported in upcoming phases.
+  </p>
+  <details class="docs-details">
+    <summary>Browse {{ array.size page.Site.RoadmapComponents }} CSS-only / unported components</summary>
+    <div class="docs-details__body">
+      <div class="docs-grid">
+        {{ for link in page.Site.RoadmapComponents }}<a class="list-row list-row--link docs-grid__item" href="{{ safe_url link.Href }}"
+          ><span>{{ escape_html link.Title }}</span><span class="docs-pill">{{ escape_html link.Badge }}</span></a
+        >{{ end }}
+      </div>
+    </div>
+  </details>
+</section>
+{{ end }}
+
+<section class="docs-section" aria-labelledby="legacy-cli">
+  <h2 id="legacy-cli">Legacy CLI &amp; framework-agnostic bundles</h2>
+  <details class="docs-details">
+    <summary>Using the legacy <code>Velle.Tool</code> CLI (v{{ escape_html page.Site.Version }}) or CDN bundles</summary>
+    <div class="docs-details__body">
+      <p>
+        Before pivoting to <code>Velle.Blazor</code>, this repository distributed a framework-agnostic
+        CLI tool (<a class="text-link" href="https://www.nuget.org/packages/Velle.Tool/{{ escape_html page.Site.Version }}">Velle.Tool on NuGet.org</a>)
+        and standalone <code>dist/</code> bundles. Existing CLI users can still install v{{ escape_html page.Site.Version }}:
+      </p>
+      <pre class="docs-pre" data-lang="sh"><code>dotnet new tool-manifest  # if needed
+dotnet tool install Velle.Tool --version {{ escape_html page.Site.Version }}
+dotnet tool run velle init
+dotnet tool run velle add button dialog</code></pre>
+      <p>Or load the static bundles via jsDelivr:</p>
+      <pre class="docs-pre" data-lang="html"><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{ escape_html page.Site.Version }}/dist/velle.css"&gt;
+&lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{ escape_html page.Site.Version }}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
+    </div>
+  </details>
+</section>

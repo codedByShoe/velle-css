@@ -1,0 +1,78 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Label) && ShowValue)
+{
+    <div class="@CombinedWrapperClass">
+        <span class="text-sm font-medium" id="@LabelId">@Label</span>
+        @if (Value is { } current && Max > 0)
+        {
+            <span class="text-sm text-subtle mis-auto">@($"{Math.Round(Math.Clamp(current / Max, 0, 1) * 100):0}%")</span>
+        }
+        <progress class="@CombinedClass"
+                  value="@Value"
+                  max="@Max"
+                  aria-labelledby="@LabelId"
+                  @attributes="ProgressAttributes"></progress>
+    </div>
+}
+else
+{
+    <progress class="@CombinedClass"
+              value="@Value"
+              max="@Max"
+              aria-label="@Label"
+              @attributes="ProgressAttributes"></progress>
+}
+
+@code {
+    /// <summary>
+    /// Current progress value. Omit (or pass <see langword="null"/>) to render an indeterminate progress bar.
+    /// </summary>
+    [Parameter] public double? Value { get; set; }
+
+    /// <summary>
+    /// Maximum progress value (defaults to <c>100</c>).
+    /// </summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// Accessible label for the progress bar. Rendered visibly when <see cref="ShowValue"/> is <see langword="true"/>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/> and <see cref="Label"/> is set, renders a header row with the label and computed percentage.
+    /// </summary>
+    [Parameter] public bool ShowValue { get; set; }
+
+    /// <summary>
+    /// Optional stable identifier prefix for the visible label element when <see cref="ShowValue"/> is <see langword="true"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;progress&gt;</c> element alongside <c>progress</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer wrapper when <see cref="ShowValue"/> is <see langword="true"/>.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;progress&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string LabelId => string.IsNullOrWhiteSpace(Id)
+        ? $"{AttributeUtilities.ToElementId(Label ?? "progress")}-label"
+        : $"{Id}-label";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("progress", Class, AdditionalAttributes);
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-wrap gap-half", WrapperClass, null);
+
+    private IReadOnlyDictionary<string, object>? ProgressAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "value", "max", "aria-label", "aria-labelledby");
+}

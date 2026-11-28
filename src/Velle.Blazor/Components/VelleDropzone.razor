@@ -1,0 +1,139 @@
+@namespace Velle.Blazor
+@using System.Globalization
+
+<div class="@CombinedClass"
+     x-data="velleDropzone"
+     x-on:dragenter="onDragOver"
+     x-on:dragover="onDragOver"
+     x-on:dragleave="onDragLeave"
+     x-on:drop="onDrop"
+     data-velle-max-file-size="@(MaxFileSizeMb.HasValue ? MaxFileSizeMb.Value.ToString(CultureInfo.InvariantCulture) : null)"
+     data-velle-max-files="@(MaxFiles.HasValue ? MaxFiles.Value.ToString(CultureInfo.InvariantCulture) : null)"
+     data-velle-type-message="@TypeMessage"
+     data-velle-size-message="@SizeMessage"
+     data-velle-count-message="@CountMessage"
+     @attributes="RootAttributes">
+    <label class="dropzone__area" for="@EffectiveId">
+        @if (IconContent is not null)
+        {
+            @IconContent
+        }
+        else
+        {
+            <span class="icon icon--upload mbe-2" aria-hidden="true"></span>
+        }
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <span class="text-sm font-medium">@Label</span>
+        }
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <span class="text-xs text-subtle">@Description</span>
+        }
+        <input id="@EffectiveId"
+               name="@Name"
+               type="file"
+               accept="@Accept"
+               multiple="@Multiple"
+               disabled="@Disabled"
+               class="sr-only"
+               x-on:change="onPick" />
+    </label>
+    <ul class="dropzone__files" x-on:click="onListClick"></ul>
+</div>
+
+@code {
+    /// <summary>
+    /// Form field name submitted for the underlying <c>&lt;input type="file"&gt;</c>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the file input. Derived from <see cref="Name"/> when omitted.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Primary prompt text displayed inside the drop area.
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Drop files here or click to upload.";
+
+    /// <summary>
+    /// Optional secondary helper text displayed beneath <see cref="Label"/>.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Comma-separated file type specifiers passed to the <c>accept</c> attribute (for example, <c>"image/*,.pdf"</c>).
+    /// </summary>
+    [Parameter] public string? Accept { get; set; }
+
+    /// <summary>
+    /// When <see langword="true"/> (default), allows selecting or dropping multiple files.
+    /// </summary>
+    [Parameter] public bool Multiple { get; set; } = true;
+
+    /// <summary>
+    /// When <see langword="true"/>, disables file picking and drag-and-drop.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Optional maximum file size in megabytes validated client-side before adding to the queue.
+    /// </summary>
+    [Parameter] public double? MaxFileSizeMb { get; set; }
+
+    /// <summary>
+    /// Optional maximum number of accepted files validated client-side.
+    /// </summary>
+    [Parameter] public int? MaxFiles { get; set; }
+
+    /// <summary>
+    /// Optional custom error message displayed when a file fails the <see cref="Accept"/> check.
+    /// </summary>
+    [Parameter] public string? TypeMessage { get; set; }
+
+    /// <summary>
+    /// Optional custom error message displayed when a file exceeds <see cref="MaxFileSizeMb"/>.
+    /// </summary>
+    [Parameter] public string? SizeMessage { get; set; }
+
+    /// <summary>
+    /// Optional custom error message displayed when selecting more than <see cref="MaxFiles"/> files.
+    /// </summary>
+    [Parameter] public string? CountMessage { get; set; }
+
+    /// <summary>
+    /// Optional custom icon content rendered above <see cref="Label"/> instead of the default upload icon.
+    /// </summary>
+    [Parameter] public RenderFragment? IconContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root <c>.dropzone</c> element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.dropzone</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id) ? AttributeUtilities.ToElementId(Name) : Id;
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("dropzone", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "x-data",
+            "x-on:dragenter",
+            "x-on:dragover",
+            "x-on:dragleave",
+            "x-on:drop",
+            "data-velle-max-file-size",
+            "data-velle-max-files",
+            "data-velle-type-message",
+            "data-velle-size-message",
+            "data-velle-count-message");
+}

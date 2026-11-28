@@ -1,0 +1,43 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" @attributes="RootAttributes">
+    <nav class="sidebar-menu__content" aria-label="@Label">
+        @ChildContent
+    </nav>
+    @if (Footer is not null)
+    {
+        @Footer
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Accessible label for the sidebar navigation landmark (defaults to <c>"Sidebar"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Sidebar";
+
+    /// <summary>
+    /// Sidebar menu groups and items.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Optional footer content pinned below the scrollable navigation list.
+    /// </summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.sidebar-menu</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>.sidebar-menu</c> wrapper.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("sidebar-menu", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

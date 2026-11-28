@@ -1,0 +1,70 @@
+@namespace Velle.Blazor
+
+<span class="inline-flex" x-data="velleColorScheme">
+    <button type="button"
+            class="@CombinedTriggerClass"
+            popovertarget="@Id"
+            aria-haspopup="true"
+            @attributes="TriggerAttributes">
+        <span class="icon icon--sun icon--color-scheme-light" aria-hidden="true"></span>
+        <span class="icon icon--moon icon--color-scheme-dark" aria-hidden="true"></span>
+        <span class="sr-only">@Label</span>
+    </button>
+
+    <div popover id="@Id" class="@CombinedPopoverClass" role="menu" aria-label="@Label">
+        <VelleMenu>
+            <button type="button" class="btn menu__item" popovertarget="@Id" role="menuitem" data-velle-menu-item x-on:click="setLight">@LightText</button>
+            <button type="button" class="btn menu__item" popovertarget="@Id" role="menuitem" data-velle-menu-item x-on:click="setDark">@DarkText</button>
+            <button type="button" class="btn menu__item" popovertarget="@Id" role="menuitem" data-velle-menu-item x-on:click="setSystem">@SystemText</button>
+        </VelleMenu>
+    </div>
+</span>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the theme switcher popover (defaults to <c>"velle-color-scheme"</c>).
+    /// </summary>
+    [Parameter] public string Id { get; set; } = "velle-color-scheme";
+
+    /// <summary>
+    /// Anchor placement for the theme menu popover (defaults to <see cref="VellePopoverPlacement.BlockEndEnd"/>).
+    /// </summary>
+    [Parameter] public VellePopoverPlacement Placement { get; set; } = VellePopoverPlacement.BlockEndEnd;
+
+    /// <summary>
+    /// Accessible label for the switcher button and menu.
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Theme";
+
+    /// <summary>
+    /// Label for the light theme menu option.
+    /// </summary>
+    [Parameter] public string LightText { get; set; } = "Light";
+
+    /// <summary>
+    /// Label for the dark theme menu option.
+    /// </summary>
+    [Parameter] public string DarkText { get; set; } = "Dark";
+
+    /// <summary>
+    /// Label for the system theme menu option.
+    /// </summary>
+    [Parameter] public string SystemText { get; set; } = "System";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the trigger button alongside <c>btn btn--icon</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the trigger button.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn btn--icon", Class, AdditionalAttributes);
+
+    private string CombinedPopoverClass => $"popover {AttributeUtilities.ToPopoverPlacementClass(Placement)}";
+
+    private IReadOnlyDictionary<string, object>? TriggerAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "type", "popovertarget", "aria-haspopup");
+}

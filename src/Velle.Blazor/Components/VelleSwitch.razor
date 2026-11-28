@@ -1,0 +1,132 @@
+@namespace Velle.Blazor
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Description))
+{
+    <div class="@CombinedWrapperClass">
+        <div class="flex flex-1 flex-col">
+            <label class="text-sm leading-none font-medium mbe-1" for="@EffectiveId">@Label</label>
+            <p class="text-sm text-subtle">@Description</p>
+        </div>
+        @SwitchInput
+    </div>
+}
+else
+{
+    <div class="@CombinedWrapperClass">
+        @SwitchInput
+        <label class="text-sm font-medium" for="@EffectiveId">@Label</label>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.NotificationsEnabled</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Visible label text associated with the switch.
+    /// </summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the checkbox input. When omitted, a stable identifier is derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional helper description rendered alongside the label.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Explicit checked state. Takes precedence over a boolean evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public bool? Checked { get; set; }
+
+    /// <summary>
+    /// Value submitted when the switch is on (defaults to <c>"true"</c> for ASP.NET Core boolean form binding).
+    /// </summary>
+    [Parameter] public string Value { get; set; } = "true";
+
+    /// <summary>
+    /// When <see langword="true"/> (default), emits a hidden <c>false</c> fallback input so unchecking a switch submits <c>false</c> on POST.
+    /// </summary>
+    [Parameter] public bool IncludeHiddenFalse { get; set; } = true;
+
+    /// <summary>
+    /// Optional expression pointing to the bound boolean model property (for example, <c>() =&gt; Input!.Enabled</c>).
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Size preset for the switch.
+    /// </summary>
+    [Parameter] public VelleSwitchSize Size { get; set; } = VelleSwitchSize.Default;
+
+    /// <summary>
+    /// Additional CSS classes merged onto the checkbox input alongside <c>switch</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the wrapper container.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the checkbox input.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private bool EffectiveChecked => Checked ?? (FormFieldUtilities.EvaluateExpression(For) is true);
+
+    private string SizeClass => Size == VelleSwitchSize.Small ? "switch--sm" : "";
+
+    private string? CombinedSwitchClass => AttributeUtilities.CombineClasses(
+        "switch",
+        Class,
+        AdditionalAttributes,
+        string.Join(" ", new[] { SizeClass, FieldCssClass }.Where(static s => !string.IsNullOrWhiteSpace(s))));
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses(
+        string.IsNullOrEmpty(Description) ? "flex items-center gap" : "flex items-start gap",
+        WrapperClass,
+        null);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "type", "role", "value", "checked", "aria-invalid");
+
+    private RenderFragment SwitchInput => @<text>
+        <input type="checkbox"
+               role="switch"
+               id="@EffectiveId"
+               name="@Name"
+               value="@Value"
+               checked="@EffectiveChecked"
+               class="@CombinedSwitchClass"
+               aria-invalid="@(IsInvalid ? "true" : null)"
+               @attributes="InputAttributes" />
+        @if (IncludeHiddenFalse)
+        {
+            <input type="hidden" name="@Name" value="false" />
+        }
+    </text>;
+}

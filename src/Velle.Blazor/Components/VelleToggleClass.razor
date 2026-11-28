@@ -1,0 +1,41 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleToggleClass"
+     data-velle-toggle-class="@ClassName"
+     data-velle-toggle-target="@TargetSelector"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// CSS class toggled on the target element (defaults to <c>"closed"</c>).
+    /// </summary>
+    [Parameter] public string ClassName { get; set; } = "closed";
+
+    /// <summary>
+    /// Optional CSS selector of the element whose class is toggled (defaults to the wrapper itself).
+    /// </summary>
+    [Parameter] public string? TargetSelector { get; set; }
+
+    /// <summary>
+    /// Content inside the Alpine scope that can invoke <c>x-on:click="toggle"</c>, <c>add</c>, or <c>remove</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "data-velle-toggle-class", "data-velle-toggle-target");
+}

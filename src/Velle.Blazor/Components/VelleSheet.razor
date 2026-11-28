@@ -1,0 +1,140 @@
+@namespace Velle.Blazor
+
+<div x-data="velleDialog" x-on:velle-enhanced-load.window="refresh">
+    @if (Trigger is not null)
+    {
+        @Trigger
+    }
+    else if (!string.IsNullOrEmpty(TriggerText))
+    {
+        <button type="button" class="@CombinedTriggerClass" aria-haspopup="dialog" aria-controls="@Id" x-on:click="show">
+            @TriggerText
+        </button>
+    }
+
+    <dialog id="@Id"
+            class="@CombinedSheetClass"
+            aria-labelledby="@(!string.IsNullOrEmpty(Title) ? TitleId : null)"
+            aria-describedby="@(!string.IsNullOrEmpty(Description) ? DescriptionId : null)"
+            aria-label="@(string.IsNullOrEmpty(Title) ? Label : null)"
+            data-velle-open="@(Open ? "true" : "false")"
+            x-on:click.self="close"
+            x-on:close="onClose"
+            @attributes="SheetAttributes">
+        @if (ShowCloseButton)
+        {
+            <button type="button" class="btn btn--plain sheet__close" x-on:click="close">
+                <span class="icon icon--x" aria-hidden="true"></span>
+                <span class="sr-only">@CloseLabel</span>
+            </button>
+        }
+
+        <div class="@CombinedContentClass">
+            @if (!string.IsNullOrEmpty(Title) || !string.IsNullOrEmpty(Description))
+            {
+                <div class="flex flex-col">
+                    @if (!string.IsNullOrEmpty(Title))
+                    {
+                        <h3 id="@TitleId" class="font-medium leading-none mbe-1">@Title</h3>
+                    }
+                    @if (!string.IsNullOrEmpty(Description))
+                    {
+                        <p id="@DescriptionId" class="text-sm text-subtle">@Description</p>
+                    }
+                </div>
+            }
+            @ChildContent
+        </div>
+    </dialog>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the sheet <c>&lt;dialog&gt;</c> element.
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Edge from which the sheet slides in (defaults to <see cref="VelleSheetSide.Right"/>).
+    /// </summary>
+    [Parameter] public VelleSheetSide Side { get; set; } = VelleSheetSide.Right;
+
+    /// <summary>
+    /// Optional heading rendered inside the sheet and referenced by <c>aria-labelledby</c>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Optional description rendered below <see cref="Title"/> and referenced by <c>aria-describedby</c>.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Accessible <c>aria-label</c> used when <see cref="Title"/> is omitted.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Text for the default trigger button. Ignored when <see cref="Trigger"/> is provided.
+    /// </summary>
+    [Parameter] public string? TriggerText { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the default trigger button alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// Optional custom trigger markup rendered inside the sheet's Alpine scope (add <c>x-on:click="show"</c> to open).
+    /// </summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>
+    /// Controls whether the sheet should be open when rendered or patched by an enhanced form post.
+    /// </summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>
+    /// Controls whether the corner close button (<c>.sheet__close</c>) is rendered.
+    /// </summary>
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>
+    /// Screen-reader label for the corner close button.
+    /// </summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the <c>&lt;dialog&gt;</c> element alongside <c>sheet</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the inner <c>.sheet__content</c> container.
+    /// </summary>
+    [Parameter] public string? ContentClass { get; set; }
+
+    /// <summary>
+    /// Body content rendered inside the sheet.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;dialog&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string TitleId => $"{Id}-title";
+    private string DescriptionId => $"{Id}-description";
+
+    private string SideClass => Side == VelleSheetSide.Left ? "sheet--left" : "sheet--right";
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn", TriggerClass, null);
+
+    private string? CombinedSheetClass => AttributeUtilities.CombineClasses("sheet", Class, AdditionalAttributes, SideClass);
+
+    private string? CombinedContentClass => AttributeUtilities.CombineClasses("sheet__content flex flex-col gap", ContentClass, null);
+
+    private IReadOnlyDictionary<string, object>? SheetAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id");
+}

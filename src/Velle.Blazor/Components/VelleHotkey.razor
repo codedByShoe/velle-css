@@ -1,0 +1,42 @@
+@namespace Velle.Blazor
+
+<span class="@CombinedClass"
+      x-data="velleHotkey"
+      data-velle-hotkey="@Keys"
+      data-velle-hotkey-action="@(Action == VelleHotkeyAction.Focus ? "focus" : "click")"
+      @attributes="RootAttributes">
+    @ChildContent
+</span>
+
+@code {
+    /// <summary>
+    /// Key combination that activates the wrapped target (for example, <c>"/"</c>, <c>"mod+k"</c>, or <c>"alt+n"</c>).
+    /// Use <c>mod</c> to match Cmd on macOS or Ctrl on Windows/Linux.
+    /// </summary>
+    [Parameter, EditorRequired] public string Keys { get; set; } = null!;
+
+    /// <summary>
+    /// Action performed when <see cref="Keys"/> is pressed outside editable inputs (defaults to <see cref="VelleHotkeyAction.Click"/>).
+    /// </summary>
+    [Parameter] public VelleHotkeyAction Action { get; set; } = VelleHotkeyAction.Click;
+
+    /// <summary>
+    /// Wrapped button, link, or input activated by the shortcut. Mark a specific child with <c>data-velle-hotkey-target</c> if needed.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper span.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper span.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "data-velle-hotkey", "data-velle-hotkey-action");
+}

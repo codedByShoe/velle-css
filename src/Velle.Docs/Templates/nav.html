@@ -1,0 +1,29 @@
+<div class="sidebar-menu docs-nav" data-docs-nav>
+  <div class="docs-search">
+    <input type="search"
+           class="input docs-search__input"
+           placeholder="Filter docs..."
+           aria-label="Filter documentation pages"
+           autocomplete="off"
+           data-docs-search>
+    <kbd class="kbd docs-search__kbd" aria-hidden="true">/</kbd>
+  </div>
+  <nav class="sidebar-menu__content" aria-label="Documentation">
+    {{ for group in page.Site.Nav }}
+    <div class="sidebar-menu__group" data-docs-nav-group>
+      <div class="sidebar-menu__group-label" aria-hidden="true">{{ escape_html group.Title }}</div>
+      <ul class="sidebar-menu__items" aria-label="{{ escape_html group.Title }}">
+        {{ for link in group.Links }}
+        <li data-docs-nav-item data-search-text="{{ escape_html link.Title }} {{ escape_html group.Title }} {{ escape_html link.Badge }}">
+          <a class="btn sidebar-menu__button docs-nav__link" href="{{ safe_url link.Href }}"{{ if link.Href == page.Href }} aria-current="page"{{ end }}>
+            <span>{{ escape_html link.Title }}</span>
+            {{ if link.Badge != "" }}<span class="docs-nav__badge">{{ escape_html link.Badge }}</span>{{ end }}
+          </a>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+    {{ end }}
+    <p class="docs-search__empty text-sm text-subtle" data-docs-search-empty hidden>No matching pages.</p>
+  </nav>
+</div>

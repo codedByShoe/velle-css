@@ -5,8 +5,8 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { define, controller, controllerFor } from "../../dist/js/velle.js"
 
-const read = file => readFileSync(new URL(`../../internal/docs/templates/${file}`, import.meta.url), "utf8")
-const guide = read("guide.md")
+const read = path => readFileSync(new URL(path, import.meta.url), "utf8")
+const guide = read("../../src/Velle.Docs/Templates/guide.md")
 const example = guide.match(/```js\n(\/\/ @ts-check\n[^`]*define\("cart"[^`]*)\n```/)[1]
 const markup = guide.match(/```html\n(<div data-counter>[^`]*)\n```/)[1]
 
@@ -19,7 +19,7 @@ globalThis.fetch = async (url, { signal }) => {
 new Function("define", "controller", example.replace(/^import .*$/m, ""))(define, controller)
 
 test("the HTML docs show the same example as the guide", () => {
-  const page = read("javascript.html").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&")
+  const page = read("../../src/Velle.Docs/Templates/javascript.html").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&")
   assert.ok(page.includes(example))
   assert.ok(page.includes(markup))
 })

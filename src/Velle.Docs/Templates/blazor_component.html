@@ -1,0 +1,104 @@
+{{ if page.BlazorComponent != null }}{{ component = page.BlazorComponent }}{{ meta = component.Metadata }}
+<header class="docs-intro">
+  <p class="docs-eyebrow">Blazor Component · <code>Velle.Blazor</code></p>
+  <h1>{{ escape_html meta.Name }}</h1>
+  <p class="docs-lead">{{ escape_html meta.Summary }}</p>
+  <div class="flex items-center flex-wrap gap-half">
+    {{ for badge in meta.Badges }}<span class="docs-pill">{{ escape_html badge }}</span>{{ end }}
+    {{ if component.CssReference != null }}<a class="docs-pill docs-pill--link" href="{{ safe_url component.CssReference.Href }}">CSS reference: {{ escape_html component.CssReference.Title }} →</a>{{ end }}
+  </div>
+</header>
+
+<section class="docs-section" aria-labelledby="usage">
+  <h2 id="usage">Usage</h2>
+  {{ for example in component.Examples }}
+  <div class="docs-example">
+    <h3 id="{{ escape_html example.Id }}"><a href="#{{ escape_html example.Id }}">{{ escape_html example.Title }}</a></h3>
+    {{ if example.Description != "" }}<p class="text-sm text-subtle">{{ escape_html example.Description }}</p>{{ end }}
+
+    {{ if example.FrameDoc != "" }}
+    <iframe class="docs-frame-preview" srcdoc="{{ escape_html example.FrameDoc }}" title="{{ escape_html example.Title }} preview"{{ if example.FrameHeight != "" }} style="block-size: {{ example.FrameHeight }}"{{ end }}></iframe>
+    {{ else if example.PreviewHtml != "" }}
+    <div class="docs-preview">
+      {{ example.PreviewHtml }}
+    </div>
+    {{ end }}
+
+    <div class="docs-code" data-input-copyable>
+      <div class="docs-code__header">
+        <span class="docs-code__lang">razor</span>
+        <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+          <span class="icon icon--copy" aria-hidden="true"></span>
+          <span>Copy</span>
+        </button>
+      </div>
+      <textarea hidden data-input-copyable-target="input">{{ escape_html example.RazorCode }}</textarea>
+      <pre><code>{{ escape_html example.RazorCode }}</code></pre>
+    </div>
+  </div>
+  {{ end }}
+</section>
+
+{{ if (array.size meta.Parameters) > 0 }}
+<section class="docs-section" aria-labelledby="parameters">
+  <h2 id="parameters">Parameters</h2>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ for param in meta.Parameters }}
+        <tr>
+          <td>
+            <code>{{ escape_html param.Name }}</code>
+            {{ if param.Required }}<span class="docs-pill docs-pill--required">Required</span>{{ end }}
+          </td>
+          <td><code>{{ escape_html param.Type }}</code></td>
+          <td><code>{{ escape_html param.Default }}</code></td>
+          <td>{{ escape_html param.Description }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{ end }}
+
+{{ if (array.size meta.Types) > 0 }}
+<section class="docs-section" aria-labelledby="types">
+  <h2 id="types">Supporting types</h2>
+  {{ for type in meta.Types }}
+  <h3 id="{{ slug type.Name }}"><code>{{ escape_html type.Name }}</code> <span class="docs-pill">{{ escape_html type.Kind }}</span></h3>
+  <p class="text-sm text-subtle">{{ escape_html type.Description }}</p>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Member</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for member in type.Members }}
+        <tr>
+          <td><code>{{ escape_html member.Name }}</code></td>
+          <td>{{ escape_html member.Description }}</td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+</section>
+{{ end }}
+
+{{ if (array.size meta.Notes) > 0 }}
+<section class="docs-section" aria-labelledby="ssr-notes">
+  <h2 id="ssr-notes">Static SSR &amp; behavior notes</h2>
+  <ul class="docs-list">
+    {{ for note in meta.Notes }}<li>{{ escape_html note }}</li>{{ end }}
+  </ul>
+</section>
+{{ end }}
+{{ end }}

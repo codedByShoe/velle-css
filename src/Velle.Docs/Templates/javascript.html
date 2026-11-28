@@ -1,0 +1,183 @@
+<header class="docs-intro">
+  <p class="docs-eyebrow">Architecture · <code>Velle.Blazor</code></p>
+  <h1>Alpine &amp; Interop</h1>
+  <p class="docs-lead">
+    <code>Velle.Blazor</code> pairs Blazor Static SSR with a locally bundled <strong>Alpine.js CSP</strong> build
+    loaded automatically via Blazor's JavaScript initializer — zero <code>unsafe-eval</code>, zero manual script tags,
+    and clean synchronization across enhanced navigation and form posts.
+  </p>
+</header>
+
+<section class="docs-section" aria-labelledby="initializer">
+  <h2 id="initializer">Automatic JS initializer</h2>
+  <p>
+    ASP.NET Core Blazor automatically discovers and runs
+    <code>_content/Velle.Blazor/Velle.Blazor.lib.module.js</code> whenever <code>blazor.web.js</code> starts.
+    In <code>afterWebStarted(blazor)</code>, Velle:
+  </p>
+  <ul class="docs-list">
+    <li>Uses an existing <code>window.Alpine</code> if your app loaded Alpine itself, or exposes Velle's bundled Alpine.js CSP build on <code>window.Alpine</code>.</li>
+    <li>Registers the <code>velleDialog</code>, <code>velleTabs</code>, and <code>velleDatepicker</code> Alpine data components.</li>
+    <li>Dispatches <code>velle:before-start</code> on <code>window</code> so your app can register custom Alpine components or stores before startup.</li>
+    <li>Starts Alpine once (guarded against double initialization) and wires Blazor's <code>enhancedload</code> event to dispatch <code>velle-enhanced-load</code>.</li>
+  </ul>
+</section>
+
+<section class="docs-section" aria-labelledby="enhanced-navigation">
+  <h2 id="enhanced-navigation">Enhanced navigation &amp; form sync</h2>
+  <p>
+    When a user navigates via an enhanced link or submits an <code>EditForm Enhance</code>, Blazor patches the DOM
+    in place without reloading the page. Alpine components rendered by Velle listen to
+    <code>x-on:velle-enhanced-load.window="refresh"</code> so client widgets stay aligned with the server:
+  </p>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Component</th><th>Sync behavior on <code>velle-enhanced-load</code></th></tr></thead>
+      <tbody>
+        <tr><td><a class="text-link" href="velle-dialog.html"><code>VelleDialog</code></a></td><td>Reads <code>data-velle-open</code> from the server response, opens or closes the native modal safely, and clears <code>data-velle-open</code> on native <code>close</code> events (Escape, backdrop click, or <code>&lt;form method="dialog"&gt;</code>).</td></tr>
+        <tr><td><a class="text-link" href="velle-tabs.html"><code>VelleTabs</code></a></td><td>Preserves client-side tab selection while still honoring updated server <code>data-velle-selected</code> values and keeping ARIA attributes consistent.</td></tr>
+        <tr><td><a class="text-link" href="velle-datepicker.html"><code>VelleDatepicker</code></a></td><td>Rebuilds the lazy-loaded Flatpickr instance from the server-rendered <code>defaultValue</code>, syncs <code>aria-invalid</code>/validation classes onto the visible display input, and destroys the calendar cleanly when navigating away.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="extending-alpine">
+  <h2 id="extending-alpine">Extending Alpine.js</h2>
+  <p>
+    Listen for <code>velle:before-start</code> to register your own CSP-safe Alpine components or stores on the
+    same Alpine instance before <code>Alpine.start()</code> runs:
+  </p>
+  <div class="docs-code" data-input-copyable>
+    <div class="docs-code__header">
+      <span class="docs-code__lang">js</span>
+      <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+        <span class="icon icon--copy" aria-hidden="true"></span>
+        <span>Copy</span>
+      </button>
+    </div>
+    <textarea hidden data-input-copyable-target="input">window.addEventListener("velle:before-start", ({ detail: { Alpine } }) => {
+  Alpine.data("myCounter", () => ({
+    count: 0,
+    increment() {
+      this.count++
+    },
+  }))
+})</textarea>
+    <pre><code>window.addEventListener("velle:before-start", ({ detail: { Alpine } }) =&gt; {
+  Alpine.data("myCounter", () =&gt; ({
+    count: 0,
+    increment() {
+      this.count++
+    },
+  }))
+})</code></pre>
+  </div>
+  <p class="text-sm text-subtle">
+    Because Velle ships the Alpine.js CSP build, define methods and computed getters inside <code>Alpine.data(...)</code>
+    and bind them by name (e.g. <code>x-on:click="increment"</code>, <code>x-text="count"</code>) instead of inline JS expressions.
+  </p>
+</section>
+
+<section class="docs-section" aria-labelledby="asset-layout">
+  <h2 id="asset-layout">Static web asset paths</h2>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Asset path</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>_content/Velle.Blazor/Velle.Blazor.lib.module.js</code></td><td>Blazor JS initializer (loaded automatically by <code>blazor.web.js</code>).</td></tr>
+        <tr><td><code>_content/Velle.Blazor/css/velle.css</code></td><td>Core reset, design tokens, component CSS, and utilities.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/css/datepicker.css</code></td><td>Velle theme overrides for Flatpickr.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/js/datepicker.js</code></td><td>Alpine datepicker behavior module (lazy-loads Flatpickr).</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/alpine/alpine-csp.min.js</code></td><td>Bundled Alpine.js CSP build.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/flatpickr/flatpickr.min.css</code></td><td>Bundled Flatpickr base stylesheet.</td></tr>
+        <tr><td><code>_content/Velle.Blazor/lib/flatpickr/flatpickr.min.js</code></td><td>Bundled Flatpickr script (lazy-loaded on mount).</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="docs-section" aria-labelledby="legacy-runtime">
+  <h2 id="legacy-runtime">Legacy <code>velle.js</code> runtime</h2>
+  <p class="text-subtle">
+    The reference below applies to the legacy framework-agnostic <code>Velle.Tool</code> CLI and <code>dist/velle.js</code> bundle.
+    New Blazor apps should use <code>Velle.Blazor</code> and Alpine.js CSP above.
+  </p>
+  <details class="docs-details">
+    <summary>Show legacy <code>velle.js</code> runtime &amp; custom controller documentation</summary>
+    <div class="docs-details__body">
+      <h3 id="loading">Loading</h3>
+      <p>Every legacy behavior is an ES module that imports <code>./velle.js</code>:</p>
+      <pre class="docs-pre" data-lang="html"><code>&lt;script type="module" src="https://cdn.jsdelivr.net/gh/codedbyshoe/velle-css@v{{ escape_html page.Site.Version }}/dist/velle.js"&gt;&lt;/script&gt;</code></pre>
+
+      <h3 id="headless">Using the JavaScript without the CSS</h3>
+      <pre class="docs-pre" data-lang="sh"><code>dotnet tool run velle init --js           # writes velle.json and main.js, and no styles
+dotnet tool run velle add tabs menu       # copies only their JavaScript
+dotnet tool run velle new controller cart # or start from the bare runtime</code></pre>
+
+      <h3 id="controllers">Writing your own controllers</h3>
+      <p>Use <code>controller({ targets, values })</code> as the base class for legacy runtime controllers:</p>
+      <pre class="docs-pre" data-lang="html"><code>&lt;div data-counter&gt;
+  &lt;output data-counter-target="output"&gt;&lt;/output&gt;
+  &lt;button data-counter-action="increment"&gt;Add to cart&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;nav data-cart data-cart-count="0" data-cart-action="velle:counter:change@window-&gt;refresh"&gt;
+  &lt;span class="badge" data-cart-target="badge"&gt;&lt;/span&gt;
+  &lt;span data-cart-target="total"&gt;&lt;/span&gt;
+&lt;/nav&gt;</code></pre>
+      <pre class="docs-pre" data-lang="js"><code>// @ts-check
+import { define, controller } from "./velle.js"
+
+define("counter", class extends controller({
+  targets: { output: HTMLElement },
+  values: { count: 0 },
+}) {
+  connect() {
+    this.countChanged()
+  }
+
+  increment() {
+    this.count++
+  }
+
+  countChanged() {
+    const { output } = this.$
+    if (output) output.textContent = String(this.count)
+    this.dispatch("change", { count: this.count })
+  }
+})
+
+define("cart", class extends controller({
+  targets: { badge: HTMLElement, total: HTMLElement },
+  values: { count: 0, url: "/cart/total" },
+}) {
+  connect() {
+    this.on(document, "visibilitychange", () =&gt; this.#loadTotal())
+    this.countChanged()
+  }
+
+  /** @param {CustomEvent&lt;{ count: number }&gt;} event */
+  refresh(event) {
+    this.count = event.detail.count
+  }
+
+  countChanged() {
+    const { badge } = this.$
+    if (badge) badge.textContent = String(this.count)
+    this.#loadTotal()
+  }
+
+  async #loadTotal() {
+    try {
+      const response = await fetch(this.url, { signal: this.signal })
+      const { total } = this.$
+      if (total) total.textContent = await response.text()
+    } catch (error) {
+      if (!this.signal.aborted) throw error
+    }
+  }
+})</code></pre>
+    </div>
+  </details>
+</section>

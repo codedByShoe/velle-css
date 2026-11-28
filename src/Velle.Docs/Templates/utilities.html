@@ -1,0 +1,19 @@
+<header class="docs-intro">
+  <p class="docs-eyebrow">Design System · <code>velle.css</code></p>
+  <h1>Utilities</h1>
+  <p class="docs-lead">Single-purpose classes included in <code>velle.css</code> via <code>&lt;VelleStyles /&gt;</code>. Spacing and sizing use logical properties: <code>b</code> means block (vertical), <code>i</code> means inline (horizontal), <code>s</code> means start, and <code>e</code> means end, so <code>mbe-4</code> is <code>margin-block-end: var(--size-4)</code>.</p>
+</header>
+
+{{ for utility in page.Utilities }}
+<section class="docs-section" aria-labelledby="{{ slug utility.Title }}">
+  <h2 id="{{ slug utility.Title }}">{{ escape_html utility.Title }}</h2>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Class</th><th>Declarations</th></tr></thead>
+      <tbody>
+        {{ for rule in utility.Rules }}<tr><td><code>.{{ escape_html rule.Class }}</code></td><td><code>{{ escape_html rule.Declarations }}</code></td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+</section>
+{{ end }}

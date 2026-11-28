@@ -1,0 +1,189 @@
+{{ if page.Component != null }}{{ component = page.Component }}
+<header class="docs-intro">
+  <p class="docs-eyebrow">CSS Reference · {{ escape_html component.Metadata.Category }}</p>
+  <h1>{{ escape_html component.Metadata.Title }}</h1>
+  <p class="docs-lead">{{ escape_html component.Metadata.Description }}</p>
+  <div class="flex items-center flex-wrap gap-half">
+    {{ if component.BlazorComponent != null }}<a class="docs-pill docs-pill--accent docs-pill--link" href="{{ safe_url component.BlazorComponent.Href }}">Blazor component: {{ escape_html component.BlazorComponent.Title }} →</a>{{ end }}
+    {{ if component.HasCss }}<span class="docs-pill">CSS</span>{{ end }}
+    {{ if component.HasJs }}<span class="docs-pill">Interactive</span>{{ end }}
+    {{ if !component.HasCss && !component.HasJs }}<span class="docs-pill">Composition</span>{{ end }}
+  </div>
+</header>
+
+{{ if component.BlazorComponent != null }}
+<div class="docs-callout docs-callout--accent" role="note">
+  <strong>Blazor component available</strong>
+  <p>
+    Using <code>Velle.Blazor</code>? Prefer the <a class="text-link" href="{{ safe_url component.BlazorComponent.Href }}"><code>&lt;{{ escape_html component.BlazorComponent.Title }} /&gt;</code></a>
+    Razor component for Static SSR, enhanced navigation sync, and Alpine.js CSP behavior. The reference below documents the underlying CSS classes and tokens.
+  </p>
+</div>
+{{ end }}
+
+<section class="docs-section" aria-labelledby="usage">
+  <h2 id="usage">Usage in Velle.Blazor</h2>
+  {{ if component.Metadata.Library != null }}
+  {{ if component.Metadata.Name == "datepicker" }}
+  <p>
+    Included with <code>Velle.Blazor</code> when you set <code>&lt;VelleStyles IncludeDatepicker="true" /&gt;</code> in <code>App.razor</code>.
+    Flatpickr is bundled locally and lazy-loaded by <a class="text-link" href="velle-datepicker.html"><code>&lt;VelleDatepicker /&gt;</code></a>.
+  </p>
+  {{ else }}
+  <p>
+    This CSS adapter wraps <a class="text-link" href="{{ safe_url component.Metadata.Library.Homepage }}">{{ escape_html component.Metadata.Library.Package }}</a>
+    and has not been ported to a dedicated Razor component yet.
+  </p>
+  {{ end }}
+  {{ else }}
+  <p>
+    These styles are included automatically when you render <a class="text-link" href="velle-styles.html"><code>&lt;VelleStyles /&gt;</code></a>
+    in <code>App.razor</code>. Apply the classes directly in any Razor component or HTML element.
+  </p>
+  {{ end }}
+
+  <details class="docs-details">
+    <summary>Legacy <code>Velle.Tool</code> CLI install</summary>
+    <div class="docs-details__body">
+      <div class="input input--actor flex items-center gap docs-install" data-input-copyable>
+        <input type="text" value="dotnet tool run velle add {{ escape_html component.Metadata.Name }}" readonly aria-label="Install command" data-input-copyable-target="input">
+        <button type="button" class="btn btn--plain" data-input-copyable-action="copy" data-copy-button>
+          <span class="icon icon--copy" aria-hidden="true"></span>
+          <span class="sr-only">Copy command</span>
+        </button>
+      </div>
+      <dl class="docs-facts">
+        {{ if (array.size component.Metadata.Files) > 0 }}
+        <div>
+          <dt>Files</dt>
+          <dd>{{ for file in component.Metadata.Files }}{{ if for.index > 0 }}, {{ end }}<code>{{ escape_html file }}</code>{{ end }}</dd>
+        </div>
+        {{ end }}
+        {{ if (array.size component.Dependencies) > 0 }}
+        <div>
+          <dt>Requires</dt>
+          <dd>{{ for dependency in component.Dependencies }}{{ if for.index > 0 }}, {{ end }}<a class="text-link" href="{{ safe_url dependency.Href }}">{{ escape_html dependency.Title }}</a>{{ end }}</dd>
+        </div>
+        {{ end }}
+      </dl>
+    </div>
+  </details>
+</section>
+
+{{ if component.Metadata.Library != null && component.Metadata.Name != "datepicker" }}{{ library = component.Metadata.Library }}
+<section class="docs-section" aria-labelledby="library">
+  <h2 id="library">Third-party library</h2>
+  <p>This adapter wraps <a class="text-link" href="{{ safe_url library.Homepage }}">{{ escape_html library.Package }}</a> ({{ escape_html library.License }} license). Install version {{ escape_html library.Version }} with npm or an import map:</p>
+  <pre class="docs-pre" data-lang="sh"><code>npm install{{ for package in library.Packages }} {{ escape_html package }}{{ end }}</code></pre>
+  <pre class="docs-pre" data-lang="html"><code>{{ escape_html page.Component.ImportMapEntry }}{{ if library.Stylesheet != "" }}
+&lt;link rel="stylesheet" href="{{ escape_html library.StylesheetUrl }}"&gt; &lt;!-- before {{ escape_html page.Component.Metadata.Name }}.css --&gt;{{ end }}</code></pre>
+</section>
+{{ end }}
+
+<section class="docs-section" aria-labelledby="examples">
+  <h2 id="examples">Examples</h2>
+  {{ for example in component.Examples }}
+  <div class="docs-example">
+    <h3 id="{{ escape_html example.Id }}"><a href="#{{ escape_html example.Id }}">{{ escape_html example.Title }}</a></h3>
+    {{ if example.Description != "" }}<p class="text-sm text-subtle">{{ escape_html example.Description }}</p>{{ end }}
+    {{ if (array.size example.Uses) > 0 }}<p class="text-sm text-subtle">Combines with {{ for use in example.Uses }}{{ if for.index > 0 }}, {{ end }}<a class="text-link" href="{{ safe_url use.Href }}">{{ escape_html use.Title }}</a>{{ end }}.</p>{{ end }}
+
+    {{ if example.Frame }}
+    <iframe class="docs-frame-preview" srcdoc="{{ escape_html example.FrameDoc }}" style="block-size: {{ if example.Height != "" }}{{ escape_html example.Height }}{{ else }}24rem{{ end }}" title="{{ escape_html example.Title }} example"></iframe>
+    {{ else }}
+    <div class="docs-preview">
+      {{ example.Html }}
+    </div>
+    {{ end }}
+
+    <div class="docs-code" data-input-copyable>
+      <div class="docs-code__header">
+        <span class="docs-code__lang">html</span>
+        <button type="button" class="btn btn--sm btn--borderless docs-code__copy" data-input-copyable-action="copy" data-copy-button>
+          <span class="icon icon--copy" aria-hidden="true"></span>
+          <span>Copy</span>
+        </button>
+      </div>
+      <textarea hidden data-input-copyable-target="input">{{ escape_html example.Code }}</textarea>
+      <pre><code>{{ escape_html example.Code }}</code></pre>
+    </div>
+  </div>
+  {{ end }}
+</section>
+
+{{ if (array.size component.Metadata.Classes) > 0 || (array.size component.Metadata.Variables) > 0 || (array.size component.Metadata.Attributes) > 0 || (array.size component.Metadata.Actions) > 0 || (array.size component.Metadata.Events) > 0 }}
+<section class="docs-section" aria-labelledby="reference">
+  <h2 id="reference">Reference</h2>
+
+  {{ if (array.size component.Metadata.Classes) > 0 }}
+  <h3 id="classes">Classes</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Class</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for css_class in component.Metadata.Classes }}<tr><td><code>.{{ escape_html css_class.Name }}</code></td><td>{{ escape_html css_class.Description }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+
+  {{ if (array.size component.Metadata.Variables) > 0 }}
+  <h3 id="variables">CSS variables</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for variable in component.Metadata.Variables }}<tr><td><code>{{ escape_html variable.Name }}</code></td><td><code>{{ escape_html variable.Default }}</code></td><td>{{ escape_html variable.Description }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+
+  {{ if (array.size component.Metadata.Attributes) > 0 }}
+  <h3 id="attributes">Legacy data attributes</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Attribute</th><th>On</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for attribute in component.Metadata.Attributes }}<tr><td><code>{{ escape_html attribute.Name }}</code></td><td>{{ escape_html attribute.Element }}</td><td>{{ escape_html attribute.Description }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+
+  {{ if (array.size component.Metadata.Actions) > 0 }}
+  <h3 id="actions">Legacy actions</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Action</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for action in component.Metadata.Actions }}<tr><td><code>{{ escape_html action.Name }}</code></td><td>{{ escape_html action.Description }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+
+  {{ if (array.size component.Metadata.Events) > 0 }}
+  <h3 id="events">Legacy events</h3>
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Event</th><th>Description</th></tr></thead>
+      <tbody>
+        {{ for event in component.Metadata.Events }}<tr><td><code>{{ escape_html event.Name }}</code></td><td>{{ escape_html event.Description }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+</section>
+{{ end }}
+
+{{ if (array.size component.Metadata.Notes) > 0 || component.Metadata.Headless != "" }}
+<section class="docs-section" aria-labelledby="notes">
+  <h2 id="notes">Notes</h2>
+  <ul class="docs-list">
+    {{ for note in component.Metadata.Notes }}<li>{{ escape_html note }}</li>{{ end }}
+    {{ if component.Metadata.Headless != "" }}<li>Without velle's styles: {{ escape_html component.Metadata.Headless }}</li>{{ end }}
+  </ul>
+</section>
+{{ end }}
+{{ end }}

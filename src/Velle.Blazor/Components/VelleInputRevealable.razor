@@ -1,0 +1,118 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label))
+{
+    <div class="@CombinedWrapperClass">
+        <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        @FieldBox
+    </div>
+}
+else
+{
+    @FieldBox
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Password</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the inner password input. Defaults to a stable slug derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the field and associated via <c>for</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Explicit input value. Takes precedence over a value evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound model property.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Optional placeholder text.
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Screen-reader label for the reveal button (defaults to <c>"Toggle password visibility"</c>).
+    /// </summary>
+    [Parameter] public string ToggleLabel { get; set; } = "Toggle password visibility";
+
+    /// <summary>
+    /// Additional CSS classes merged onto the outer input actor box.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the label/field wrapper when <see cref="Label"/> is set.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the inner <c>&lt;input&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private string? EffectiveValue
+    {
+        get
+        {
+            if (Value is not null) return Value;
+            var evaluated = FormFieldUtilities.EvaluateExpression(For);
+            return evaluated is null ? null : Convert.ToString(evaluated, CultureInfo.InvariantCulture);
+        }
+    }
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedActorClass => AttributeUtilities.CombineClasses(
+        "input input--actor input--revealable flex items-center gap",
+        Class,
+        AdditionalAttributes,
+        FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "type", "value", "placeholder", "aria-invalid");
+
+    private RenderFragment FieldBox => @<div class="@CombinedActorClass" x-data="velleInputRevealable">
+        <input type="password"
+               id="@EffectiveId"
+               name="@Name"
+               value="@EffectiveValue"
+               placeholder="@Placeholder"
+               aria-invalid="@(IsInvalid ? "true" : null)"
+               @attributes="InputAttributes" />
+        <button type="button" class="btn btn--plain" aria-pressed="false" x-on:click="reveal">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="sr-only">@ToggleLabel</span>
+        </button>
+    </div>;
+}

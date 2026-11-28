@@ -1,0 +1,41 @@
+@namespace Velle.Blazor
+
+<a href="@Href"
+   class="@CombinedClass"
+   data-velle-lightbox-trigger
+   data-velle-lightbox-url="@(DownloadUrl ?? Href)"
+   @attributes="LinkAttributes">
+    @ChildContent
+</a>
+
+@code {
+    /// <summary>
+    /// Full-resolution image URL displayed when opened in the enclosing <see cref="VelleLightbox"/>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = null!;
+
+    /// <summary>
+    /// Optional separate download URL (defaults to <see cref="Href"/>).
+    /// </summary>
+    [Parameter] public string? DownloadUrl { get; set; }
+
+    /// <summary>
+    /// Thumbnail markup (typically an <c>&lt;img&gt;</c>) rendered inside the link.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>inline-flex</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;a&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("inline-flex", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href");
+}

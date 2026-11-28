@@ -1,0 +1,33 @@
+<header class="docs-intro">
+  <p class="docs-eyebrow">Design System · <code>velle.css</code></p>
+  <h1>Tokens</h1>
+  <p class="docs-lead">Design tokens are CSS custom properties defined on <code>:root</code> and included automatically by <code>&lt;VelleStyles /&gt;</code>. Click any color swatch to copy its <code>var(...)</code> reference.</p>
+</header>
+
+{{ for token_file in page.Tokens }}
+<section class="docs-section" aria-labelledby="{{ slug token_file.Title }}">
+  <h2 id="{{ slug token_file.Title }}">{{ escape_html token_file.Title }} <span class="text-sm font-normal text-subtle">tokens/{{ escape_html token_file.File }}</span></h2>
+  {{ for section in token_file.Sections }}
+  {{ if section.Title != "" }}<h3>{{ escape_html section.Title }}</h3>{{ end }}
+  {{ if (array.size section.Tokens) > 0 && section.Tokens[0].Color }}
+  <div class="docs-swatches">
+    {{ for token in section.Tokens }}
+    <button type="button" class="docs-swatch" data-copy-token="var({{ escape_html token.Name }})" title="Copy var({{ escape_html token.Name }})">
+      <span class="docs-swatch__color" style="{{ token.Swatch }}"></span>
+      <code>{{ escape_html token.Name }}</code>
+    </button>
+    {{ end }}
+  </div>
+  {{ else }}
+  <div class="overflow-i-auto">
+    <table class="table docs-table">
+      <thead><tr><th>Variable</th><th>Value</th></tr></thead>
+      <tbody>
+        {{ for token in section.Tokens }}<tr><td><code>{{ escape_html token.Name }}</code></td><td><code>{{ escape_html token.Value }}</code>{{ if token.Comment != "" }} <span class="text-subtle">{{ escape_html token.Comment }}</span>{{ end }}</td></tr>{{ end }}
+      </tbody>
+    </table>
+  </div>
+  {{ end }}
+  {{ end }}
+</section>
+{{ end }}

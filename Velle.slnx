@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Velle.Blazor/Velle.Blazor.csproj" />
+    <Project Path="src/Velle.Docs/Velle.Docs.csproj" />
+    <Project Path="src/Velle.Tool/Velle.Tool.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Velle.Blazor.Sample/Velle.Blazor.Sample.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Velle.Blazor.Tests/Velle.Blazor.Tests.csproj" />
+  </Folder>
+</Solution>

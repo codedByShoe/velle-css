@@ -9,18 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-dotnet@v6
         with:
-          go-version-file: go.mod
-      - run: go vet ./...
-      - run: go test ./...
-      - name: Check that dist/ is up to date
-        run: |
-          go run ./cmd/docsgen
-          git diff --exit-code -- dist
+          dotnet-version: '10.0.x'
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Build solution
+        run: dotnet build Velle.slnx -c Release
+      - name: Run .NET component tests
+        run: dotnet test Velle.slnx -c Release --no-build
       - run: npm ci
       - run: npm test
       - run: npm run typecheck
+      - name: Verify .NET-generated bundles and docs
+        run: npm run test:docs
+      - name: Verify the .NET tool
+        run: npm run test:tool
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium --only-shell
+      - name: Run Blazor SSR browser tests
+        run: npm run test:blazor

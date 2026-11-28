@@ -1,0 +1,50 @@
+@namespace Velle.Blazor
+@using System.Globalization
+
+<div class="@CombinedClass"
+     x-data="velleAutosave"
+     x-on:change="change"
+     data-velle-autosave-interval="@IntervalMs.ToString(CultureInfo.InvariantCulture)"
+     data-velle-autosave-mode="@(Mode == VelleAutosaveMode.Submit ? "submit" : "fetch")"
+     @attributes="RootAttributes">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Delay in milliseconds after a change before saving automatically (defaults to <c>3000</c>).
+    /// </summary>
+    [Parameter] public int IntervalMs { get; set; } = 3000;
+
+    /// <summary>
+    /// Submission strategy: <see cref="VelleAutosaveMode.Fetch"/> (background HTTP fetch) or
+    /// <see cref="VelleAutosaveMode.Submit"/> (<c>form.requestSubmit()</c> for Blazor Enhanced <c>EditForm</c>).
+    /// </summary>
+    [Parameter] public VelleAutosaveMode Mode { get; set; } = VelleAutosaveMode.Fetch;
+
+    /// <summary>
+    /// Form markup wrapped by this autosave controller.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes applied to the wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "x-data",
+            "x-on:change",
+            "data-velle-autosave-interval",
+            "data-velle-autosave-mode");
+}

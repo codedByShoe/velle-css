@@ -1,0 +1,116 @@
+@namespace Velle.Blazor
+
+@if (TriggerMode == VellePopoverTrigger.Hover)
+{
+    <span class="inline-flex" x-data="velleHoverPopover" data-velle-popover-target="@Id">
+        @if (Trigger is not null)
+        {
+            <span class="inline-flex" x-on:mouseenter="show" x-on:mouseleave="hide">@Trigger</span>
+        }
+        else if (!string.IsNullOrEmpty(TriggerText))
+        {
+            <button type="button" class="@CombinedTriggerClass" x-on:mouseenter="show" x-on:mouseleave="hide">
+                @TriggerText
+            </button>
+        }
+
+        @PopoverSurface
+    </span>
+}
+else
+{
+    @if (Trigger is not null)
+    {
+        @Trigger
+    }
+    else if (!string.IsNullOrEmpty(TriggerText))
+    {
+        <button type="button" class="@CombinedTriggerClass" popovertarget="@Id">
+            @TriggerText
+        </button>
+    }
+
+    @PopoverSurface
+}
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the popover surface (matched by <c>popovertarget</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Anchor placement relative to the trigger (defaults to <see cref="VellePopoverPlacement.BlockEndStart"/>).
+    /// </summary>
+    [Parameter] public VellePopoverPlacement Placement { get; set; } = VellePopoverPlacement.BlockEndStart;
+
+    /// <summary>
+    /// Trigger interaction mode (<see cref="VellePopoverTrigger.Click"/> or <see cref="VellePopoverTrigger.Hover"/>).
+    /// </summary>
+    [Parameter] public VellePopoverTrigger TriggerMode { get; set; } = VellePopoverTrigger.Click;
+
+    /// <summary>
+    /// HTML <c>popover</c> attribute mode (defaults to <c>"auto"</c>; use <c>"hint"</c> for tooltips).
+    /// </summary>
+    [Parameter] public string PopoverMode { get; set; } = "auto";
+
+    /// <summary>
+    /// Optional text for the default trigger button. Ignored when <see cref="Trigger"/> is provided.
+    /// </summary>
+    [Parameter] public string? TriggerText { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the default trigger button alongside <c>btn</c>.
+    /// </summary>
+    [Parameter] public string? TriggerClass { get; set; }
+
+    /// <summary>
+    /// Optional custom trigger markup. In click mode, include <c>popovertarget="@Id"</c> on the trigger button.
+    /// </summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>
+    /// Optional ARIA role for the popover surface (defaults to <c>"dialog"</c>; use <c>"tooltip"</c> for hints).
+    /// </summary>
+    [Parameter] public string? Role { get; set; } = "dialog";
+
+    /// <summary>
+    /// Optional accessible label applied via <c>aria-label</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the popover surface alongside <c>popover</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Content rendered inside the floating popover surface.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the popover surface.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedTriggerClass => AttributeUtilities.CombineClasses("btn", TriggerClass, null);
+
+    private string? CombinedPopoverClass => AttributeUtilities.CombineClasses(
+        "popover",
+        Class,
+        AdditionalAttributes,
+        AttributeUtilities.ToPopoverPlacementClass(Placement));
+
+    private IReadOnlyDictionary<string, object>? PopoverAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "popover", "role", "aria-label");
+
+    private RenderFragment PopoverSurface => @<div popover="@PopoverMode"
+                                                   id="@Id"
+                                                   class="@CombinedPopoverClass"
+                                                   role="@Role"
+                                                   aria-label="@Label"
+                                                   @attributes="PopoverAttributes">
+        @ChildContent
+    </div>;
+}

@@ -1,0 +1,57 @@
+@namespace Velle.Blazor
+
+@if (!string.IsNullOrEmpty(Href))
+{
+    <a href="@Href" class="@CombinedClass" @attributes="LinkAttributes">
+        @ChildContent
+    </a>
+}
+else
+{
+    <span class="@CombinedClass" @attributes="SpanAttributes">
+        @ChildContent
+    </span>
+}
+
+@code {
+    /// <summary>
+    /// Visual style variant for the badge.
+    /// </summary>
+    [Parameter] public VelleBadgeVariant Variant { get; set; } = VelleBadgeVariant.Default;
+
+    /// <summary>
+    /// When provided, renders the badge as an <c>&lt;a&gt;</c> link instead of a <c>&lt;span&gt;</c>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the element alongside <c>badge</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Badge content.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the rendered element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string VariantClass => Variant switch
+    {
+        VelleBadgeVariant.Primary => "badge--primary",
+        VelleBadgeVariant.Secondary => "badge--secondary",
+        VelleBadgeVariant.Negative => "badge--negative",
+        _ => "",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("badge", Class, AdditionalAttributes, VariantClass);
+
+    private IReadOnlyDictionary<string, object>? SpanAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+
+    private IReadOnlyDictionary<string, object>? LinkAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "href");
+}

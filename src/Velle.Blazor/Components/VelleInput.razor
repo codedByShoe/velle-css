@@ -1,0 +1,188 @@
+@namespace Velle.Blazor
+@using System.Globalization
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Components.Forms
+
+@if (!string.IsNullOrEmpty(Label) || !string.IsNullOrEmpty(Description))
+{
+    <div class="@CombinedWrapperClass">
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <label class="text-sm font-medium leading-none" for="@EffectiveId">@Label</label>
+        }
+        @Control
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p class="text-sm text-subtle">@Description</p>
+        }
+    </div>
+}
+else
+{
+    @Control
+}
+
+@code {
+    /// <summary>
+    /// Optional cascading <see cref="EditContext"/> used to resolve validation state and field CSS classes.
+    /// </summary>
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// Form field name submitted on POST (for example, <c>Input.Email</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Unique DOM identifier for the control. When omitted, a stable identifier is derived from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Optional visible label rendered above the control and associated via <c>for</c>.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Optional helper text rendered below the control.
+    /// </summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>
+    /// Native HTML input type (defaults to <c>"text"</c>). Use <c>"textarea"</c> or set <see cref="Multiline"/> to render a <c>&lt;textarea&gt;</c>.
+    /// </summary>
+    [Parameter] public string Type { get; set; } = "text";
+
+    /// <summary>
+    /// When <see langword="true"/>, renders a <c>&lt;textarea&gt;</c> instead of an <c>&lt;input&gt;</c>.
+    /// </summary>
+    [Parameter] public bool Multiline { get; set; }
+
+    /// <summary>
+    /// Optional row count for <c>&lt;textarea&gt;</c> controls.
+    /// </summary>
+    [Parameter] public int? Rows { get; set; }
+
+    /// <summary>
+    /// Explicit input value. Takes precedence over a value evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>
+    /// Explicit checked state for checkbox or radio inputs. Takes precedence over a boolean evaluated from <see cref="For"/>.
+    /// </summary>
+    [Parameter] public bool? Checked { get; set; }
+
+    /// <summary>
+    /// Optional expression pointing to the bound model property (for example, <c>() =&gt; Input!.Name</c>).
+    /// Populates the initial value and links the control to <see cref="EditContext"/> validation state.
+    /// </summary>
+    [Parameter] public Expression<Func<object?>>? For { get; set; }
+
+    /// <summary>
+    /// Optional placeholder text shown when empty.
+    /// </summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the input or textarea alongside <c>input</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the wrapper <c>&lt;div&gt;</c> when <see cref="Label"/> or <see cref="Description"/> is rendered.
+    /// </summary>
+    [Parameter] public string? WrapperClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;input&gt;</c> or <c>&lt;textarea&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool IsTextarea => Multiline || string.Equals(Type, "textarea", StringComparison.OrdinalIgnoreCase);
+
+    private bool IsCheckable => string.Equals(Type, "checkbox", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(Type, "radio", StringComparison.OrdinalIgnoreCase);
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id)
+        ? AttributeUtilities.ToElementId(Name)
+        : Id;
+
+    private FieldIdentifier? ResolvedField => FormFieldUtilities.ResolveFieldIdentifier(EditContext, For, Name);
+
+    private bool IsInvalid => FormFieldUtilities.IsInvalid(EditContext, ResolvedField);
+
+    private string? FieldCssClass => FormFieldUtilities.GetFieldCssClass(EditContext, ResolvedField);
+
+    private string? EffectiveValue
+    {
+        get
+        {
+            if (Value is not null)
+            {
+                return Value;
+            }
+
+            if (IsCheckable)
+            {
+                return "true";
+            }
+
+            var evaluated = FormFieldUtilities.EvaluateExpression(For);
+            return evaluated switch
+            {
+                null => null,
+                string text => text,
+                DateOnly date => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                TimeOnly time => time.ToString("HH:mm", CultureInfo.InvariantCulture),
+                IFormattable formattable => formattable.ToString(null, CultureInfo.InvariantCulture),
+                _ => evaluated.ToString(),
+            };
+        }
+    }
+
+    private bool EffectiveChecked => Checked
+        ?? (IsCheckable && FormFieldUtilities.EvaluateExpression(For) is true);
+
+    private string? CombinedWrapperClass => AttributeUtilities.CombineClasses("flex flex-col gap-half", WrapperClass, null);
+
+    private string? CombinedInputClass => AttributeUtilities.CombineClasses("input", Class, AdditionalAttributes, FieldCssClass);
+
+    private IReadOnlyDictionary<string, object>? InputAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "id", "name", "type", "value", "checked", "placeholder", "rows", "aria-invalid");
+
+    private RenderFragment Control => @<text>
+        @if (IsTextarea)
+        {
+            <textarea id="@EffectiveId"
+                      name="@Name"
+                      rows="@Rows"
+                      placeholder="@Placeholder"
+                      class="@CombinedInputClass"
+                      aria-invalid="@(IsInvalid ? "true" : null)"
+                      @attributes="InputAttributes">@EffectiveValue</textarea>
+        }
+        else if (IsCheckable)
+        {
+            <input type="@Type"
+                   id="@EffectiveId"
+                   name="@Name"
+                   value="@EffectiveValue"
+                   checked="@EffectiveChecked"
+                   class="@CombinedInputClass"
+                   aria-invalid="@(IsInvalid ? "true" : null)"
+                   @attributes="InputAttributes" />
+        }
+        else
+        {
+            <input type="@Type"
+                   id="@EffectiveId"
+                   name="@Name"
+                   value="@EffectiveValue"
+                   placeholder="@Placeholder"
+                   class="@CombinedInputClass"
+                   aria-invalid="@(IsInvalid ? "true" : null)"
+                   @attributes="InputAttributes" />
+        }
+    </text>;
+}

@@ -1,0 +1,42 @@
+@namespace Velle.Blazor
+
+<span class="@CombinedClass"
+      x-sort:handle
+      aria-label="@Label"
+      @attributes="HandleAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <span class="icon icon--grip-vertical" aria-hidden="true"></span>
+    }
+</span>
+
+@code {
+    /// <summary>
+    /// Accessible label for the drag handle (defaults to <c>"Drag to reorder"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Drag to reorder";
+
+    /// <summary>
+    /// Optional custom handle icon or markup replacing the default grip icon.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.sortable-handle</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the handle element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("sortable-handle", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? HandleAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-sort:handle", "aria-label");
+}

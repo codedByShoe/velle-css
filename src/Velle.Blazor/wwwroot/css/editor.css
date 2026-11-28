@@ -1,0 +1,34 @@
+/* Maps Lexxy CSS variables onto Velle design tokens (automatically adapts to light/dark mode). */
+:root {
+  --lexxy-color-canvas: var(--color-surface, var(--color-bg));
+  --lexxy-color-ink: var(--color-text);
+  --lexxy-color-ink-medium: var(--color-text-subtle);
+  --lexxy-color-ink-light: var(--color-text-subtle);
+  --lexxy-color-ink-lighter: var(--color-border);
+  --lexxy-color-ink-lightest: var(--color-border-light);
+  --lexxy-color-ink-inverted: var(--color-text-reversed);
+  --lexxy-color-text: var(--color-text);
+  --lexxy-color-text-subtle: var(--color-text-subtle);
+  --lexxy-color-link: var(--color-link);
+  --lexxy-color-selected: var(--color-selected);
+  --lexxy-color-selected-dark: var(--color-selected-dark);
+  --lexxy-color-code-bg: var(--color-border-light);
+  --lexxy-color-table-header-bg: var(--color-border-light);
+  --lexxy-color-table-cell-border: var(--color-border);
+  --lexxy-font-base: var(--font-sans, system-ui, sans-serif);
+  --lexxy-font-mono: var(--font-monospace-code, ui-monospace, monospace);
+  --lexxy-focus-ring-color: var(--color-selected-dark);
+  --lexxy-radius: var(--rounded-md);
+  --lexxy-shadow: var(--shadow-sm);
+}
+
+.velle-editor lexxy-editor {
+  border-color: var(--color-border);
+  border-radius: var(--rounded-md);
+  box-shadow: var(--shadow-xs);
+  inline-size: 100%;
+}
+
+.velle-editor[data-invalid="true"] lexxy-editor {
+  border-color: var(--color-text-negative);
+}

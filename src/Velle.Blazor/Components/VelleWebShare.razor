@@ -1,0 +1,99 @@
+@namespace Velle.Blazor
+
+<button type="button"
+        class="@CombinedClass"
+        x-data="velleWebShare"
+        x-on:click="share"
+        data-velle-share-title="@Title"
+        data-velle-share-text="@Text"
+        data-velle-share-url="@Url"
+        data-velle-share-file="@FileUrl"
+        data-velle-share-always-show="@(AlwaysShow ? "true" : null)"
+        @attributes="ButtonAttributes">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <span class="icon icon--share" aria-hidden="true"></span>
+        <span>@Label</span>
+    }
+</button>
+
+@code {
+    /// <summary>
+    /// Share title passed to <c>navigator.share()</c>.
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// Share body text passed to <c>navigator.share()</c>.
+    /// </summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>
+    /// Optional URL passed to <c>navigator.share()</c>.
+    /// </summary>
+    [Parameter] public string? Url { get; set; }
+
+    /// <summary>
+    /// Optional file URL fetched and attached to <c>navigator.share({ files })</c>.
+    /// </summary>
+    [Parameter] public string? FileUrl { get; set; }
+
+    /// <summary>
+    /// Default button text when <see cref="ChildContent"/> is omitted (defaults to <c>"Share"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Share";
+
+    /// <summary>
+    /// When <see langword="true"/>, keeps the button visible even when <c>navigator.share</c> is unavailable.
+    /// </summary>
+    [Parameter] public bool AlwaysShow { get; set; }
+
+    /// <summary>
+    /// Visual style variant for the share button.
+    /// </summary>
+    [Parameter] public VelleButtonVariant Variant { get; set; } = VelleButtonVariant.Default;
+
+    /// <summary>
+    /// Optional custom button content replacing the default share icon and label.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the button.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the button.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string BaseClass => Variant switch
+    {
+        VelleButtonVariant.Primary => "btn btn--primary",
+        VelleButtonVariant.Secondary => "btn btn--secondary",
+        VelleButtonVariant.Borderless => "btn btn--borderless",
+        VelleButtonVariant.Negative => "btn btn--negative",
+        VelleButtonVariant.Plain => "btn btn--plain",
+        _ => "btn",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(BaseClass, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? ButtonAttributes =>
+        AttributeUtilities.Without(
+            AdditionalAttributes,
+            "class",
+            "type",
+            "x-data",
+            "x-on:click",
+            "data-velle-share-title",
+            "data-velle-share-text",
+            "data-velle-share-url",
+            "data-velle-share-file",
+            "data-velle-share-always-show");
+}

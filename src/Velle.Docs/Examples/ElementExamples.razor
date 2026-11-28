@@ -1,0 +1,296 @@
+@namespace Velle.Docs.Examples
+
+@switch (Id)
+{
+    case "accordion-basic":
+        <VelleAccordion GroupName="docs-faq" Items="AccordionItems" style="max-inline-size: 28rem" />
+        break;
+
+    case "alert-variants":
+        <div class="flex flex-col gap" style="max-inline-size: 30rem">
+            <VelleAlert Title="Deployment succeeded" Icon="circle-check">
+                Version <code>0.1.0-alpha.1</code> is live with zero circuit overhead.
+            </VelleAlert>
+            <VelleAlert Variant="VelleAlertVariant.Negative" Title="Build failed" Icon="circle-alert">
+                Fix compilation errors before publishing the package.
+            </VelleAlert>
+        </div>
+        break;
+
+    case "avatar-basic":
+        <div class="flex flex-col gap">
+            <div class="flex items-center flex-wrap gap">
+                <VelleAvatar Size="VelleAvatarSize.Small" Src="assets/images/avatar.svg" Alt="Ada Lovelace" />
+                <VelleAvatar Src="assets/images/avatar.svg" Alt="Ada Lovelace" BadgeColor="var(--green-600)" BadgeLabel="Online" />
+                <VelleAvatar Size="VelleAvatarSize.Large" Initials="GH" BadgeColor="var(--amber-500)" BadgeLabel="Away" />
+            </div>
+            <VelleAvatarGroup>
+                <VelleAvatar Src="assets/images/avatar.svg" Alt="Ada Lovelace" />
+                <VelleAvatar Initials="GH" />
+                <VelleAvatar Initials="AT" />
+                <VelleAvatar Initials="+4" />
+            </VelleAvatarGroup>
+        </div>
+        break;
+
+    case "badge-variants":
+        <div class="flex items-center flex-wrap gap-half">
+            <VelleBadge>Default</VelleBadge>
+            <VelleBadge Variant="VelleBadgeVariant.Primary">Primary</VelleBadge>
+            <VelleBadge Variant="VelleBadgeVariant.Secondary">
+                <VelleIcon Name="circle-check" />
+                <span>Verified</span>
+            </VelleBadge>
+            <VelleBadge Variant="VelleBadgeVariant.Negative">Deprecated</VelleBadge>
+            <VelleBadge Href="#" Variant="VelleBadgeVariant.Default">Link badge</VelleBadge>
+        </div>
+        break;
+
+    case "breadcrumb-basic":
+        <VelleBreadcrumb Items="BreadcrumbItems" />
+        break;
+
+    case "button-variants":
+        <div class="flex flex-col gap">
+            <div class="flex items-center flex-wrap gap-half">
+                <VelleButton>Default</VelleButton>
+                <VelleButton Variant="VelleButtonVariant.Primary">Primary</VelleButton>
+                <VelleButton Variant="VelleButtonVariant.Secondary">Secondary</VelleButton>
+                <VelleButton Variant="VelleButtonVariant.Borderless">Borderless</VelleButton>
+                <VelleButton Variant="VelleButtonVariant.Negative">Delete</VelleButton>
+                <VelleButton Variant="VelleButtonVariant.Plain">Plain</VelleButton>
+            </div>
+            <div class="flex items-center flex-wrap gap-half">
+                <VelleButton Size="VelleButtonSize.ExtraSmall">Extra small</VelleButton>
+                <VelleButton Size="VelleButtonSize.Small">Small</VelleButton>
+                <VelleButton>Default</VelleButton>
+                <VelleButton Size="VelleButtonSize.Large">Large</VelleButton>
+                <VelleButton IconOnly="true" aria-label="Search"><VelleIcon Name="search" /></VelleButton>
+                <VelleButton Href="#" Variant="VelleButtonVariant.Primary">Link button</VelleButton>
+                <VelleButton Disabled="true">Disabled</VelleButton>
+            </div>
+        </div>
+        break;
+
+    case "card-basic":
+        <VelleCard Title="Workspace settings" Description="Manage how your team collaborates." style="max-inline-size: 24rem">
+            <ChildContent>
+                <p class="text-sm text-subtle">Static SSR cards compose clean headers, body spacing, and footer actions.</p>
+            </ChildContent>
+            <Footer>
+                <div class="flex justify-end gap-half">
+                    <VelleButton Variant="VelleButtonVariant.Borderless">Cancel</VelleButton>
+                    <VelleButton Variant="VelleButtonVariant.Primary">Save changes</VelleButton>
+                </div>
+            </Footer>
+        </VelleCard>
+        break;
+
+    case "carousel-basic":
+        <VelleCarousel Label="Featured releases" style="max-inline-size: 26rem">
+            <VelleCarouselItem>
+                <VelleCard Title="Slide 1" Description="Plain CSS tokens"><p class="text-sm text-subtle">Zero utility build step required.</p></VelleCard>
+            </VelleCarouselItem>
+            <VelleCarouselItem>
+                <VelleCard Title="Slide 2" Description="Alpine.js CSP"><p class="text-sm text-subtle">Lightweight client interactivity without SignalR.</p></VelleCard>
+            </VelleCarouselItem>
+            <VelleCarouselItem>
+                <VelleCard Title="Slide 3" Description="Unified Razor API"><p class="text-sm text-subtle">60 components with XML docs and EditContext support.</p></VelleCard>
+            </VelleCarouselItem>
+        </VelleCarousel>
+        break;
+
+    case "chart-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 36rem">
+            <div style="block-size: 14rem">
+                <VelleChart Type="VelleChartType.Bar"
+                            Label="Quarterly signups"
+                            Data="BarChartData"
+                            Options="ChartOptions" />
+            </div>
+            <div style="block-size: 13rem">
+                <VelleChart Type="VelleChartType.Line"
+                            Label="Weekly active sessions"
+                            Data="LineChartData"
+                            Options="ChartOptions" />
+            </div>
+        </div>
+        break;
+
+    case "collapsible-basic":
+        <VelleCollapsible TriggerText="Toggle release notes"
+                          Summary="Release notes"
+                          DetailsClass="border rounded-lg p-3"
+                          SummaryClass="font-medium text-sm cursor-pointer"
+                          Class="flex flex-col gap-half"
+                          style="max-inline-size: 26rem">
+            <p class="text-sm text-subtle mbs-2">Added vendored @@alpinejs/mask, @@alpinejs/sort, Chart.js, and Lexxy editors for Blazor Static SSR.</p>
+        </VelleCollapsible>
+        break;
+
+    case "group-basic":
+        <VelleGroup Label="Text alignment">
+            <VelleButton Size="VelleButtonSize.Small">Left</VelleButton>
+            <VelleButton Size="VelleButtonSize.Small">Center</VelleButton>
+            <VelleButton Size="VelleButtonSize.Small">Right</VelleButton>
+        </VelleGroup>
+        break;
+
+    case "icon-basic":
+        <div class="flex items-center flex-wrap gap">
+            <VelleIcon Name="search" />
+            <VelleIcon Name="circle-check" />
+            <VelleIcon Name="settings" />
+            <VelleIcon Name="upload" />
+            <VelleIcon Name="download" />
+            <VelleIcon Name="calendar" />
+            <VelleIcon Name="sun" Label="Light theme" />
+            <VelleIcon Name="moon" Label="Dark theme" />
+        </div>
+        break;
+
+    case "kbd-basic":
+        <div class="flex items-center flex-wrap gap-half text-sm">
+            <span>Press</span>
+            <VelleKbd>⌘</VelleKbd>
+            <VelleKbd>K</VelleKbd>
+            <span>or</span>
+            <VelleKbd>/</VelleKbd>
+            <span>to filter docs.</span>
+        </div>
+        break;
+
+    case "list-basic":
+        <VelleList style="max-inline-size: 26rem">
+            <VelleListRow Title="Profile" Description="Update your display name and avatar." Href="#" LeadingIcon="user" ShowChevron="true" />
+            <VelleListRow Title="Notifications" Description="Daily digest emails enabled." Variant="VelleListRowVariant.Muted" LeadingIcon="bell">
+                <Trailing><VelleBadge Variant="VelleBadgeVariant.Secondary">On</VelleBadge></Trailing>
+            </VelleListRow>
+            <VelleListRow Title="Danger zone" Description="Permanently delete this project." Variant="VelleListRowVariant.Borderless" LeadingIcon="trash-2" />
+        </VelleList>
+        break;
+
+    case "pagination-basic":
+        <VellePagination CurrentPage="3" TotalPages="10" PageUrl="@(_ => "#")" />
+        break;
+
+    case "progress-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 26rem">
+            <VelleProgress Value="68" Max="100" Label="Migration progress" ShowValue="true" />
+            <VelleProgress Label="Checking packages..." />
+        </div>
+        break;
+
+    case "separator-basic":
+        <div class="flex flex-col gap" style="inline-size: 100%; max-inline-size: 24rem">
+            <div class="text-sm">Section above</div>
+            <VelleSeparator />
+            <div class="flex items-center gap text-sm" style="block-size: 1.5rem">
+                <span>Docs</span>
+                <VelleSeparator Orientation="VelleOrientation.Vertical" />
+                <span>API</span>
+                <VelleSeparator Orientation="VelleOrientation.Vertical" />
+                <span>Examples</span>
+            </div>
+        </div>
+        break;
+
+    case "skeleton-basic":
+        <div class="flex items-center gap" style="inline-size: 100%; max-inline-size: 22rem">
+            <VelleSkeleton Circle="true" Width="3rem" Height="3rem" />
+            <div class="flex flex-col gap-half flex-1">
+                <VelleSkeleton Width="65%" Height="0.875rem" />
+                <VelleSkeleton Width="90%" Height="0.75rem" />
+            </div>
+        </div>
+        break;
+
+    case "sortable-basic":
+        <VelleSortable OrderName="DocsDemo.Order" Group="docs-tasks" style="inline-size: 100%; max-inline-size: 24rem">
+            <VelleSortableItem Key="tokens" Class="border rounded-md pi-3 pb-2 flex items-center gap-half text-sm">
+                <VelleSortableHandle />
+                <span>Design tokens</span>
+                <VelleBadge Class="mis-auto">Done</VelleBadge>
+            </VelleSortableItem>
+            <VelleSortableItem Key="forms" Class="border rounded-md pi-3 pb-2 flex items-center gap-half text-sm">
+                <VelleSortableHandle />
+                <span>Static SSR forms</span>
+                <VelleBadge Variant="VelleBadgeVariant.Secondary" Class="mis-auto">Active</VelleBadge>
+            </VelleSortableItem>
+            <VelleSortableItem Key="docs" Class="border rounded-md pi-3 pb-2 flex items-center gap-half text-sm">
+                <VelleSortableHandle />
+                <span>Live Razor previews</span>
+                <VelleBadge Variant="VelleBadgeVariant.Primary" Class="mis-auto">New</VelleBadge>
+            </VelleSortableItem>
+        </VelleSortable>
+        break;
+
+    case "table-basic":
+        <VelleTable Caption="Recent invoices">
+            <Header>
+                <tr><th>Invoice</th><th>Status</th><th>Method</th><th class="text-end">Amount</th></tr>
+            </Header>
+            <Body>
+                <tr><th>INV001</th><td><VelleBadge Variant="VelleBadgeVariant.Secondary">Paid</VelleBadge></td><td>Card</td><td class="text-end">$250.00</td></tr>
+                <tr><th>INV002</th><td><VelleBadge>Pending</VelleBadge></td><td>ACH</td><td class="text-end">$150.00</td></tr>
+                <tr><th>INV003</th><td><VelleBadge Variant="VelleBadgeVariant.Negative">Overdue</VelleBadge></td><td>Wire</td><td class="text-end">$350.00</td></tr>
+            </Body>
+            <Footer>
+                <tr><th colspan="3">Total</th><td class="text-end font-semibold">$750.00</td></tr>
+            </Footer>
+        </VelleTable>
+        break;
+
+    case "tabs-basic":
+        <VelleTabs Id="docs-tabs" Label="Account sections" Items="TabItems" style="inline-size: 100%; max-inline-size: 28rem" />
+        break;
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private static readonly IReadOnlyList<VelleBreadcrumbItem> BreadcrumbItems =
+    [
+        new("Home", "#"),
+        new("Components", "#"),
+        new("VelleBreadcrumb"),
+    ];
+
+    private IReadOnlyList<VelleAccordionItem> AccordionItems =>
+    [
+        new("Does Velle require a SignalR circuit?", @<p>No. Every component renders semantic HTML in Blazor Static SSR with zero circuit overhead.</p>, Open: true),
+        new("How does interactivity work?", @<p>Native HTML primitives handle disclosures and modals; Alpine.js CSP enhances interactive widgets.</p>),
+        new("Are third-party assets bundled?", @<p>Yes — Alpine.js CSP, @@alpinejs/mask, @@alpinejs/sort, Flatpickr, Chart.js, and Lexxy are all vendored locally.</p>),
+    ];
+
+    private IReadOnlyList<VelleTab> TabItems =>
+    [
+        new("Overview", @<p class="text-sm text-subtle">Account summary and recent deployments. Use ArrowLeft, ArrowRight, Home, and End keys to switch tabs.</p>),
+        new("Settings", @<p class="text-sm text-subtle">Configure workspace preferences, domains, and notifications.</p>),
+        new("Security", @<p class="text-sm text-subtle">Manage API keys, passkeys, and audit logs.</p>),
+    ];
+
+    private static readonly object BarChartData = new
+    {
+        Labels = new[] { "Q1", "Q2", "Q3", "Q4" },
+        Datasets = new[]
+        {
+            new { Label = "Signups", Data = new[] { 120, 195, 260, 340 }, BackgroundColor = "#2563eb" },
+        },
+    };
+
+    private static readonly object LineChartData = new
+    {
+        Labels = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" },
+        Datasets = new[]
+        {
+            new { Label = "Sessions", Data = new[] { 42, 58, 51, 74, 89, 66, 94 }, BorderColor = "#10b981", BackgroundColor = "rgba(16, 185, 129, 0.15)", Fill = true },
+        },
+    };
+
+    private static readonly object ChartOptions = new
+    {
+        Responsive = true,
+        MaintainAspectRatio = false,
+    };
+}

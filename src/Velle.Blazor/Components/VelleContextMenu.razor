@@ -1,0 +1,62 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass" x-data="velleContextMenu" x-on:contextmenu="show" @attributes="RootAttributes">
+    @ChildContent
+
+    <div popover
+         id="@Id"
+         class="@CombinedPopoverClass"
+         role="menu"
+         aria-label="@Label"
+         data-velle-context-menu-content>
+        <CascadingValue Name="VelleDropdownId" Value="Id" IsFixed="true">
+            <VelleMenu>
+                @MenuContent
+            </VelleMenu>
+        </CascadingValue>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier for the floating context menu popover.
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Accessible label for the context menu (defaults to <c>"Context menu"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Context menu";
+
+    /// <summary>
+    /// Trigger area content that responds to right-click (<c>contextmenu</c>) events.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Menu items (<see cref="VelleMenuItem"/>, <see cref="VelleMenuHeader"/>, <see cref="VelleMenuSeparator"/>) shown at the pointer.
+    /// </summary>
+    [Parameter] public RenderFragment? MenuContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the trigger wrapper container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the unanchored popover container.
+    /// </summary>
+    [Parameter] public string? PopoverClass { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the trigger wrapper container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private string? CombinedPopoverClass => AttributeUtilities.CombineClasses("popover popover--unanchored", PopoverClass, null);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

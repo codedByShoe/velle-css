@@ -1,0 +1,73 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleCommand"
+     x-on:pointermove="onPointerMove"
+     x-on:click="onClick"
+     @attributes="RootAttributes">
+    <label class="input input--actor flex items-center gap command__input">
+        <span class="icon icon--search" aria-hidden="true"></span>
+        <input type="text"
+               autocomplete="off"
+               placeholder="@Placeholder"
+               aria-label="@SearchLabel"
+               aria-controls="@ListId"
+               data-velle-command-input
+               x-on:input="onInput"
+               x-on:keydown="onKeydown" />
+    </label>
+
+    <div class="command__list" id="@ListId" role="listbox" aria-label="@Label">
+        <div class="command__empty" hidden data-velle-command-empty>@EmptyText</div>
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Unique DOM identifier prefix for the command listbox (<c>{Id}-list</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Id { get; set; } = null!;
+
+    /// <summary>
+    /// Accessible label for the command listbox (defaults to <c>"Commands"</c>).
+    /// </summary>
+    [Parameter] public string Label { get; set; } = "Commands";
+
+    /// <summary>
+    /// Accessible label for the search input (defaults to <c>"Search commands"</c>).
+    /// </summary>
+    [Parameter] public string SearchLabel { get; set; } = "Search commands";
+
+    /// <summary>
+    /// Placeholder text displayed in the search input.
+    /// </summary>
+    [Parameter] public string Placeholder { get; set; } = "Type a command or search…";
+
+    /// <summary>
+    /// Message shown when no command items match the search query.
+    /// </summary>
+    [Parameter] public string EmptyText { get; set; } = "No results found.";
+
+    /// <summary>
+    /// Command items, groups (<see cref="VelleCommandGroup"/>), and separators (<see cref="VelleCommandSeparator"/>).
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto <c>.command</c>.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root <c>.command</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ListId => $"{Id}-list";
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("command", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class");
+}

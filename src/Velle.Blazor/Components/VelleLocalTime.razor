@@ -1,0 +1,51 @@
+@namespace Velle.Blazor
+@using System.Globalization
+
+<time datetime="@Value.ToString("O", CultureInfo.InvariantCulture)"
+      data-velle-local-time="@FormatName"
+      x-data="velleLocalTime"
+      x-on:velle-enhanced-load.window="refresh"
+      class="@CombinedClass"
+      @attributes="TimeAttributes">@Value.ToString(FallbackFormat, CultureInfo.InvariantCulture)</time>
+
+@code {
+    /// <summary>
+    /// Timestamp to format into the user's local browser timezone.
+    /// </summary>
+    [Parameter, EditorRequired] public DateTimeOffset Value { get; set; }
+
+    /// <summary>
+    /// Client-side display format applied via <c>Intl.DateTimeFormat</c> or <c>Intl.RelativeTimeFormat</c>
+    /// (defaults to <see cref="VelleLocalTimeFormat.DateTime"/>).
+    /// </summary>
+    [Parameter] public VelleLocalTimeFormat Format { get; set; } = VelleLocalTimeFormat.DateTime;
+
+    /// <summary>
+    /// Server-rendered fallback .NET format string displayed before client enhancement runs (defaults to <c>"u"</c>).
+    /// </summary>
+    [Parameter] public string FallbackFormat { get; set; } = "u";
+
+    /// <summary>
+    /// Additional CSS classes applied to the <c>&lt;time&gt;</c> element.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the <c>&lt;time&gt;</c> element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string FormatName => Format switch
+    {
+        VelleLocalTimeFormat.Date => "date",
+        VelleLocalTimeFormat.ShortDate => "shortdate",
+        VelleLocalTimeFormat.Time => "time",
+        VelleLocalTimeFormat.Ago => "ago",
+        _ => "datetime",
+    };
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses(null, Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? TimeAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "datetime", "data-velle-local-time", "x-data", "x-on:velle-enhanced-load.window");
+}

@@ -1,0 +1,119 @@
+@namespace Velle.Blazor
+
+<div class="@CombinedClass"
+     x-data="velleUploadPreview"
+     data-velle-default-image="@DefaultImage"
+     @attributes="RootAttributes">
+    <label class="flex items-center gap" for="@EffectiveId">
+        <span class="btn btn--icon">
+            <input id="@EffectiveId"
+                   type="file"
+                   name="@Name"
+                   accept="@Accept"
+                   disabled="@Disabled"
+                   class="sr-only"
+                   data-velle-upload-input
+                   x-on:change="preview" />
+            <span class="icon icon--camera" style="--icon-size: 1.25rem" aria-hidden="true"></span>
+            <span class="sr-only">@UploadLabel</span>
+        </span>
+
+        <span class="btn avatar" style="--avatar-size: @PreviewSize;">
+            <img alt="@Alt" src="@EffectiveImageSrc" data-velle-upload-image />
+        </span>
+    </label>
+
+    @if (ShowRemove)
+    {
+        <button type="button" class="btn btn--icon btn--negative" disabled="@Disabled" x-on:click="clear">
+            <span class="icon icon--minus" style="--icon-size: 1.25rem" aria-hidden="true"></span>
+            <span class="sr-only">@RemoveLabel</span>
+        </button>
+    }
+
+    @if (!string.IsNullOrEmpty(RemoveName))
+    {
+        <input type="hidden" name="@RemoveName" value="false" autocomplete="off" data-velle-upload-remove />
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Form field name for the <c>&lt;input type="file"&gt;</c>.
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// Optional DOM identifier for the file input (derived from <see cref="Name"/> when omitted).
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>
+    /// Current image URL shown initially (falls back to <see cref="DefaultImage"/> when omitted).
+    /// </summary>
+    [Parameter] public string? CurrentImage { get; set; }
+
+    /// <summary>
+    /// Fallback image URL restored when the user clicks remove.
+    /// </summary>
+    [Parameter, EditorRequired] public string DefaultImage { get; set; } = null!;
+
+    /// <summary>
+    /// Optional hidden input name set to <c>"true"</c> when cleared and <c>"false"</c> when a new file is selected.
+    /// </summary>
+    [Parameter] public string? RemoveName { get; set; }
+
+    /// <summary>
+    /// File types accepted by the file input (defaults to <c>"image/*"</c>).
+    /// </summary>
+    [Parameter] public string Accept { get; set; } = "image/*";
+
+    /// <summary>
+    /// Accessible <c>alt</c> attribute for the preview image.
+    /// </summary>
+    [Parameter] public string Alt { get; set; } = "Preview";
+
+    /// <summary>
+    /// Screen-reader label for the upload trigger button.
+    /// </summary>
+    [Parameter] public string UploadLabel { get; set; } = "Upload image";
+
+    /// <summary>
+    /// Screen-reader label for the remove button.
+    /// </summary>
+    [Parameter] public string RemoveLabel { get; set; } = "Remove image";
+
+    /// <summary>
+    /// CSS length assigned to <c>--avatar-size</c> on the preview thumbnail (defaults to <c>"6rem"</c>).
+    /// </summary>
+    [Parameter] public string PreviewSize { get; set; } = "6rem";
+
+    /// <summary>
+    /// Controls whether the clear/remove button is rendered (defaults to <see langword="true"/>).
+    /// </summary>
+    [Parameter] public bool ShowRemove { get; set; } = true;
+
+    /// <summary>
+    /// Disables file picking and removing when <see langword="true"/>.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Additional CSS classes merged onto the root flex container.
+    /// </summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>
+    /// Additional HTML attributes applied to the root container.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string EffectiveId => string.IsNullOrWhiteSpace(Id) ? AttributeUtilities.ToElementId(Name) : Id;
+
+    private string EffectiveImageSrc => string.IsNullOrEmpty(CurrentImage) ? DefaultImage : CurrentImage;
+
+    private string? CombinedClass => AttributeUtilities.CombineClasses("flex items-center gap", Class, AdditionalAttributes);
+
+    private IReadOnlyDictionary<string, object>? RootAttributes =>
+        AttributeUtilities.Without(AdditionalAttributes, "class", "x-data", "data-velle-default-image");
+}
